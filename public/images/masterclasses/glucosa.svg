@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1586 992" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#07182A" />
+      <stop offset="50%" stop-color="#0E2D4A" />
+      <stop offset="100%" stop-color="#071421" />
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E5C07B" />
+      <stop offset="100%" stop-color="#C68A27" />
+    </linearGradient>
+  </defs>
+  <rect width="1586" height="992" fill="url(#bgGrad)" />
+  <rect x="40" y="40" width="1506" height="912" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2" rx="16" />
+  
+  <text x="120" y="160" fill="url(#gold)" font-family="system-ui, sans-serif" font-size="22" font-weight="700" letter-spacing="3">ACADEMIA SALUD FORTE · MASTERCLASS</text>
+  <text x="120" y="270" fill="#FFFFFF" font-family="Georgia, serif" font-size="56" font-weight="600">Monitorea tu glucosa con confianza</text>
+  <text x="120" y="340" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="26">Cómo medir, registrar y comprender tus lecturas de forma correcta y segura</text>
+  
+  <g transform="translate(1100, 380)" fill="none" stroke="url(#gold)" stroke-width="6" stroke-linecap="round">
+    <circle cx="120" cy="120" r="100" stroke="rgba(255,255,255,0.15)" stroke-width="8" />
+    <path d="M70 120 L105 155 L175 85" stroke="url(#gold)" stroke-width="12" />
+  </g>
+
+  <rect x="120" y="800" width="380" height="54" rx="27" fill="rgba(198,138,39,0.15)" stroke="#C68A27" stroke-width="2" />
+  <text x="310" y="835" text-anchor="middle" fill="#E5C07B" font-family="system-ui, sans-serif" font-size="18" font-weight="700" letter-spacing="1">EN PRODUCCIÓN AUDIOVISUAL</text>
+</svg>

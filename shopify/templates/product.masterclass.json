@@ -1,0 +1,71 @@
+{
+  "name": "Masterclass de Academia",
+  "wrapper": "main#MainContent.content-for-layout focus-none",
+  "sections": {
+    "main": {
+      "type": "main-masterclass-product",
+      "blocks": {
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "price": {
+          "type": "price",
+          "settings": {}
+        },
+        "variant_picker": {
+          "type": "variant_picker",
+          "settings": {}
+        },
+        "buy_buttons": {
+          "type": "buy_buttons",
+          "settings": {
+            "show_dynamic_checkout": true
+          }
+        },
+        "description": {
+          "type": "description",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "title",
+        "price",
+        "variant_picker",
+        "buy_buttons",
+        "description"
+      ],
+      "settings": {
+        "show_medical_license": true,
+        "show_lifetime_badge": true
+      }
+    },
+    "syllabus": {
+      "type": "academy-syllabus",
+      "settings": {
+        "heading": "Temario y Lecciones",
+        "subheading": "Estructura modular con clases explicativas y materiales descargables"
+      }
+    },
+    "instructor": {
+      "type": "academy-instructor",
+      "settings": {
+        "doctor_name": "Dr. Mauricio Benjamín Galindo López",
+        "doctor_license": "Cédula Profesional 15851723",
+        "institution": "Médico Cirujano · Tecnológico de Monterrey"
+      }
+    },
+    "disclaimer": {
+      "type": "academy-disclaimer",
+      "settings": {
+        "disclaimer_text": "El contenido de esta masterclass tiene fines exclusivamente educativos e informativos. No sustituye una consulta, diagnóstico o tratamiento médico individual. Ante síntomas, dudas o decisiones relacionadas con tu salud, consulta a un profesional calificado."
+      }
+    }
+  },
+  "order": [
+    "main",
+    "syllabus",
+    "instructor",
+    "disclaimer"
+  ]
+}

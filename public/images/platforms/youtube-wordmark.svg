@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 48" fill="none" role="img" aria-label="YouTube">
+  <!-- YouTube Official Play Button Icon in #FF0000 -->
+  <g transform="translate(0, 8)">
+    <rect width="44" height="32" rx="7" fill="#FF0000"/>
+    <polygon points="18,10 30,16 18,22" fill="#FFFFFF"/>
+  </g>
+  <!-- YouTube Crisp Wordmark in Pure White -->
+  <text x="52" y="32" fill="#FFFFFF" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'YouTube Sans', 'Roboto', 'Arial Black', sans-serif" font-size="27" font-weight="700" letter-spacing="-0.5px">YouTube</text>
+</svg>

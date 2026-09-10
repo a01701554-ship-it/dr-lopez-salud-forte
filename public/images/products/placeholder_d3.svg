@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#141E30" />
+      <stop offset="100%" stop-color="#243B55" />
+    </linearGradient>
+    <linearGradient id="sun" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDB813" />
+      <stop offset="100%" stop-color="#F58220" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="800" fill="url(#bg)" rx="16" />
+  <rect x="40" y="40" width="720" height="720" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2" rx="12" />
+  
+  <g transform="translate(340, 240)" fill="none" stroke="url(#sun)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="60" cy="115" r="40" stroke="url(#sun)" stroke-width="4" stroke-dasharray="6 6" />
+    <path d="M60 85 L60 145 M30 115 L90 115" stroke="url(#sun)" stroke-width="4" />
+    <circle cx="60" cy="115" r="16" fill="url(#sun)" />
+  </g>
+
+  <text x="400" y="550" text-anchor="middle" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="600" letter-spacing="0.5">VITAMINA D3 GOTAS SUBLINGUALES</text>
+  <text x="400" y="590" text-anchor="middle" fill="#CBD5E1" font-family="system-ui, -apple-system, sans-serif" font-size="20">Formulación y Dosificación en Evaluación</text>
+  <rect x="250" y="630" width="300" height="38" rx="19" fill="rgba(253,184,19,0.15)" stroke="#FDB813" stroke-width="1.5" />
+  <text x="400" y="655" text-anchor="middle" fill="#FDB813" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" letter-spacing="1">REGISTRO EN BORRADOR CLÍNICO</text>
+</svg>

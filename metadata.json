@@ -1,0 +1,6 @@
+{
+  "name": "Dr. Mauricio Benjamín Galindo López",
+  "description": "Plataforma médica digital y Academia oficial del Dr. Mauricio Benjamín Galindo López, Médico Cirujano (Cédula 15851723), creador de Salud Forte. Consultas, educación médica y masterclasses fundamentadas en evidencia.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,83 @@
+{% comment %}
+  Academia Salud Forte - Temario de Masterclass (Shopify Section)
+{% endcomment %}
+
+<section class="academy-syllabus py-16 bg-[#FAF8F5] border-t border-[#B39A6A]/20">
+  <div class="max-w-[1000px] mx-auto px-5">
+    <div class="mb-10 text-center md:text-left">
+      <span class="text-xs uppercase tracking-widest text-[#B39A6A] font-semibold">
+        Programa Académico
+      </span>
+      <h2 class="font-serif text-3xl sm:text-4xl text-[#111820] font-medium mt-1">
+        {{ section.settings.heading | default: "Temario y contenido del programa" }}
+      </h2>
+      <p class="text-sm text-[#111820]/70 mt-2">
+        {{ section.settings.subheading }}
+      </p>
+    </div>
+
+    <div class="space-y-4" data-syllabus-container>
+      {% for block in section.blocks %}
+        {% if block.type == 'module' %}
+          <div class="rounded-2xl bg-white border border-[#B39A6A]/25 overflow-hidden shadow-xs" {{ block.shopify_attributes }}>
+            <div class="px-6 py-5 flex items-center justify-between">
+              <div>
+                <h3 class="font-serif text-xl font-medium text-[#111820]">
+                  {{ block.settings.module_title }}
+                </h3>
+                <p class="text-xs text-[#111820]/65 mt-0.5">
+                  {{ block.settings.module_description }}
+                </p>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Temario de Academia",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Título de la sección",
+      "default": "Temario y contenido del programa"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subtítulo",
+      "default": "Lecciones estructuradas paso a paso con acceso secuencial y materiales descargables."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "module",
+      "name": "Módulo",
+      "settings": [
+        {
+          "type": "text",
+          "id": "module_title",
+          "label": "Título del Módulo",
+          "default": "Módulo 1: Fundamentos Fisiológicos"
+        },
+        {
+          "type": "textarea",
+          "id": "module_description",
+          "label": "Descripción del Módulo",
+          "default": "Bases endocrinas y análisis de la evidencia científica disponible."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Temario de Academia"
+    }
+  ]
+}
+{% endschema %}
