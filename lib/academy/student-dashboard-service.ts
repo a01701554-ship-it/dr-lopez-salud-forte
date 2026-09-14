@@ -27,6 +27,7 @@ export interface EntitlementData {
 
 export interface LessonData {
   id: string;
+  slug: string;
   masterclass_id: string;
   title: string;
   position: number;
@@ -64,6 +65,7 @@ export interface ContinueItemData {
   masterclassSlug: string;
   lessonTitle: string;
   lessonId: string;
+  lessonSlug: string;
   lessonPosition: number;
   progressPercent: number;
   remainingSeconds: number | null;
@@ -205,7 +207,7 @@ export async function fetchStudentDashboardData(userId: string): Promise<Student
   const masterclassIds = activeEntitlements.map((e) => e.masterclass_id);
   const { data: lessonRows, error: lessonError } = await supabase
     .from('lessons')
-    .select('id, masterclass_id, title, position, duration_seconds, is_preview, status')
+    .select('id, slug, masterclass_id, title, position, duration_seconds, is_preview, status')
     .in('masterclass_id', masterclassIds)
     .order('position', { ascending: true });
 
@@ -296,6 +298,7 @@ export async function fetchStudentDashboardData(userId: string): Promise<Student
             masterclassSlug: ent.masterclass.slug,
             lessonTitle: lesson.title,
             lessonId: lesson.id,
+            lessonSlug: lesson.slug,
             lessonPosition: lesson.position,
             progressPercent: latestProgress.progress_percent || 0,
             remainingSeconds,

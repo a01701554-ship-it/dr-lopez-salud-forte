@@ -190,7 +190,7 @@ export default function MyAccountPage() {
 
               <div className="shrink-0">
                 <Link
-                  href={`/aprender/${continueItem.masterclassSlug}/${continueItem.lessonId}`}
+                  href={`/aprender/${continueItem.masterclassSlug}/${continueItem.lessonSlug || continueItem.lessonId}`}
                   className="inline-flex items-center justify-center gap-2.5 h-[50px] px-7 rounded-full bg-champagne text-obsidian text-xs font-bold uppercase tracking-wider hover:bg-[#C2AA7B] transition-colors shadow-sm"
                 >
                   <Play className="size-4 fill-obsidian" />
@@ -276,7 +276,7 @@ export default function MyAccountPage() {
                       </div>
 
                       <Link
-                        href={`/aprender/${mc.slug}/${mcLessons[0]?.id || 'inicio'}`}
+                        href={`/aprender/${mc.slug}/${mcLessons[0]?.slug || mcLessons[0]?.id || 'inicio'}`}
                         className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 h-[42px] px-5 rounded-full bg-obsidian text-white text-xs font-semibold uppercase tracking-wider hover:bg-[#07182A] transition-colors shrink-0"
                       >
                         <Play className="size-3.5 fill-champagne text-champagne" />
@@ -369,5 +369,4 @@ export default function MyAccountPage() {
     </div>
   );
 }
-
 

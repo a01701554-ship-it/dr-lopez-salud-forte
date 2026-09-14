@@ -228,7 +228,9 @@ export default function MisMasterclassesPage() {
                     .filter((p) => p.progress_percent > 0)
                     .sort((a, b) => new Date(b.last_watched_at).getTime() - new Date(a.last_watched_at).getTime())[0];
 
-                  const targetLessonId = inProgressLesson?.lesson_id || mcLessons[0]?.id || 'inicio';
+                  const targetLesson =
+                    mcLessons.find((item) => item.id === inProgressLesson?.lesson_id) || mcLessons[0];
+                  const targetLessonSlug = targetLesson?.slug || targetLesson?.id || 'inicio';
 
                   return (
                     <div
@@ -290,7 +292,7 @@ export default function MisMasterclassesPage() {
 
                       {/* Action CTA */}
                       <Link
-                        href={`/aprender/${course.slug}/${targetLessonId}`}
+                        href={`/aprender/${course.slug}/${targetLessonSlug}`}
                         className="w-full py-2.5 px-4 rounded-xl bg-obsidian text-white text-xs font-semibold flex items-center justify-center gap-2 hover:bg-[#07182A] transition-all shadow-xs"
                       >
                         <Play className="size-3.5 fill-white text-white" />
@@ -307,4 +309,3 @@ export default function MisMasterclassesPage() {
     </div>
   );
 }
-
