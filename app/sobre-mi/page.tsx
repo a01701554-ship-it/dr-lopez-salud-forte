@@ -28,7 +28,10 @@ export default function AboutPage() {
               </ActionLink>
             </div>
           </div>
-          <DoctorPortrait variant="about" className="min-h-[620px]" />
+          <DoctorPortrait
+            variant="about"
+            className="w-full aspect-[3/4] sm:aspect-[4/4.5] md:aspect-[3/3.6] lg:aspect-auto min-h-0 sm:min-h-[460px] lg:min-h-[620px]"
+          />
         </div>
       </section>
 

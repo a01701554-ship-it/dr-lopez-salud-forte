@@ -10,7 +10,6 @@ import {
   ShieldCheck,
   AlertCircle,
   CheckCircle2,
-  ExternalLink,
 } from 'lucide-react';
 
 export default function RegisterPage() {
@@ -29,7 +28,6 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [successInfo, setSuccessInfo] = useState<{
     message: string;
-    verificationUrl?: string;
   } | null>(null);
 
   // Auto redirect if already authenticated
@@ -45,7 +43,7 @@ export default function RegisterPage() {
 
     setError(null);
 
-    // Validation
+    // Client-side validation
     if (!firstName.trim() || !lastName.trim()) {
       setError('Por favor completa tu nombre y apellidos.');
       return;
@@ -93,7 +91,6 @@ export default function RegisterPage() {
     if (result.success) {
       setSuccessInfo({
         message: result.message || 'Tu cuenta ha sido creada exitosamente.',
-        verificationUrl: result.verificationUrl,
       });
     } else {
       setError(result.error || 'No se pudo crear la cuenta. Por favor verifica tus datos.');
@@ -117,34 +114,18 @@ export default function RegisterPage() {
           </h1>
 
           <p className="text-obsidian/75 text-sm leading-relaxed mb-6">
-            Hemos enviado un enlace seguro de verificación de un solo uso a{' '}
+            Hemos enviado un enlace seguro de verificación a{' '}
             <strong>{email}</strong>.
           </p>
 
           <div className="p-4 rounded-2xl bg-[#F9F7F2] border border-[#B39A6A]/20 text-xs text-obsidian/70 text-left leading-relaxed mb-6 space-y-2">
             <p>
-              <strong>Importante para tu privacidad:</strong> Hasta verificar tu correo electrónico, no podrás reclamar compras anteriores ni acceder a masterclasses asociadas.
+              <strong>Confirmación requerida:</strong> Haz clic en el enlace recibido en tu correo electrónico para verificar tu cuenta y comenzar a explorar tus masterclasses.
             </p>
             <p className="text-[11px] text-obsidian/60">
-              El enlace es válido durante 24 horas y solo puede utilizarse una vez.
+              Si no encuentras el correo en tu bandeja principal, revisa tu carpeta de spam o correo no deseado.
             </p>
           </div>
-
-          {/* If running in preview/dev mode and email service fallback provides the link */}
-          {successInfo.verificationUrl && (
-            <div className="mb-6 p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 text-left">
-              <div className="font-semibold mb-1 flex items-center gap-1.5">
-                <span>Acceso directo (Modo de vista previa):</span>
-              </div>
-              <a
-                href={successInfo.verificationUrl}
-                className="underline break-all font-mono text-[11px] hover:text-amber-950 flex items-center gap-1 mt-1"
-              >
-                <span>Verificar correo ahora</span>
-                <ExternalLink className="size-3 shrink-0" />
-              </a>
-            </div>
-          )}
 
           <a
             href="/cuenta/iniciar-sesion"
@@ -165,7 +146,7 @@ export default function RegisterPage() {
         <div className="flex justify-center mb-4">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-widest bg-navy-50 text-navy-800 border border-navy-200/60">
             <ShieldCheck className="size-3.5 text-champagne" />
-            REGISTRO DE ALUMNOS & PACIENTES
+            REGISTRO DE PACIENTES & ALUMNOS
           </span>
         </div>
 
@@ -246,7 +227,7 @@ export default function RegisterPage() {
               <Mail className="absolute left-3.5 top-3.5 size-4 text-obsidian/40 pointer-events-none" />
             </div>
             <p className="text-[11px] text-obsidian/50 mt-1">
-              Si compraste masterclasses previamente, utiliza el mismo correo para vincularlas automáticamente tras la verificación.
+              Utiliza el correo electrónico con el que te registrarás o realizarás tus compras.
             </p>
           </div>
 
@@ -335,7 +316,7 @@ export default function RegisterPage() {
               </span>
             </label>
 
-            {/* Opcional y separado: Consentimiento de Marketing */}
+            {/* Opcional: Consentimiento de Marketing */}
             <label className="flex items-start gap-3 cursor-pointer select-none">
               <input
                 type="checkbox"
@@ -344,7 +325,7 @@ export default function RegisterPage() {
                 className="mt-1 size-4 rounded border-gray-300 text-obsidian focus:ring-champagne accent-obsidian shrink-0 cursor-pointer"
               />
               <span className="text-xs text-obsidian/65 leading-relaxed">
-                (Opcional) Deseo recibir boletines médicos educativos, avisos de nuevas masterclasses y artículos con evidencia del Dr. Mauricio Galindo. Puedo revocar este consentimiento en cualquier momento.
+                (Opcional) Deseo recibir boletines médicos educativos y avisos de nuevas masterclasses del Dr. Mauricio Galindo.
               </span>
             </label>
           </div>

@@ -22,6 +22,7 @@ export interface ManagedImageProps {
   sizes?: string;
   device?: 'desktop' | 'mobile' | 'all';
   alt?: string;
+  objectFit?: 'cover' | 'contain';
 }
 
 export function ManagedImage({
@@ -34,6 +35,7 @@ export function ManagedImage({
   sizes = '(max-width: 1023px) 100vw, 50vw',
   device = 'all',
   alt: customAlt,
+  objectFit,
 }: ManagedImageProps) {
   const [hasError, setHasError] = useState(false);
 
@@ -87,7 +89,10 @@ export function ManagedImage({
             decoding="async"
             sizes={sizes}
             className={cn(
-              'size-full object-cover transition-opacity duration-300',
+              'size-full transition-opacity duration-300',
+              (objectFit || activeSlot?.objectFit) === 'contain'
+                ? 'object-contain'
+                : 'object-cover',
               positionClass,
               imgClassName,
             )}

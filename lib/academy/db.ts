@@ -17,634 +17,1861 @@ import { OFFICIAL_INSTRUCTOR } from './instructor';
 // ==============================================================================
 
 export const INITIAL_COURSES: Course[] = [
-  {
-    id: 'course_glucosa_001',
-    slug: 'monitorea-tu-glucosa-con-confianza',
-    title: 'Monitorea tu glucosa con confianza',
-    subtitle: 'Cómo medir, registrar y comprender tus resultados de forma correcta y segura.',
-    shortDescription: 'Aprende a utilizar correctamente un glucómetro, conocer las bases del monitoreo continuo y registrar tus resultados sin convertir una lectura aislada en un diagnóstico. Identifica errores frecuentes y reconoce cuándo debes comunicarte con tu equipo de salud.',
-    description: 'Aprende a utilizar correctamente un glucómetro, conocer las bases del monitoreo continuo y registrar tus resultados sin convertir una lectura aislada en un diagnóstico. Identifica errores frecuentes y reconoce cuándo debes comunicarte con tu equipo de salud.',
-    category: 'bienestar',
-    categoryLabel: 'Bienestar & Fisiología',
-    level: 'Introductorio',
-    durationMinutes: 45,
-    lessonCount: 9,
-    status: 'draft',
-    accessType: 'free',
-    launchStatus: 'available',
-    previewEnabled: true,
-    price: 0,
-    compareAtPrice: 0,
-    currency: 'MXN',
-    instructor: {
-      name: OFFICIAL_INSTRUCTOR.name,
-      title: OFFICIAL_INSTRUCTOR.credentials,
-      license: OFFICIAL_INSTRUCTOR.professionalLicense,
-      institution: OFFICIAL_INSTRUCTOR.institution,
-      avatarUrl: OFFICIAL_INSTRUCTOR.profileImage,
+{
+  "id": "course_glucosa_001",
+  "slug": "monitorea-tu-glucosa-con-confianza",
+  "title": "Monitorea tu glucosa con confianza",
+  "subtitle": "Aprende a usar tu glucómetro, evitar errores comunes y convertir tus lecturas en información útil para tu consulta.",
+  "shortDescription": "¿Tus lecturas cambian y no sabes si mediste bien? Aprende paso a paso a preparar el equipo, obtener una medición más confiable, registrar el contexto y reconocer cuándo una cifra necesita confirmación o atención profesional.",
+  "description": "Medirte la glucosa no debería sentirse como adivinar. En esta masterclass aprenderás, desde cero, cómo funciona un glucómetro, cómo preparar tus manos y tus materiales, cómo obtener la muestra y cuáles son los errores que pueden alterar una lectura. También conocerás la diferencia básica entre un glucómetro y un monitor continuo, y aprenderás a registrar horarios, alimentos, actividad, síntomas y medicamentos para que los números tengan contexto.\n\nNo recibirás metas universales ni cambios de tratamiento. Obtendrás algo más seguro y útil: un método sencillo para medir mejor, identificar patrones sin sacar conclusiones precipitadas y llevar información ordenada a tu consulta.",
+  "salesPromise": "Dejarás de coleccionar números sueltos y aprenderás a construir un registro que tú y tu equipo de salud puedan comprender.",
+  "recognitionPoints": [
+    "“¿Lo estoy haciendo bien o estoy desperdiciando tiras?”",
+    "“Me salió diferente dos veces; ¿cuál número vale?”",
+    "“¿Esto significa que ya estoy peor?”",
+    "“Tengo muchos números, pero no sé qué enseñarle al doctor”"
+  ],
+  "beforeState": [
+    "Información dispersa",
+    "Miedo y mitos",
+    "Datos sin contexto",
+    "Dificultad para hablar con el médico"
+  ],
+  "afterState": [
+    "Comprensión básica de herramientas",
+    "Registro útil con contexto",
+    "Preguntas mejor formuladas",
+    "Siguiente paso más seguro"
+  ],
+  "notFor": [
+    "Quien busca un diagnóstico, una dosis de insulina, una meta individual o instrucciones para modificar medicamentos. Eso requiere evaluación profesional."
+  ],
+  "learningOutcomes": [
+    "Reconocer las partes del glucómetro y revisar tiras, caducidad y almacenamiento.",
+    "Prepararse y realizar la medición siguiendo el manual específico de su equipo.",
+    "Identificar causas frecuentes de resultados inesperados.",
+    "Diferenciar una lectura puntual de una tendencia y de una prueba diagnóstica.",
+    "Registrar el contexto de cada medición sin volverse esclavo de los números.",
+    "Preparar preguntas útiles para su consulta y seguir su plan personal ante cifras o síntomas preocupantes."
+  ],
+  "includedFeatures": [
+    "Bitácora de glucosa de siete días con contexto",
+    "Tarjeta “Antes de repetir la medición, revisa esto”",
+    "Guía visual del equipo y de los errores del medidor",
+    "Hoja “Mis cuatro preguntas para la consulta”"
+  ],
+  "targetAudience": [
+    "Una persona adulta mexicana que acaba de recibir un diagnóstico de diabetes o prediabetes.",
+    "Alguien que comenzó a usar glucómetro o cuida a un familiar.",
+    "Quien utiliza monitoreo continuo o recibió la indicación de registrar su glucosa y no sabe exactamente cómo hacerlo."
+  ],
+  "faqs": [
+    {
+      "question": "Mi aparato es de otra marca",
+      "answer": "La técnica se enseña como base común, pero se recalca que cada persona debe seguir el manual de su modelo."
     },
-    image: '/images/masterclasses/official/glucosa-2026.webp',
-    imageFallback: '/images/masterclasses/official/glucosa-2026.png',
-    imageAlt: 'Monitorea tu glucosa con confianza',
-    imageWidth: 1586,
-    imageHeight: 992,
-    imagePosition: 'center',
-    imagePriority: false,
-    coverImage: '/images/masterclasses/official/glucosa-2026.webp',
-    coverAlt: 'Monitorea tu glucosa con confianza',
-    imageId: 'IMG-901-PENDIENTE-MASTERCLASS-GLUCOSA',
-    disclaimerShort: 'Contenido educativo. No sustituye una consulta médica ni establece una relación médico-paciente.',
-    disclaimerLong: 'El contenido de esta masterclass tiene fines exclusivamente educativos e informativos. No sustituye una consulta médica. No modifique sus tratamientos.',
-    learningOutcomes: [],
-    targetAudience: ['Personas con diabetes tipo 1', 'Personas con diabetes tipo 2', 'Familiares o cuidadores', 'Personas que comienzan a utilizar glucómetro', 'Usuarios de monitoreo continuo que necesitan comprender conceptos básicos'],
-    includedFeatures: ['Registro imprimible de glucosa', 'Lista de preparación del equipo', 'Guía de errores frecuentes', 'Hoja de preguntas para la consulta médica'],
-    faqs: [],
-    modules: [],
-  },
-  {
-    id: 'course_presion_001',
-    slug: 'presion-arterial-midela-bien-en-casa',
-    title: 'Presión arterial: mídela bien en casa',
-    subtitle: 'Una técnica correcta puede transformar la utilidad de cada lectura.',
-    shortDescription: 'Aprende a elegir un equipo adecuado, utilizar el brazalete correcto, preparar tu cuerpo y adoptar la postura necesaria para obtener mediciones más confiables. Descubre cómo registrar tus resultados y qué situaciones requieren atención médica.',
-    description: 'Aprende a elegir un equipo adecuado, utilizar el brazalete correcto, preparar tu cuerpo y adoptar la postura necesaria para obtener mediciones más confiables. Descubre cómo registrar tus resultados y qué situaciones requieren atención médica.',
-    category: 'bienestar',
-    categoryLabel: 'Bienestar & Fisiología',
-    level: 'Introductorio',
-    durationMinutes: 40,
-    lessonCount: 10,
-    status: 'draft',
-    accessType: 'free',
-    launchStatus: 'available',
-    previewEnabled: true,
-    price: 0,
-    compareAtPrice: 0,
-    currency: 'MXN',
-    instructor: {
-      name: OFFICIAL_INSTRUCTOR.name,
-      title: OFFICIAL_INSTRUCTOR.credentials,
-      license: OFFICIAL_INSTRUCTOR.professionalLicense,
-      institution: OFFICIAL_INSTRUCTOR.institution,
-      avatarUrl: OFFICIAL_INSTRUCTOR.profileImage,
+    {
+      "question": "Ya sé picarme",
+      "answer": "La propuesta no es solo pinchar: es reconocer errores, registrar contexto y comunicar patrones."
     },
-    image: '/images/masterclasses/official/presion-arterial-2026.webp',
-    imageFallback: '/images/masterclasses/official/presion-arterial-2026.png',
-    imageAlt: 'Presión arterial: mídela bien en casa',
-    imageWidth: 1586,
-    imageHeight: 992,
-    imagePosition: 'center',
-    imagePriority: false,
-    coverImage: '/images/masterclasses/official/presion-arterial-2026.webp',
-    coverAlt: 'Presión arterial: mídela bien en casa',
-    imageId: 'IMG-902-PENDIENTE-MASTERCLASS-PRESION',
-    disclaimerShort: 'Contenido educativo. No sustituye una consulta médica ni establece una relación médico-paciente.',
-    disclaimerLong: 'El contenido de esta masterclass tiene fines exclusivamente educativos e informativos. No sustituye una consulta médica. No modifique sus tratamientos.',
-    learningOutcomes: [],
-    targetAudience: [],
-    includedFeatures: ['Registro semanal de presión arterial', 'Infografía de postura correcta', 'Lista de errores comunes', 'Guía para preparar las lecturas antes de una consulta'],
-    faqs: [],
-    modules: [],
-  },
-  {
-    id: 'course_sueno_001',
-    slug: 'dormir-mejor-energia-enfoque-y-rendimiento',
-    title: 'Dormir mejor: energía, enfoque y rendimiento',
-    subtitle: 'Un sistema práctico para construir noches más reparadoras y días con mayor claridad.',
-    shortDescription: 'Comprende cómo funcionan el sueño y el ritmo circadiano. Aprende a organizar la luz, los horarios, el ejercicio, la cafeína, el ambiente y tu rutina nocturna para favorecer un descanso de mejor calidad y apoyar tu energía y concentración durante el día.',
-    description: 'Comprende cómo funcionan el sueño y el ritmo circadiano. Aprende a organizar la luz, los horarios, el ejercicio, la cafeína, el ambiente y tu rutina nocturna para favorecer un descanso de mejor calidad y apoyar tu energía y concentración durante el día.',
-    category: 'bienestar',
-    categoryLabel: 'Bienestar & Fisiología',
-    level: 'Intermedio',
-    durationMinutes: 90,
-    lessonCount: 12,
-    status: 'coming_soon',
-    accessType: 'lifetime',
-    launchStatus: 'coming_soon',
-    previewEnabled: false,
-    price: 0,
-    compareAtPrice: 0,
-    currency: 'MXN',
-    instructor: {
-      name: OFFICIAL_INSTRUCTOR.name,
-      title: OFFICIAL_INSTRUCTOR.credentials,
-      license: OFFICIAL_INSTRUCTOR.professionalLicense,
-      institution: OFFICIAL_INSTRUCTOR.institution,
-      avatarUrl: OFFICIAL_INSTRUCTOR.profileImage,
+    {
+      "question": "El médico ya me dio metas",
+      "answer": "Perfecto; la clase ayuda a producir información más ordenada para seguir ese plan, no a reemplazarlo."
     },
-    image: '/images/masterclasses/official/dormir-mejor-2026.webp',
-    imageFallback: '/images/masterclasses/official/dormir-mejor-2026.png',
-    imageAlt: 'Dormir mejor: energía, enfoque y rendimiento',
-    imageWidth: 1586,
-    imageHeight: 992,
-    imagePosition: 'center',
-    imagePriority: false,
-    coverImage: '/images/masterclasses/official/dormir-mejor-2026.webp',
-    coverAlt: 'Dormir mejor: energía, enfoque y rendimiento',
-    imageId: 'IMG-903-PENDIENTE-MASTERCLASS-SUENO',
-    disclaimerShort: 'Contenido educativo. No sustituye una consulta médica ni establece una relación médico-paciente.',
-    disclaimerLong: 'El contenido de esta masterclass tiene fines exclusivamente educativos e informativos. No sustituye una consulta médica. No modifique sus tratamientos.',
-    learningOutcomes: [],
-    targetAudience: ['Adultos que desean mejorar hábitos de sueño', 'Personas con horarios irregulares', 'Profesionales con cansancio relacionado con malos hábitos de descanso', 'Personas que buscan una rutina nocturna más consistente'],
-    includedFeatures: ['Diario de sueño de 14 días', 'Lista de preparación del dormitorio', 'Plantilla de rutina nocturna', 'Planificador de horarios', 'Cuestionario de hábitos'],
-    faqs: [],
-    modules: [],
-  },
-  {
-    id: 'course_menopausia_001',
-    shop: 'salud-forte.myshopify.com',
-    shopifyProductGid: 'gid://shopify/Product/9840128917801',
-    shopifyVariantGid: 'gid://shopify/ProductVariant/4981023910231',
-    sku: 'MC-MENOPAUSIA-001',
-    slug: 'menopausia-con-claridad',
-    title: 'Menopausia con claridad: síntomas, opciones y decisiones informadas',
-    subtitle: 'Bases médicas comprensibles para transitar el climaterio con criterio y tranquilidad.',
-    shortDescription:
-      'Comprende los cambios neuroendocrinos del climaterio, identifica síntomas frecuentes y conoce qué opciones terapéuticas basadas en evidencia existen.',
-    description:
-      'Una masterclass estructurada para brindar certeza médica ante una de las etapas fisiológicas más determinantes. Analizamos la transición biológica, opciones farmacológicas y no farmacológicas, y las preguntas esenciales para orientar la consulta médica personalizada.',
-    category: 'salud_mujer',
-    categoryLabel: 'Salud de la Mujer',
-    level: 'Introductorio',
-    durationMinutes: 145,
-    lessonCount: 8,
-    status: 'draft', // Marked draft pending Dr. Mauricio Galindo final review
-    accessType: 'lifetime',
-    launchDate: '2026-10-15T00:00:00Z',
-    launchStatus: 'coming_soon',
-    previewEnabled: true,
-    price: 990,
-    compareAtPrice: 1350,
-    currency: 'MXN',
-    instructor: {
-      name: OFFICIAL_INSTRUCTOR.name,
-      title: OFFICIAL_INSTRUCTOR.credentials,
-      license: OFFICIAL_INSTRUCTOR.professionalLicense,
-      institution: OFFICIAL_INSTRUCTOR.institution,
-      avatarUrl: OFFICIAL_INSTRUCTOR.profileImage,
+    {
+      "question": "Me da ansiedad ver los números",
+      "answer": "El enfoque reduce juicios y presenta cada cifra como información, con límites claros sobre cuándo pedir ayuda."
+    }
+  ],
+  "ctaLabel": "Quiero aprender a medir y registrar mejor",
+  "category": "bienestar",
+  "categoryLabel": "Bienestar & Fisiología",
+  "level": "Introductorio",
+  "durationMinutes": 45,
+  "lessonCount": 9,
+  "status": "draft",
+  "accessType": "free",
+  "launchStatus": "available",
+  "previewEnabled": true,
+  "price": 0,
+  "compareAtPrice": 0,
+  "currency": "MXN",
+  "image": "/images/masterclasses/official/glucosa-2026.webp",
+  "imageFallback": "/images/masterclasses/official/glucosa-2026.png",
+  "imageAlt": "Monitorea tu glucosa con confianza",
+  "imageWidth": 1586,
+  "imageHeight": 992,
+  "imagePosition": "center",
+  "imagePriority": false,
+  "coverImage": "/images/masterclasses/official/glucosa-2026.webp",
+  "coverAlt": "Monitorea tu glucosa con confianza",
+  "imageId": "IMG-901-PENDIENTE-MASTERCLASS-GLUCOSA",
+  "disclaimerShort": "Contenido educativo. No sustituye una consulta médica ni establece una relación médico-paciente.",
+  "disclaimerLong": "El contenido de esta masterclass tiene fines exclusivamente educativos e informativos. No sustituye una consulta médica. No modifique sus tratamientos.",
+  "modules": [
+    {
+      "id": "mod_glucosa_1",
+      "courseId": "course_glucosa_001",
+      "title": "Módulo 1. Antes del pinchazo: entiende tu herramienta",
+      "description": "Qué mide el glucómetro y cómo prepararse",
+      "position": 1,
+      "status": "published",
+      "lessons": [
+        {
+          "id": "les_gluc_1_1",
+          "slug": "glucosa-es-un-dato",
+          "title": "1. Tu glucosa es un dato, no una calificación",
+          "summary": "Qué mide el glucómetro, qué no puede concluir y por qué el contexto cambia la interpretación.",
+          "durationSeconds": 300,
+          "position": 1,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_glucosa_1"
+        },
+        {
+          "id": "les_gluc_1_2",
+          "slug": "conoce-tu-equipo",
+          "title": "2. Conoce tu equipo sin tecnicismos",
+          "summary": "Medidor, tira, lanceta, dispositivo de punción, solución de control y manual del fabricante.",
+          "durationSeconds": 300,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_glucosa_1"
+        },
+        {
+          "id": "les_gluc_1_3",
+          "slug": "prepara-manos-tiras",
+          "title": "3. Prepara manos, tiras y superficie",
+          "summary": "Higiene, secado, caducidad, almacenamiento y lista previa para evitar repeticiones.",
+          "durationSeconds": 300,
+          "position": 3,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_glucosa_1"
+        }
+      ]
     },
-    image: '/images/masterclasses/official/menopausia-con-claridad-2026.webp',
-    imageFallback: '/images/masterclasses/official/menopausia-con-claridad-2026.png',
-    imageAlt: 'Portada editorial de la masterclass Menopausia con claridad',
-    imageWidth: 1586,
-    imageHeight: 992,
-    imagePosition: 'center',
-    imagePriority: true,
-    coverImage: '/images/masterclasses/official/menopausia-con-claridad-2026.webp',
-    coverAlt: 'Portada editorial de la masterclass Menopausia con claridad',
-    imageId: 'IMG-101-MASTERCLASS-MENOPAUSIA-PORTADA',
-    disclaimerShort:
-      'Contenido educativo. No sustituye una consulta médica ni establece una relación médico-paciente.',
-    disclaimerLong:
-      'El contenido de esta masterclass tiene fines exclusivamente educativos e informativos. No sustituye una consulta, diagnóstico o tratamiento médico individual. Ante síntomas, dudas o decisiones relacionadas con tu salud, consulta a un profesional calificado.',
-    learningOutcomes: [
-      'Comprender la diferencia fisiológica entre perimenopausia, menopausia y postmenopausia.',
-      'Identificar síntomas vasomotores, metabólicos y emocionales con fundamentos endocrinos.',
-      'Conocer el estado del arte de la terapia de reemplazo hormonal: indicaciones, contraindicaciones y ventana de oportunidad.',
-      'Aprender qué estudios de laboratorio e imagen son útiles y cuáles no aportan valor clínico.',
-      'Diseñar una lista concreta y rigurosa de preguntas para tu próxima cita con el especialista.',
-    ],
-    targetAudience: [
-      'Mujeres entre 38 y 55 años que buscan entender con rigor científico los cambios en su cuerpo.',
-      'Personas con familiares en etapa de climaterio que desean brindar un acompañamiento informado.',
-      'Profesionales de la salud o bienestar interesados en actualización clínica clara.',
-    ],
-    includedFeatures: [
-      'Acceso digital individual protegido',
-      '8 lecciones en video HD con reproducción adaptativa',
-      'Guía descargable en PDF: "Checklist de estudios y preguntas para consulta"',
-      'Transcripciones completas de cada lección',
-      'Actualizaciones y recursos complementarios',
-    ],
-    faqs: [
-      {
-        question: '¿Esta masterclass incluye una receta médica o tratamiento específico?',
-        answer:
-          'No. Por ética médica y marco legal en México, ninguna masterclass ni contenido digital puede prescribir medicamentos individualizados. El propósito es educarte para que acudas a tu médico con un entendimiento claro y preguntas fundamentadas.',
-      },
-      {
-        question: '¿Por cuánto tiempo tendré acceso al contenido?',
-        answer:
-          'Tu compra concede acceso personal sin límite de tiempo (acceso vitalicio), incluyendo futuras revisiones del temario.',
-      },
-      {
-        question: '¿Puedo ver las lecciones desde mi teléfono móvil?',
-        answer:
-          'Sí. El reproductor es completamente responsive y está optimizado para dispositivos móviles, tablets y computadoras de escritorio.',
-      },
-    ],
-    modules: [
-      {
-        id: 'mod_meno_01',
-        courseId: 'course_menopausia_001',
-        title: 'Módulo 1: La Biología de la Transición',
-        description: 'Fundamentos endocrinos del climaterio sin mitos ni alarmismos.',
-        position: 1,
-        status: 'draft',
-        lessons: [
-          {
-            id: 'les_meno_01_01',
-            moduleId: 'mod_meno_01',
-            slug: 'bienvenida-y-alcance-educativo',
-            title: '1.1 Bienvenida, marco ético y qué esperar',
-            summary: 'Definición de objetivos, metodología educativa y recordatorio de límites éticos médicos.',
-            position: 1,
-            durationSeconds: 480,
-            videoProvider: 'cloudflare_stream',
-            privateVideoUid: 'cf_stream_meno_01_preview',
-            isPreview: true, // Clase de muestra gratuita
-            status: 'draft',
-            transcript:
-              'Bienvenidos a la Academia Salud Forte. Soy el Dr. Mauricio Galindo, médico cirujano. En esta masterclass desmitificaremos el climaterio desde la fisiología moderna...',
-            attachments: [
-              {
-                id: 'att_meno_01',
-                lessonId: 'les_meno_01_01',
-                title: 'Guía de bienvenida y glosario endocrino (PDF)',
-                storageKey: 'attachments/menopausia/glosario_endocrino.pdf',
-                mimeType: 'application/pdf',
-                fileSizeLabel: '1.2 MB',
-                position: 1,
-                status: 'published',
-              },
-            ],
-            createdAt: '2026-09-01T00:00:00Z',
-            updatedAt: '2026-09-01T00:00:00Z',
-          },
-          {
-            id: 'les_meno_01_02',
-            moduleId: 'mod_meno_01',
-            slug: 'fisiologia-estrogenos-y-progesterona',
-            title: '1.2 Qué ocurre con los estrógenos, progesterona y FSH',
-            summary: 'El eje hipotálamo-hipófisis-ovario y por qué los síntomas varían de persona a persona.',
-            position: 2,
-            durationSeconds: 1120,
-            videoProvider: 'cloudflare_stream',
-            privateVideoUid: 'cf_stream_meno_01_eje',
-            isPreview: false,
-            status: 'draft',
-            createdAt: '2026-09-01T00:00:00Z',
-            updatedAt: '2026-09-01T00:00:00Z',
-          },
-        ],
-      },
-      {
-        id: 'mod_meno_02',
-        courseId: 'course_menopausia_001',
-        title: 'Módulo 2: Opciones Terapéuticas y Evidencia',
-        description: 'Terapia hormonal, alternativas no hormonales y estilo de vida.',
-        position: 2,
-        status: 'draft',
-        lessons: [
-          {
-            id: 'les_meno_02_01',
-            moduleId: 'mod_meno_02',
-            slug: 'terapia-hormonal-la-evidencia-actual',
-            title: '2.1 Terapia de reemplazo hormonal: mitos, riesgos y consensos',
-            summary: 'Revisión crítica de las guías internacionales contemporáneas sobre estrógenos y progestágenos.',
-            position: 1,
-            durationSeconds: 1350,
-            videoProvider: 'cloudflare_stream',
-            privateVideoUid: 'cf_stream_meno_02_trh',
-            isPreview: false,
-            status: 'draft',
-            createdAt: '2026-09-01T00:00:00Z',
-            updatedAt: '2026-09-01T00:00:00Z',
-          },
-          {
-            id: 'les_meno_02_02',
-            moduleId: 'mod_meno_02',
-            slug: 'preparando-tu-consulta-medica',
-            title: '2.2 Cómo hablar con tu médico y qué preguntas llevar',
-            summary: 'El checklist clínico para optimizar el tiempo de consulta y evitar decisiones precipitadas.',
-            position: 2,
-            durationSeconds: 980,
-            videoProvider: 'cloudflare_stream',
-            privateVideoUid: 'cf_stream_meno_02_preguntas',
-            isPreview: false,
-            status: 'draft',
-            attachments: [
-              {
-                id: 'att_meno_02',
-                lessonId: 'les_meno_02_02',
-                title: 'Checklist de preguntas para consulta médica (PDF)',
-                storageKey: 'attachments/menopausia/checklist_consulta.pdf',
-                mimeType: 'application/pdf',
-                fileSizeLabel: '840 KB',
-                position: 1,
-                status: 'published',
-              },
-            ],
-            createdAt: '2026-09-01T00:00:00Z',
-            updatedAt: '2026-09-01T00:00:00Z',
-          },
-        ],
-      },
-    ],
-    createdAt: '2026-09-01T00:00:00Z',
-    updatedAt: '2026-09-01T00:00:00Z',
-  },
-  {
-    id: 'course_estres_002',
-    shop: 'salud-forte.myshopify.com',
-    shopifyProductGid: 'gid://shopify/Product/9840128917802',
-    shopifyVariantGid: 'gid://shopify/ProductVariant/4981023910232',
-    sku: 'MC-ESTRES-002',
-    slug: 'estres-y-tension-muscular',
-    title: 'Estrés y tensión muscular: herramientas de autocuidado basadas en evidencia',
-    subtitle: 'El impacto fisiológico del estrés crónico sobre el sistema neuromuscular y cómo intervenir.',
-    shortDescription:
-      'Comprende el mecanismo de la respuesta de estrés en el tono muscular y aprende estrategias sustentadas para romper el ciclo de tensión crónica.',
-    description:
-      'Una revisión clínica y práctica sobre cómo el sistema nervioso autónomo modula la contracción muscular involuntaria, dolor cervicodorsal tensional y fatiga, con herramientas fisiológicas aplicables al día a día.',
-    category: 'bienestar',
-    categoryLabel: 'Bienestar & Fisiología',
-    level: 'Introductorio',
-    durationMinutes: 120,
-    lessonCount: 6,
-    status: 'draft',
-    accessType: 'lifetime',
-    launchDate: '2026-10-25T00:00:00Z',
-    launchStatus: 'coming_soon',
-    previewEnabled: true,
-    price: 850,
-    compareAtPrice: 1100,
-    currency: 'MXN',
-    instructor: {
-      name: OFFICIAL_INSTRUCTOR.name,
-      title: OFFICIAL_INSTRUCTOR.credentials,
-      license: OFFICIAL_INSTRUCTOR.professionalLicense,
-      institution: OFFICIAL_INSTRUCTOR.institution,
-      avatarUrl: OFFICIAL_INSTRUCTOR.profileImage,
+    {
+      "id": "mod_glucosa_2",
+      "courseId": "course_glucosa_001",
+      "title": "Módulo 2. Mide paso a paso y reduce errores",
+      "description": "La técnica correcta y cómo evitar resultados alterados",
+      "position": 2,
+      "status": "published",
+      "lessons": [
+        {
+          "id": "les_gluc_2_1",
+          "slug": "obtener-muestra-menos-miedo",
+          "title": "4. Cómo obtener la muestra con menos miedo",
+          "summary": "Colocación, lateral del dedo, rotación de sitios y manejo seguro del material punzocortante conforme a indicaciones locales.",
+          "durationSeconds": 300,
+          "position": 1,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_glucosa_2"
+        },
+        {
+          "id": "les_gluc_2_2",
+          "slug": "medicion-completa",
+          "title": "5. La medición completa, de principio a fin",
+          "summary": "Demostración pausada, carga correcta de la tira y lectura del resultado.",
+          "durationSeconds": 300,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_glucosa_2"
+        },
+        {
+          "id": "les_gluc_2_3",
+          "slug": "me-salio-raro",
+          "title": "6. “Me salió raro”: qué revisar antes de concluir",
+          "summary": "Manos contaminadas, poca muestra, tiras dañadas, temperatura, mensajes del aparato y cuándo repetir conforme al manual o plan clínico.",
+          "durationSeconds": 300,
+          "position": 3,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_glucosa_2"
+        }
+      ]
     },
-    image: '/images/masterclasses/official/estres-tension-muscular-2026.webp',
-    imageFallback: '/images/masterclasses/official/estres-tension-muscular-2026.png',
-    imageAlt: 'Portada editorial de la masterclass sobre estrés y tensión muscular',
-    imageWidth: 1586,
-    imageHeight: 992,
-    imagePosition: 'center',
-    imagePriority: true,
-    coverImage: '/images/masterclasses/official/estres-tension-muscular-2026.webp',
-    coverAlt: 'Portada editorial de la masterclass sobre estrés y tensión muscular',
-    imageId: 'IMG-102-MASTERCLASS-ESTRES-PORTADA',
-    disclaimerShort:
-      'Contenido educativo. No sustituye una consulta médica ni establece una relación médico-paciente.',
-    disclaimerLong:
-      'El contenido de esta masterclass tiene fines exclusivamente educativos e informativos. No sustituye una consulta médica ni evaluación de dolor crónico. Si presentas dolor incapacitante, signos neurológicos o pérdida de fuerza, acude a valoración presencial inmediata.',
-    learningOutcomes: [
-      'Entender la vía simpático-adrenal y su relación con el tono miofascial.',
-      'Diferenciar entre contractura refleja, dolor neuropático y sobrecarga postural.',
-      'Conocer técnicas respiratorias y neuromusculares con validación en ensayos clínicos.',
-      'Identificar cuándo la tensión requiere valoración médica o fisioterapéutica formal.',
-    ],
-    targetAudience: [
-      'Personas con jornadas sedentarias prolongadas y molestias de cuello, hombros y espalda.',
-      'Cualquier persona interesada en comprender la neurobiología del estrés sin pseudociencia.',
-    ],
-    includedFeatures: [
-      'Acceso digital individual',
-      '6 lecciones en video explicativo',
-      'Protocolo de pausas neuromusculares activas (PDF)',
-      'Transcripciones y diapositivas de estudio',
-    ],
-    faqs: [
-      {
-        question: '¿Sustituye esta clase a sesiones de fisioterapia?',
-        answer:
-          'No. Es un programa de educación en salud y autocuidado preventivo. Si cuentas con un diagnóstico ortopédico o neurológico, sigue siempre las instrucciones de tu médico tratante.',
-      },
-    ],
-    modules: [
-      {
-        id: 'mod_estres_01',
-        courseId: 'course_estres_002',
-        title: 'Módulo 1: La Conexión Nervio-Músculo',
-        description: 'Cómo el cerebro sostiene la tensión física aún cuando intentas relajarte.',
-        position: 1,
-        status: 'draft',
-        lessons: [
-          {
-            id: 'les_estres_01_01',
-            moduleId: 'mod_estres_01',
-            slug: 'neurobiologia-de-la-tension',
-            title: '1.1 Por qué los músculos responden a la mente',
-            summary: 'El papel del cortisol, adrenalina y los husos neuromusculares en el tono basal.',
-            position: 1,
-            durationSeconds: 620,
-            videoProvider: 'cloudflare_stream',
-            privateVideoUid: 'cf_stream_estres_01',
-            isPreview: true,
-            status: 'draft',
-            createdAt: '2026-09-01T00:00:00Z',
-            updatedAt: '2026-09-01T00:00:00Z',
-          },
-        ],
-      },
-    ],
-    createdAt: '2026-09-01T00:00:00Z',
-    updatedAt: '2026-09-01T00:00:00Z',
-  },
-  {
-    id: 'course_hormonal_003',
-    shop: 'salud-forte.myshopify.com',
-    shopifyProductGid: 'gid://shopify/Product/9840128917803',
-    shopifyVariantGid: 'gid://shopify/ProductVariant/4981023910233',
-    sku: 'MC-HORMONAL-003',
-    slug: 'salud-hormonal-masculina',
-    title: 'Salud hormonal masculina: fundamentos, evaluación y preguntas clave',
-    subtitle: 'Testosterona, metabolismo y salud cardiovascular explicados con rigor médico.',
-    shortDescription:
-      'Una mirada científica a la función androgénica, los signos reales de deficiencia y la evaluación ética de la terapia hormonal en hombres.',
-    description:
-      'Frente a la desinformación actual en internet sobre testosterona y optimización hormonal, esta masterclass establece qué dice la evidencia médica, cómo se interpreta un perfil androgénico y qué riesgos reales conlleva el uso empírico.',
-    category: 'salud_hombre',
-    categoryLabel: 'Salud Masculina',
-    level: 'Intermedio',
-    durationMinutes: 135,
-    lessonCount: 7,
-    status: 'draft',
-    accessType: 'lifetime',
-    launchDate: '2026-11-05T00:00:00Z',
-    launchStatus: 'coming_soon',
-    previewEnabled: true,
-    price: 950,
-    compareAtPrice: 1250,
-    currency: 'MXN',
-    instructor: {
-      name: OFFICIAL_INSTRUCTOR.name,
-      title: OFFICIAL_INSTRUCTOR.credentials,
-      license: OFFICIAL_INSTRUCTOR.professionalLicense,
-      institution: OFFICIAL_INSTRUCTOR.institution,
-      avatarUrl: OFFICIAL_INSTRUCTOR.profileImage,
+    {
+      "id": "mod_glucosa_3",
+      "courseId": "course_glucosa_001",
+      "title": "Módulo 3. Convierte números en una conversación útil",
+      "description": "Registros, monitores continuos y la consulta",
+      "position": 3,
+      "status": "published",
+      "lessons": [
+        {
+          "id": "les_gluc_3_1",
+          "slug": "glucometro-y-monitor-continuo",
+          "title": "7. Glucómetro y monitor continuo: no son lo mismo",
+          "summary": "Diferencias básicas, retraso entre compartimentos y confirmación de lecturas inesperadas según dispositivo y plan médico.",
+          "durationSeconds": 300,
+          "position": 1,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_glucosa_3"
+        },
+        {
+          "id": "les_gluc_3_2",
+          "slug": "el-registro-que-ayuda",
+          "title": "8. El registro que sí ayuda",
+          "summary": "Fecha, hora, relación con alimentos, actividad, síntomas, medicamentos y eventos fuera de rutina.",
+          "durationSeconds": 300,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_glucosa_3"
+        },
+        {
+          "id": "les_gluc_3_3",
+          "slug": "que-hacer-despues-de-medir",
+          "title": "9. Qué hacer después de medir",
+          "summary": "Patrones frente a cifras aisladas, plan personal de acción, síntomas de alarma y preparación de cuatro preguntas para la consulta.",
+          "durationSeconds": 300,
+          "position": 3,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_glucosa_3"
+        }
+      ]
+    }
+  ]
+,  instructor: OFFICIAL_INSTRUCTOR
+},
+{
+  "id": "course_presion_001",
+  "slug": "presion-arterial-midela-bien-en-casa",
+  "title": "Presión arterial en casa: mídela bien y entiende tu registro",
+  "subtitle": "Elige el equipo correcto, evita errores de postura y lleva a tu consulta lecturas que realmente sean útiles.",
+  "shortDescription": "Una medición puede cambiar por el brazalete, la postura o la preparación. Aprende un protocolo sencillo para medir tu presión en casa, registrar resultados y saber cuándo repetir la lectura o solicitar orientación médica.",
+  "description": "Tener un baumanómetro automático no garantiza una buena medición. El tamaño del brazalete, cinco minutos de reposo, la posición del brazo, la espalda, los pies e incluso hablar durante la toma pueden cambiar el resultado.\n\nEn esta masterclass aprenderás a seleccionar un equipo adecuado, preparar tu cuerpo, colocarte correctamente y seguir una rutina reproducible. También entenderás qué representan los dos números, por qué una lectura es solo una fotografía del momento y cómo organizar varias mediciones para conversar con tu médico con mayor claridad. Incluye un registro semanal y una guía visual de postura.",
+  "salesPromise": "En 40 minutos construirás una técnica repetible para dejar de dudar si el dato cambió o si cambió la forma de medirlo.",
+  "recognitionPoints": [
+    "“En la consulta me sale alta y en casa no”",
+    "“Me la tomé tres veces y cada vez salió diferente”",
+    "“Si hoy salió bien, ¿ya puedo dejar la pastilla?”",
+    "“¿El aparato de muñeca sirve igual?”"
+  ],
+  "beforeState": [
+    "Información dispersa",
+    "Miedo",
+    "Datos sin contexto",
+    "Dificultad para hablar con el médico"
+  ],
+  "afterState": [
+    "Comprensión básica",
+    "Registro útil",
+    "Preguntas mejor formuladas",
+    "Siguiente paso más seguro"
+  ],
+  "notFor": [
+    "Quien busca diagnóstico inmediato o instrucciones para iniciar, suspender o ajustar medicamentos.",
+    "Si existe una lectura muy alta acompañada de dolor torácico, falta de aire, debilidad, alteración visual o dificultad para hablar, se requiere atención de urgencia y no continuar viendo una clase."
+  ],
+  "learningOutcomes": [
+    "Diferenciar presión sistólica y diastólica con una explicación sencilla.",
+    "Elegir un monitor automático de brazo validado y un brazalete que ajuste.",
+    "Prepararse durante los minutos previos y adoptar la postura correcta.",
+    "Realizar y registrar lecturas repetidas conforme a la indicación de su profesional.",
+    "Reconocer factores que pueden alterar temporalmente la medición.",
+    "Responder con seguridad ante una lectura inesperada siguiendo criterios de repetición, síntomas y atención médica."
+  ],
+  "includedFeatures": [
+    "Infografía de postura correcta",
+    "Guía para medir la circunferencia del brazo",
+    "Registro semanal con espacio para dos lecturas y contexto",
+    "Tarjeta “Una cifra alta: pausa, repite y revisa”",
+    "Checklist para llevar aparato y bitácora a consulta"
+  ],
+  "targetAudience": [
+    "Una persona con hipertensión, cifras variables, tratamiento nuevo, antecedentes familiares o indicación médica de llevar un registro.",
+    "Un familiar que mide la presión a padres o abuelos.",
+    "Quien usa un aparato comprado en farmacia o por internet y supone que basta con colocar el brazalete y presionar un botón."
+  ],
+  "faqs": [
+    {
+      "question": "Mi aparato ya hace todo",
+      "answer": "Automatiza el inflado y la lectura, pero la preparación, el brazalete y la postura siguen dependiendo de la persona."
     },
-    image: '/images/masterclasses/official/salud-hormonal-masculina-2026.webp',
-    imageFallback: '/images/masterclasses/official/salud-hormonal-masculina-2026.png',
-    imageAlt: 'Portada editorial de la masterclass sobre salud hormonal masculina',
-    imageWidth: 1586,
-    imageHeight: 992,
-    imagePosition: 'center',
-    imagePriority: false,
-    coverImage: '/images/masterclasses/official/salud-hormonal-masculina-2026.webp',
-    coverAlt: 'Portada editorial de la masterclass sobre salud hormonal masculina',
-    imageId: 'IMG-103-MASTERCLASS-HORMONAL-PORTADA',
-    disclaimerShort:
-      'Contenido educativo. No sustituye una consulta médica ni establece una relación médico-paciente.',
-    disclaimerLong:
-      'El contenido de esta masterclass tiene fines exclusivamente educativos. No prescribe ni promueve el uso no supervisado de andrógenos ni anabólicos. El hipogonadismo requiere diagnóstico clínico y confirmación de laboratorio en consulta médica presencial.',
-    learningOutcomes: [
-      'Entender la síntesis, transporte y ritmos circadianos de la testosterona total y libre.',
-      'Diferenciar entre declive androgénico por edad, síndrome metabólico y patología testicular o hipofisaria.',
-      'Interpretar los rangos de referencia en estudios de laboratorio con sentido crítico.',
-      'Conocer el impacto comprobado del sueño, masa muscular y grasa visceral sobre el perfil hormonal.',
-      'Aprender cuándo un tratamiento médico está indicado y qué controles de seguridad exige.',
-    ],
-    targetAudience: [
-      'Hombres interesados en entender su salud metabólica y hormonal con base médica objetiva.',
-      'Pacientes con dudas sobre suplementos, pruebas hormonales y terapia de reemplazo.',
-    ],
-    includedFeatures: [
-      'Acceso digital individual vitalicio',
-      '7 lecciones en video',
-      'Infografía descargable: "Interpretación ética del perfil androgénico"',
-      'Glosario de términos y transcripciones',
-    ],
-    faqs: [
-      {
-        question: '¿Me servirá este curso para saber si necesito testosterona?',
-        answer:
-          'Te enseñará los criterios diagnósticos oficiales y las precauciones necesarias, pero el diagnóstico solo puede realizarlo un médico con tu historial clínico completo y estudios confirmatorios.',
-      },
-    ],
-    modules: [
-      {
-        id: 'mod_hormon_01',
-        courseId: 'course_hormonal_003',
-        title: 'Módulo 1: Fundamentos de la Función Androgénica',
-        description: 'La biología real de la testosterona más allá del marketing.',
-        position: 1,
-        status: 'draft',
-        lessons: [
-          {
-            id: 'les_hormon_01_01',
-            moduleId: 'mod_hormon_01',
-            slug: 'introduccion-al-eje-gonadal',
-            title: '1.1 El eje hipotálamo-hipófisis-gonadal masculino',
-            summary: 'Cómo se regula la producción hormonal y qué factores alteran su homeostasis.',
-            position: 1,
-            durationSeconds: 580,
-            videoProvider: 'cloudflare_stream',
-            privateVideoUid: 'cf_stream_hormon_01',
-            isPreview: true,
-            status: 'draft',
-            createdAt: '2026-09-01T00:00:00Z',
-            updatedAt: '2026-09-01T00:00:00Z',
-          },
-        ],
-      },
-    ],
-    createdAt: '2026-09-01T00:00:00Z',
-    updatedAt: '2026-09-01T00:00:00Z',
-  },
-  {
-    id: 'course_sop_004',
-    shop: 'salud-forte.myshopify.com',
-    shopifyProductGid: 'gid://shopify/Product/9840128917804',
-    shopifyVariantGid: 'gid://shopify/ProductVariant/4981023910234',
-    sku: 'MC-SOP-004',
-    slug: 'sindrome-ovario-poliquistico',
-    title: 'Síndrome de ovario poliquístico: comprender síntomas, estudios y opciones',
-    subtitle: 'Criterios de Rotterdam, resistencia a la insulina y enfoque integral sin estigmas.',
-    shortDescription:
-      'Un análisis detallado sobre el diagnóstico del SOP, los fenotipos clínicos y las intervenciones médicas y nutricionales validadas.',
-    description:
-      'El SOP no es solo una condición ovárica; es un espectro metabólico y endocrino complejo. Esta masterclass aborda con claridad el proceso diagnóstico, desmitifica ecografías y análisis de sangre, y describe el abanico de tratamientos disponibles en la medicina actual.',
-    category: 'salud_mujer',
-    categoryLabel: 'Salud de la Mujer',
-    level: 'Introductorio',
-    durationMinutes: 150,
-    lessonCount: 8,
-    status: 'draft',
-    accessType: 'lifetime',
-    launchDate: '2026-11-15T00:00:00Z',
-    launchStatus: 'coming_soon',
-    previewEnabled: true,
-    price: 990,
-    compareAtPrice: 1300,
-    currency: 'MXN',
-    instructor: {
-      name: OFFICIAL_INSTRUCTOR.name,
-      title: OFFICIAL_INSTRUCTOR.credentials,
-      license: OFFICIAL_INSTRUCTOR.professionalLicense,
-      institution: OFFICIAL_INSTRUCTOR.institution,
-      avatarUrl: OFFICIAL_INSTRUCTOR.profileImage,
+    {
+      "question": "En la farmacia me la toman gratis",
+      "answer": "La clase enseña una rutina reproducible en condiciones conocidas y un registro longitudinal."
     },
-    image: '/images/masterclasses/official/sop-con-claridad-2026.webp',
-    imageFallback: '/images/masterclasses/official/sop-con-claridad-2026.png',
-    imageAlt: 'Portada editorial de la masterclass SOP con claridad',
-    imageWidth: 1586,
-    imageHeight: 992,
-    imagePosition: 'center',
-    imagePriority: false,
-    coverImage: '/images/masterclasses/official/sop-con-claridad-2026.webp',
-    coverAlt: 'Portada editorial de la masterclass SOP con claridad',
-    imageId: 'IMG-104-MASTERCLASS-SOP-PORTADA',
-    disclaimerShort:
-      'Contenido educativo. No sustituye una consulta médica ni establece una relación médico-paciente.',
-    disclaimerLong:
-      'El contenido de esta masterclass tiene fines exclusivamente educativos. El síndrome de ovario poliquístico requiere diagnóstico diferencial con otras patologías suprarrenales e hipofisarias. No modifiques tratamientos ni dosis sin supervisión médica.',
-    learningOutcomes: [
-      'Comprender los Criterios de Rotterdam y por qué tener "folículos en ecografía" no siempre equivale a SOP.',
-      'Entender el rol fisiológico de la resistencia a la insulina en la hiperandrogenemia.',
-      'Conocer las opciones terapéuticas: estilo de vida, sensibilizadores, antiandrógenos y anticonceptivos orales combinados.',
-      'Estructurar un seguimiento médico coordinado entre medicina general, ginecología y nutrición clínica.',
-    ],
-    targetAudience: [
-      'Mujeres diagnosticadas recientemente o con sospecha clínica de SOP.',
-      'Personas que buscan comprender las opciones de tratamiento sin falsas promesas de "cura instantánea".',
-    ],
-    includedFeatures: [
-      'Acceso digital individual vitalicio',
-      '8 lecciones en video HD',
-      'Planificador de síntomas y preguntas para consulta (PDF)',
-      'Transcripciones y bibliografía científica consultable',
-    ],
-    faqs: [
-      {
-        question: '¿El SOP se "cura" definitivamente con una dieta específica?',
-        answer:
-          'El SOP es una condición crónica y heterogénea. Las intervenciones de estilo de vida son fundamentales y muy efectivas para mejorar síntomas y parámetros metabólicos, pero desconfía de cualquier programa que prometa una "cura total en 30 días".',
-      },
-    ],
-    modules: [
-      {
-        id: 'mod_sop_01',
-        courseId: 'course_sop_004',
-        title: 'Módulo 1: El Diagnóstico Correcto',
-        description: 'Despejando dudas sobre ecografías, análisis y criterios clínicos.',
-        position: 1,
-        status: 'draft',
-        lessons: [
-          {
-            id: 'les_sop_01_01',
-            moduleId: 'mod_sop_01',
-            slug: 'que-es-y-que-no-es-el-sop',
-            title: '1.1 Qué es y qué no es el SOP: anatomía de un malentendido',
-            summary: 'Historia clínica, fenotipos y por qué el nombre puede prestarse a confusión.',
-            position: 1,
-            durationSeconds: 610,
-            videoProvider: 'cloudflare_stream',
-            privateVideoUid: 'cf_stream_sop_01',
-            isPreview: true,
-            status: 'draft',
-            createdAt: '2026-09-01T00:00:00Z',
-            updatedAt: '2026-09-01T00:00:00Z',
-          },
-        ],
-      },
-    ],
-    createdAt: '2026-09-01T00:00:00Z',
-    updatedAt: '2026-09-01T00:00:00Z',
-  },
+    {
+      "question": "Siempre me sale diferente",
+      "answer": "Cierta variación existe; el objetivo es reducir las variables de técnica y observar el conjunto con el médico."
+    },
+    {
+      "question": "Solo quiero saber si tengo hipertensión",
+      "answer": "La clase no diagnostica; enseña a obtener y organizar datos que pueden apoyar una valoración."
+    }
+  ],
+  "ctaLabel": "Quiero medir mi presión correctamente",
+  "category": "bienestar",
+  "categoryLabel": "Bienestar & Fisiología",
+  "level": "Introductorio",
+  "durationMinutes": 40,
+  "lessonCount": 10,
+  "status": "draft",
+  "accessType": "free",
+  "launchStatus": "available",
+  "previewEnabled": true,
+  "price": 0,
+  "compareAtPrice": 0,
+  "currency": "MXN",
+  "image": "/images/masterclasses/official/presion-arterial-2026.webp",
+  "imageFallback": "/images/masterclasses/official/presion-arterial-2026.png",
+  "imageAlt": "Presión arterial: mídela bien en casa",
+  "imageWidth": 1586,
+  "imageHeight": 992,
+  "imagePosition": "center",
+  "imagePriority": false,
+  "coverImage": "/images/masterclasses/official/presion-arterial-2026.webp",
+  "coverAlt": "Presión arterial: mídela bien en casa",
+  "imageId": "IMG-902-PENDIENTE-MASTERCLASS-PRESION",
+  "disclaimerShort": "Contenido educativo. No sustituye una consulta médica ni establece una relación médico-paciente.",
+  "disclaimerLong": "El contenido de esta masterclass tiene fines exclusivamente educativos e informativos. No sustituye una consulta médica. No modifique sus tratamientos.",
+  "modules": [
+    {
+      "id": "mod_presion_1",
+      "courseId": "course_presion_001",
+      "title": "Módulo 1. El equipo correcto",
+      "description": "Números y dispositivos",
+      "position": 1,
+      "status": "published",
+      "lessons": [
+        {
+          "id": "les_pre_1_1",
+          "slug": "que-significan-los-dos-numeros",
+          "title": "1. Qué significan los dos números",
+          "summary": "Sístole, diástole y por qué una toma no cuenta toda la historia.",
+          "durationSeconds": 240,
+          "position": 1,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_presion_1"
+        },
+        {
+          "id": "les_pre_1_2",
+          "slug": "brazo-muneca-reloj",
+          "title": "2. Brazo, muñeca o reloj: qué equipo buscar",
+          "summary": "Preferencia por monitor automático validado de brazo y límites de otros dispositivos.",
+          "durationSeconds": 240,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_presion_1"
+        },
+        {
+          "id": "les_pre_1_3",
+          "slug": "brazalete-importa",
+          "title": "3. El brazalete sí importa",
+          "summary": "Medición del brazo, ajuste y errores por talla inadecuada.",
+          "durationSeconds": 240,
+          "position": 3,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_presion_1"
+        }
+      ]
+    },
+    {
+      "id": "mod_presion_2",
+      "courseId": "course_presion_001",
+      "title": "Módulo 2. La técnica que hace confiable el registro",
+      "description": "Preparación del cuerpo",
+      "position": 2,
+      "status": "published",
+      "lessons": [
+        {
+          "id": "les_pre_2_1",
+          "slug": "30-minutos-previos",
+          "title": "4. Los 30 minutos previos",
+          "summary": "Café, tabaco, ejercicio, vejiga y otras condiciones que se deben considerar.",
+          "durationSeconds": 240,
+          "position": 1,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_presion_2"
+        },
+        {
+          "id": "les_pre_2_2",
+          "slug": "cinco-minutos-reposo",
+          "title": "5. Cinco minutos que cambian la toma",
+          "summary": "Reposo sin conversación, teléfono ni distracciones.",
+          "durationSeconds": 240,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_presion_2"
+        },
+        {
+          "id": "les_pre_2_3",
+          "slug": "postura-completa",
+          "title": "6. Postura completa, paso a paso",
+          "summary": "Espalda apoyada, pies en el piso, piernas descruzadas, brazo descubierto y apoyado a nivel del corazón.",
+          "durationSeconds": 240,
+          "position": 3,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_presion_2"
+        },
+        {
+          "id": "les_pre_2_4",
+          "slug": "coloca-el-brazalete",
+          "title": "7. Coloca el brazalete y toma la lectura",
+          "summary": "Demostración, inmovilidad y errores comunes.",
+          "durationSeconds": 240,
+          "position": 4,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_presion_2"
+        }
+      ]
+    },
+    {
+      "id": "mod_presion_3",
+      "courseId": "course_presion_001",
+      "title": "Módulo 3. Del dato a la consulta",
+      "description": "Lecturas y repeticiones",
+      "position": 3,
+      "status": "published",
+      "lessons": [
+        {
+          "id": "les_pre_3_1",
+          "slug": "por-que-varias-lecturas",
+          "title": "8. Por qué se toman varias lecturas",
+          "summary": "Repetición, intervalo y horario según el plan indicado; evitar “perseguir” el número indefinidamente.",
+          "durationSeconds": 240,
+          "position": 1,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_presion_3"
+        },
+        {
+          "id": "les_pre_3_2",
+          "slug": "tu-registro-semanal",
+          "title": "9. Tu registro semanal",
+          "summary": "Cómo anotar hora, lecturas, síntomas y circunstancias relevantes; equipo con memoria.",
+          "durationSeconds": 240,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_presion_3"
+        },
+        {
+          "id": "les_pre_3_3",
+          "slug": "lecturas-inesperadas",
+          "title": "10. Lecturas inesperadas y señales de alarma",
+          "summary": "Repetir correctamente, valorar síntomas, contactar al equipo de salud y reconocer una emergencia sin suspender o duplicar medicamentos por cuenta propia.",
+          "durationSeconds": 240,
+          "position": 3,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_presion_3"
+        }
+      ]
+    }
+  ]
+,  instructor: OFFICIAL_INSTRUCTOR
+},
+{
+  "id": "course_sueno_001",
+  "slug": "dormir-mejor-energia-enfoque-y-rendimiento",
+  "title": "Dormir mejor: un plan práctico para recuperar energía y claridad",
+  "subtitle": "Entiende qué está interfiriendo con tu descanso y diseña una rutina realista para tus noches y tus mañanas.",
+  "shortDescription": "Si llegas cansado a la cama pero no logras descansar, esta masterclass te ayuda a identificar qué está interfiriendo. Organiza luz, horarios, cafeína, actividad, ambiente y rutina mediante un plan de 14 días adaptable a tu vida.",
+  "description": "Dormir mejor no empieza comprando un suplemento ni persiguiendo una noche perfecta. Empieza por comprender cómo se coordinan la presión de sueño y el reloj interno, y por observar qué señales recibe tu cuerpo durante el día y la noche.\n\nEn esta masterclass traduciremos la ciencia del sueño a decisiones cotidianas: a qué hora exponerte a luz, cómo ordenar horarios, cuándo revisar la cafeína, cómo usar el ejercicio, qué cambiar en tu habitación y cómo crear una transición nocturna aunque tengas una agenda exigente. Construirás un experimento personal de 14 días y aprenderás a reconocer señales de insomnio persistente, apnea u otros problemas que necesitan valoración.",
+  "salesPromise": "Pasarás de probar consejos al azar a seguir un plan sencillo, medible y adaptado a tu realidad.",
+  "recognitionPoints": [
+    "“Estoy cansado todo el día, pero de noche no me da sueño”",
+    "“Duermo varias horas y aun así amanezco agotado”",
+    "“No puedo dejar el celular porque es mi único rato libre”",
+    "“¿Necesito melatonina o un estudio del sueño?”"
+  ],
+  "beforeState": [
+    "Información dispersa",
+    "Miedo",
+    "Datos sin contexto",
+    "Dificultad para hablar con el médico"
+  ],
+  "afterState": [
+    "Comprensión básica",
+    "Registro útil",
+    "Preguntas mejor formuladas",
+    "Siguiente paso más seguro"
+  ],
+  "notFor": [
+    "Quien requiere atención inmediata por somnolencia al conducir, pausas respiratorias observadas, síntomas neurológicos o crisis de salud mental.",
+    "Tampoco sustituye la evaluación y tratamiento del insomnio crónico u otros trastornos del sueño."
+  ],
+  "learningOutcomes": [
+    "Diferenciar cantidad, calidad, regularidad y continuidad del sueño.",
+    "Comprender de forma sencilla el reloj circadiano y la presión de sueño.",
+    "Detectar las conductas y condiciones que más interfieren en su caso.",
+    "Diseñar una mañana que favorezca alerta y una noche que facilite la transición al descanso.",
+    "Utilizar un diario sin obsesionarse con relojes o puntuaciones.",
+    "Reconocer ronquido intenso, pausas respiratorias, somnolencia peligrosa e insomnio persistente como motivos de evaluación."
+  ],
+  "includedFeatures": [
+    "Diario de sueño de 14 días en versión impresa y móvil",
+    "Calculadora sencilla de cafeína por horario",
+    "Constructor de rutina nocturna con opciones de 15, 30 y 60 minutos",
+    "Auditoría de dormitorio con alternativas gratuitas, económicas y completas",
+    "Hoja “Señales para hablar con mi médico”"
+  ],
+  "targetAudience": [
+    "Un adulto con horarios largos, uso nocturno del celular, cansancio matutino, dificultad ocasional para conciliar o mantener el sueño.",
+    "Profesionistas, emprendedores, cuidadores o padres de familia con fines de semana desordenados.",
+    "Personas que quieren funcionar mejor de día, no convertirse en expertos en sueño."
+  ],
+  "faqs": [
+    {
+      "question": "Ya intenté higiene del sueño",
+      "answer": "El curso no se limita a una lista: enseña mecanismos, diario, priorización y criterios para buscar evaluación."
+    },
+    {
+      "question": "No puedo apagar el celular una hora antes",
+      "answer": "Se construye un cambio gradual que considere trabajo y vida familiar."
+    },
+    {
+      "question": "Quiero saber qué suplemento tomar",
+      "answer": "La clase ayuda a entender el problema y preparar una consulta; no prescribe suplementos ni somníferos."
+    },
+    {
+      "question": "Mis horarios cambian",
+      "answer": "Incluye adaptación para semanas imperfectas y un ancla mínima de rutina."
+    }
+  ],
+  "ctaLabel": "Quiero construir mi plan de sueño de 14 días",
+  "category": "bienestar",
+  "categoryLabel": "Bienestar & Fisiología",
+  "level": "Introductorio",
+  "durationMinutes": 90,
+  "lessonCount": 12,
+  "status": "coming_soon",
+  "accessType": "lifetime",
+  "launchStatus": "coming_soon",
+  "previewEnabled": false,
+  "price": 0,
+  "compareAtPrice": 0,
+  "currency": "MXN",
+  "image": "/images/masterclasses/official/dormir-mejor-2026.webp",
+  "imageFallback": "/images/masterclasses/official/dormir-mejor-2026.png",
+  "imageAlt": "Dormir mejor: energía, enfoque y rendimiento",
+  "imageWidth": 1586,
+  "imageHeight": 992,
+  "imagePosition": "center",
+  "imagePriority": false,
+  "coverImage": "/images/masterclasses/official/dormir-mejor-2026.webp",
+  "coverAlt": "Dormir mejor: energía, enfoque y rendimiento",
+  "imageId": "IMG-903-PENDIENTE-MASTERCLASS-SUENO",
+  "disclaimerShort": "Contenido educativo. No sustituye una consulta médica ni establece una relación médico-paciente.",
+  "disclaimerLong": "El contenido de esta masterclass tiene fines exclusivamente educativos e informativos. No sustituye una consulta médica. No modifique sus tratamientos.",
+  "modules": [
+    {
+      "id": "mod_sueno_1",
+      "courseId": "course_sueno_001",
+      "title": "Módulo 1. Entiende tu sueño",
+      "description": "La base de tu descanso",
+      "position": 1,
+      "status": "published",
+      "lessons": [
+        {
+          "id": "les_sue_1_1",
+          "slug": "dormir-mas-no-es-mejor",
+          "title": "1. Dormir más no siempre es dormir mejor",
+          "summary": "Duración, calidad, continuidad, regularidad y cómo definir un objetivo realista.",
+          "durationSeconds": 360,
+          "position": 1,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_sueno_1"
+        },
+        {
+          "id": "les_sue_1_2",
+          "slug": "tu-reloj-interno",
+          "title": "2. Tu reloj interno",
+          "summary": "Ritmo circadiano, luz y horarios explicados sin jerga.",
+          "durationSeconds": 420,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_sueno_1"
+        },
+        {
+          "id": "les_sue_1_3",
+          "slug": "presion-de-sueno",
+          "title": "3. La presión de sueño",
+          "summary": "Cómo se acumula, efecto de las siestas y por qué estar agotado no siempre significa poder dormir.",
+          "durationSeconds": 420,
+          "position": 3,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_sueno_1"
+        }
+      ]
+    },
+    {
+      "id": "mod_sueno_2",
+      "courseId": "course_sueno_001",
+      "title": "Módulo 2. Diseña el día que prepara la noche",
+      "description": "Mañanas y tardes estratégicas",
+      "position": 2,
+      "status": "published",
+      "lessons": [
+        {
+          "id": "les_sue_2_1",
+          "slug": "primera-hora-de-manana",
+          "title": "4. La primera hora de tu mañana",
+          "summary": "Horario de despertar, luz natural y activación gradual.",
+          "durationSeconds": 480,
+          "position": 1,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_sueno_2"
+        },
+        {
+          "id": "les_sue_2_2",
+          "slug": "cafeina-cantidad-sensibilidad",
+          "title": "5. Cafeína: cantidad, horario y sensibilidad",
+          "summary": "Identificar fuentes y diseñar un límite personal prudente.",
+          "durationSeconds": 420,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_sueno_2"
+        },
+        {
+          "id": "les_sue_2_3",
+          "slug": "actividad-comidas-alcohol",
+          "title": "6. Actividad física, comidas y alcohol",
+          "summary": "Cómo observar su relación con el descanso sin reglas absolutas ni promesas.",
+          "durationSeconds": 420,
+          "position": 3,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_sueno_2"
+        }
+      ]
+    },
+    {
+      "id": "mod_sueno_3",
+      "courseId": "course_sueno_001",
+      "title": "Módulo 3. Construye una noche viable",
+      "description": "Rutinas para relajar",
+      "position": 3,
+      "status": "published",
+      "lessons": [
+        {
+          "id": "les_sue_3_1",
+          "slug": "ultima-hora-despierto",
+          "title": "7. La última hora despierto",
+          "summary": "Crear una secuencia de cierre para trabajo, pendientes, contenido estimulante y preocupación.",
+          "durationSeconds": 480,
+          "position": 1,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_sueno_3"
+        },
+        {
+          "id": "les_sue_3_2",
+          "slug": "pantallas-sin-magia",
+          "title": "8. Pantallas sin pensamiento mágico",
+          "summary": "Luz, contenido, tiempo y estrategias graduales cuando “dejar el celular” no es realista.",
+          "durationSeconds": 480,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_sueno_3"
+        },
+        {
+          "id": "les_sue_3_3",
+          "slug": "tu-dormitorio-dentro-posible",
+          "title": "9. Tu dormitorio dentro de lo posible",
+          "summary": "Oscuridad, ruido, temperatura, cama y soluciones de bajo costo.",
+          "durationSeconds": 480,
+          "position": 3,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_sueno_3"
+        }
+      ]
+    },
+    {
+      "id": "mod_sueno_4",
+      "courseId": "course_sueno_001",
+      "title": "Módulo 4. Mide, ajusta y pide ayuda a tiempo",
+      "description": "Plan de 14 días",
+      "position": 4,
+      "status": "published",
+      "lessons": [
+        {
+          "id": "les_sue_4_1",
+          "slug": "diario-14-dias",
+          "title": "10. Diario de sueño de 14 días",
+          "summary": "Qué anotar, cómo interpretar tendencias y por qué no perseguir una puntuación perfecta.",
+          "durationSeconds": 480,
+          "position": 1,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_sueno_4"
+        },
+        {
+          "id": "les_sue_4_2",
+          "slug": "tu-plan-minimo",
+          "title": "11. Tu plan mínimo viable",
+          "summary": "Elegir dos cambios, definir obstáculos y preparar alternativas para fines de semana o días difíciles.",
+          "durationSeconds": 480,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_sueno_4"
+        },
+        {
+          "id": "les_sue_4_3",
+          "slug": "cuando-habitos-no-son-suficientes",
+          "title": "12. Cuando los hábitos no son suficientes",
+          "summary": "Insomnio crónico, apnea, piernas inquietas, medicamentos, salud mental, trabajo por turnos y cuándo hablar con un profesional; introducción a la terapia cognitivo-conductual para insomnio como tratamiento estructurado.",
+          "durationSeconds": 480,
+          "position": 3,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "published",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_sueno_4"
+        }
+      ]
+    }
+  ]
+,  instructor: OFFICIAL_INSTRUCTOR
+},
+{
+  "id": "course_menopausia_001",
+  "slug": "menopausia-con-claridad",
+  "title": "Menopausia con claridad: entiende lo que cambia y conoce tus opciones",
+  "subtitle": "Una guía médica, comprensible y sin juicios para reconocer síntomas, preparar tu consulta y tomar decisiones informadas.",
+  "shortDescription": "¿Tu cuerpo cambió y no sabes qué puede relacionarse con la menopausia? Aprende a reconocer las etapas y síntomas, conoce las opciones disponibles y prepara las preguntas necesarias para decidir junto con tu profesional de salud.",
+  "description": "La transición a la menopausia puede sentirse distinta en cada mujer. Algunas notan cambios en el ciclo, bochornos o sudoraciones; otras consultan por sueño, estado de ánimo, concentración, sexualidad o molestias vaginales y urinarias. Entre consejos familiares, videos y mensajes contradictorios sobre hormonas, es fácil sentirse desorientada.\n\nEsta masterclass te ofrece un mapa. Entenderás qué significan perimenopausia, menopausia y posmenopausia; cómo registrar lo que estás viviendo; qué evaluaciones pueden ser útiles según el caso; y cuáles son las categorías principales de tratamiento hormonal, no hormonal y de estilo de vida. También revisarás mitos frecuentes y crearás una agenda personal para tu próxima consulta.\n\nLa clase no te dirá qué tratamiento tomar. Te ayudará a comprender las decisiones que deben individualizarse según síntomas, historia clínica, riesgos, objetivos y preferencias.",
+  "salesPromise": "Pasarás de vivir cambios difíciles de explicar a tener un mapa personal y una conversación clínica mucho más clara.",
+  "recognitionPoints": [
+    "“¿Estoy exagerando o de verdad algo cambió?”",
+    "“No quiero tomar hormonas a ciegas, pero tampoco quiero seguir así”",
+    "“No sé qué estudios pedir ni con qué especialista empezar”",
+    "“Me da pena hablar de lo que pasa en mi vida íntima”"
+  ],
+  "beforeState": [
+    "Información dispersa",
+    "Miedo",
+    "Datos sin contexto",
+    "Dificultad para hablar con el médico"
+  ],
+  "afterState": [
+    "Comprensión básica",
+    "Registro útil",
+    "Preguntas mejor formuladas",
+    "Siguiente paso más seguro"
+  ],
+  "notFor": [
+    "Quien busca una receta o confirmación de que una terapia específica es segura en su caso.",
+    "Sangrado vaginal inesperado, dolor torácico, falta de aire, síntomas neurológicos u otras señales importantes requieren valoración inmediata."
+  ],
+  "learningOutcomes": [
+    "Diferenciar transición menopáusica, menopausia y posmenopausia.",
+    "Reconocer síntomas vasomotores, del sueño, del ánimo y genitourinarios sin atribuir automáticamente todo a las hormonas.",
+    "Entender qué suele evaluarse con historia clínica y cuándo los estudios dependen del contexto.",
+    "Conocer las diferencias generales entre terapia hormonal sistémica, terapia vaginal/local y opciones no hormonales.",
+    "Identificar por qué la indicación, formulación, vía, edad, tiempo desde la menopausia, antecedentes y preferencias importan.",
+    "Preparar una consulta que incluya bienestar sexual, salud ósea, cardiovascular y metabólica."
+  ],
+  "includedFeatures": [
+    "Mapa de síntomas de cuatro semanas",
+    "Línea del tiempo personal de ciclos y cambios",
+    "Comparador educativo de categorías de tratamiento",
+    "Checklist de antecedentes y preguntas para consulta",
+    "Guía de vocabulario para conversar sobre salud vaginal, urinaria y sexual"
+  ],
+  "targetAudience": [
+    "Una mujer aproximadamente entre los 38 y 60 años que ha notado cambios en su ciclo, sueño, temperatura, estado de ánimo o sexualidad.",
+    "Quien recibió información contradictoria sobre hormonas y quiere prepararse antes de una consulta.",
+    "También puede ser una pareja o familiar que desea acompañarla mejor."
+  ],
+  "faqs": [
+    {
+      "question": "Todavía menstruo; esto no es para mí",
+      "answer": "La transición puede empezar antes de la última menstruación; la clase explica cómo reconocerla sin autodiagnosticarse."
+    },
+    {
+      "question": "No quiero hormonas",
+      "answer": "El objetivo no es convencer de usarlas, sino conocer opciones y formular una decisión informada."
+    },
+    {
+      "question": "Tengo miedo de que las hormonas causen cáncer",
+      "answer": "La clase explica por qué el balance de beneficios y riesgos no es idéntico para todas y debe revisarse individualmente."
+    },
+    {
+      "question": "Mi médico ya me pidió estudios",
+      "answer": "El programa ayuda a entender qué preguntas hacer sobre el propósito de cada evaluación."
+    }
+  ],
+  "ctaLabel": "Quiero entender esta etapa y preparar mis decisiones",
+  "category": "salud_mujer",
+  "categoryLabel": "Salud de la Mujer",
+  "level": "Introductorio",
+  "durationMinutes": 145,
+  "lessonCount": 8,
+  "shop": "salud-forte.myshopify.com",
+  "shopifyProductGid": "gid://shopify/Product/9840128917801",
+  "shopifyVariantGid": "gid://shopify/ProductVariant/4981023910231",
+  "sku": "MC-MENOPAUSIA-001",
+  "status": "draft",
+  "accessType": "lifetime",
+  "launchDate": "2026-10-15T00:00:00Z",
+  "launchStatus": "coming_soon",
+  "previewEnabled": true,
+  "price": 990,
+  "compareAtPrice": 1350,
+  "currency": "MXN",
+  "image": "/images/masterclasses/official/menopausia-con-claridad-2026.webp",
+  "imageFallback": "/images/masterclasses/official/menopausia-con-claridad-2026.png",
+  "imageAlt": "Portada editorial de la masterclass Menopausia con claridad",
+  "imageWidth": 1586,
+  "imageHeight": 992,
+  "imagePosition": "center",
+  "imagePriority": true,
+  "coverImage": "/images/masterclasses/official/menopausia-con-claridad-2026.webp",
+  "coverAlt": "Portada editorial de la masterclass Menopausia con claridad",
+  "imageId": "IMG-101-MASTERCLASS-MENOPAUSIA-PORTADA",
+  "disclaimerShort": "Contenido educativo. No sustituye una consulta médica ni establece una relación médico-paciente.",
+  "disclaimerLong": "El contenido de esta masterclass tiene fines exclusivamente educativos e informativos. No sustituye una consulta, diagnóstico o tratamiento médico individual. Ante síntomas, dudas o decisiones relacionadas con tu salud, consulta a un profesional calificado.",
+  "modules": [
+    {
+      "id": "mod_meno_01",
+      "courseId": "course_menopausia_001",
+      "title": "Módulo 1. Ponle nombre a la etapa",
+      "description": "Reconociendo los cambios",
+      "position": 1,
+      "status": "draft",
+      "lessons": [
+        {
+          "id": "les_meno_01_01",
+          "slug": "perimenopausia-menopausia-posmenopausia",
+          "title": "1. Perimenopausia, menopausia y posmenopausia",
+          "summary": "Qué significa cada etapa, por qué la experiencia varía y cómo evitar pensar que “todo es hormonal”.",
+          "durationSeconds": 900,
+          "position": 1,
+          "videoProvider": "cloudflare_stream",
+          "privateVideoUid": "cf_stream_meno_01_preview",
+          "isPreview": true,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_meno_01"
+        },
+        {
+          "id": "les_meno_01_02",
+          "slug": "tu-mapa-sintomas",
+          "title": "2. Tu mapa de síntomas",
+          "summary": "Ciclo, bochornos, sudoración, sueño, ánimo, memoria percibida, sexualidad, vagina y vías urinarias; intensidad, frecuencia e impacto.",
+          "durationSeconds": 1080,
+          "position": 2,
+          "videoProvider": "cloudflare_stream",
+          "privateVideoUid": "cf_stream_meno_01_eje",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_meno_01"
+        }
+      ]
+    },
+    {
+      "id": "mod_meno_02",
+      "courseId": "course_menopausia_001",
+      "title": "Módulo 2. Evalúa sin pedir estudios al azar",
+      "description": "Evaluación clínica inteligente",
+      "position": 2,
+      "status": "draft",
+      "lessons": [
+        {
+          "id": "les_meno_02_01",
+          "slug": "que-necesita-buena-consulta",
+          "title": "3. Qué información necesita una buena consulta",
+          "summary": "Historia menstrual, medicamentos, anticoncepción, antecedentes, objetivos, banderas rojas y otras causas posibles.",
+          "durationSeconds": 1080,
+          "position": 1,
+          "videoProvider": "cloudflare_stream",
+          "privateVideoUid": "cf_stream_meno_02_trh",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_meno_02"
+        },
+        {
+          "id": "les_meno_02_02",
+          "slug": "estudios-chequeos",
+          "title": "4. Estudios, chequeos y prevención",
+          "summary": "Qué depende de edad, síntomas y antecedentes; salud ósea, cardiometabólica y tamizajes habituales sin vender un “panel hormonal universal”.",
+          "durationSeconds": 1200,
+          "position": 2,
+          "videoProvider": "cloudflare_stream",
+          "privateVideoUid": "cf_stream_meno_02_preguntas",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_meno_02"
+        }
+      ]
+    },
+    {
+      "id": "mod_meno_03",
+      "courseId": "course_menopausia_001",
+      "title": "Módulo 3. Conoce el menú de opciones",
+      "description": "Hormonas y estilo de vida",
+      "position": 3,
+      "status": "draft",
+      "lessons": [
+        {
+          "id": "les_meno_03_01",
+          "slug": "terapia-hormonal-limites",
+          "title": "5. Terapia hormonal: beneficios, límites y decisiones",
+          "summary": "Terapia sistémica frente a local, papel del progestágeno cuando corresponde, vías de administración, contraindicaciones y conversación individual de beneficios y riesgos.",
+          "durationSeconds": 1200,
+          "position": 1,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_meno_03"
+        },
+        {
+          "id": "les_meno_03_02",
+          "slug": "opciones-no-hormonales",
+          "title": "6. Opciones no hormonales y estilo de vida",
+          "summary": "Tratamientos prescritos no hormonales, sueño, actividad, tabaco, alcohol, ambiente y estrategias para síntomas; calidad variable de evidencia en productos y suplementos.",
+          "durationSeconds": 1080,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_meno_03"
+        }
+      ]
+    },
+    {
+      "id": "mod_meno_04",
+      "courseId": "course_menopausia_001",
+      "title": "Módulo 4. Convierte información en una decisión compartida",
+      "description": "Organiza tu consulta",
+      "position": 4,
+      "status": "draft",
+      "lessons": [
+        {
+          "id": "les_meno_04_01",
+          "slug": "intimidad-piso-pelvico",
+          "title": "7. Intimidad, piso pélvico y síntomas urinarios sin vergüenza",
+          "summary": "Vocabulario para hablarlo, categorías de apoyo y cuándo solicitar evaluación.",
+          "durationSeconds": 1080,
+          "position": 1,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_meno_04"
+        },
+        {
+          "id": "les_meno_04_02",
+          "slug": "agenda-consulta",
+          "title": "8. Tu agenda personal para la consulta",
+          "summary": "Priorizar tres síntomas, expresar preferencias y temores, preguntar alternativas, seguimiento, beneficios esperados y riesgos relevantes.",
+          "durationSeconds": 1080,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_meno_04"
+        }
+      ]
+    }
+  ]
+,  instructor: OFFICIAL_INSTRUCTOR
+},
+{
+  "id": "course_estres_002",
+  "slug": "estres-y-tension-muscular",
+  "title": "Estrés y tensión muscular: entiende tu cuerpo y crea una rutina de alivio seguro",
+  "subtitle": "Aprende por qué la tensión puede repetirse, qué herramientas puedes probar y cuándo necesitas valoración profesional.",
+  "shortDescription": "Si cuello, hombros o mandíbula vuelven a tensarse después de un día difícil, aprende a identificar detonantes y practica una rutina breve de respiración, relajación y movimiento gradual con límites de seguridad claros.",
+  "description": "La tensión muscular no significa que estés fallando al relajarte. El estrés, la carga física, la inmovilidad, el sueño, las emociones y las expectativas pueden interactuar y aumentar la sensación de rigidez o dolor. Tampoco toda molestia debe atribuirse al estrés.\n\nEn esta masterclass aprenderás un modelo sencillo para entender esa interacción. Harás una auditoría de tu jornada, practicarás respiración lenta y relajación muscular progresiva, revisarás principios de movimiento y pausas, y construirás una rutina mínima para los días reales, no solo para los días perfectos. También aprenderás qué síntomas requieren valoración médica o fisioterapéutica.",
+  "salesPromise": "Dejarás de atacar cada episodio de forma aislada y construirás un plan breve para observar, regular y decidir el siguiente paso.",
+  "recognitionPoints": [
+    "“Me soban y al rato vuelve”",
+    "“Sé que es estrés, pero no sé cómo bajarlo del cuerpo”",
+    "“¿Es contractura o me estoy lastimando?”",
+    "“No tengo una hora diaria para hacer ejercicio”"
+  ],
+  "beforeState": [
+    "Información dispersa",
+    "Miedo",
+    "Datos sin contexto",
+    "Dificultad para hablar con el médico"
+  ],
+  "afterState": [
+    "Comprensión básica",
+    "Registro útil",
+    "Preguntas mejor formuladas",
+    "Siguiente paso más seguro"
+  ],
+  "notFor": [
+    "Personas con dolor posterior a trauma importante, fiebre, dolor torácico, debilidad progresiva, pérdida de sensibilidad u otros síntomas nuevos o intensos sin valoración."
+  ],
+  "learningOutcomes": [
+    "Comprender la respuesta de estrés y su relación posible con respiración, atención, tono y percepción del dolor.",
+    "Reconocer que estrés no equivale a causa única ni a dolor imaginario.",
+    "Registrar detonantes, actividades, descanso e impacto funcional.",
+    "Practicar respiración lenta y relajación muscular progresiva de forma básica.",
+    "Integrar movimiento gradual y pausas sin obsesionarse con una postura perfecta.",
+    "Identificar señales que quedan fuera del autocuidado."
+  ],
+  "includedFeatures": [
+    "Audio guiado de respiración y relajación muscular progresiva",
+    "Registro corporal de siete días",
+    "Tarjetas de pausas de 2, 5 y 10 minutos",
+    "Constructor de rutina según tiempo disponible",
+    "Semáforo de autocuidado, consulta programada y atención urgente"
+  ],
+  "targetAudience": [
+    "Un adulto con tensión recurrente en cuello, mandíbula, hombros o espalda asociada a jornadas largas.",
+    "Personas con estrés percibido, poca movilidad o hábitos posturales.",
+    "Cualquiera que busque autocuidado seguro sin tener una lesión grave conocida sin valorar."
+  ],
+  "faqs": [
+    {
+      "question": "Yo necesito masaje, no teoría",
+      "answer": "La clase incluye práctica y ayuda a entender por qué una herramienta aislada puede dar alivio temporal sin resolver todos los factores."
+    },
+    {
+      "question": "No tengo tiempo",
+      "answer": "Se diseñan versiones de 5, 10 y 20 minutos."
+    },
+    {
+      "question": "Si es estrés, entonces está en mi mente",
+      "answer": "No: la experiencia es real; el curso explica la interacción entre sistemas sin reducir todo a psicología."
+    },
+    {
+      "question": "Tengo una lesión diagnosticada",
+      "answer": "Debe seguirse el plan del equipo tratante; la masterclass no lo sustituye."
+    }
+  ],
+  "ctaLabel": "Quiero crear mi rutina de autocuidado",
+  "category": "bienestar",
+  "categoryLabel": "Bienestar & Fisiología",
+  "level": "Introductorio",
+  "durationMinutes": 120,
+  "lessonCount": 6,
+  "shop": "salud-forte.myshopify.com",
+  "shopifyProductGid": "gid://shopify/Product/9840128917802",
+  "shopifyVariantGid": "gid://shopify/ProductVariant/4981023910232",
+  "sku": "MC-ESTRES-002",
+  "status": "draft",
+  "accessType": "lifetime",
+  "launchDate": "2026-10-25T00:00:00Z",
+  "launchStatus": "coming_soon",
+  "previewEnabled": true,
+  "price": 850,
+  "compareAtPrice": 1100,
+  "currency": "MXN",
+  "image": "/images/masterclasses/official/estres-tension-muscular-2026.webp",
+  "imageFallback": "/images/masterclasses/official/estres-tension-muscular-2026.png",
+  "imageAlt": "Portada editorial de la masterclass sobre estrés y tensión muscular",
+  "imageWidth": 1586,
+  "imageHeight": 992,
+  "imagePosition": "center",
+  "imagePriority": true,
+  "coverImage": "/images/masterclasses/official/estres-tension-muscular-2026.webp",
+  "coverAlt": "Portada editorial de la masterclass sobre estrés y tensión muscular",
+  "imageId": "IMG-102-MASTERCLASS-ESTRES-PORTADA",
+  "disclaimerShort": "Contenido educativo. No sustituye una consulta médica ni establece una relación médico-paciente.",
+  "disclaimerLong": "El contenido de esta masterclass tiene fines exclusivamente educativos e informativos. No sustituye una consulta médica ni evaluación de dolor crónico. Si presentas dolor incapacitante, signos neurológicos o pérdida de fuerza, acude a valoración presencial inmediata.",
+  "modules": [
+    {
+      "id": "mod_estres_01",
+      "courseId": "course_estres_002",
+      "title": "Módulo 1. Entiende el ciclo",
+      "description": "Bases del cuerpo",
+      "position": 1,
+      "status": "draft",
+      "lessons": [
+        {
+          "id": "les_estres_01_01",
+          "slug": "cuerpo-se-prepara",
+          "title": "1. Por qué el cuerpo se prepara para responder",
+          "summary": "Respuesta de estrés, respiración, atención, protección y tensión explicadas en lenguaje cotidiano; variabilidad individual.",
+          "durationSeconds": 1200,
+          "position": 1,
+          "videoProvider": "cloudflare_stream",
+          "privateVideoUid": "cf_stream_estres_01",
+          "isPreview": true,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_estres_01"
+        },
+        {
+          "id": "les_estres_01_02",
+          "slug": "dolor-tension-postura",
+          "title": "2. Dolor, tensión y postura: qué sí sabemos",
+          "summary": "Modelo multifactorial, carga, sedentarismo, sueño, miedo y mitos del “nudo”; no atribuir todos los síntomas a estrés.",
+          "durationSeconds": 1200,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_estres_01"
+        }
+      ]
+    },
+    {
+      "id": "mod_estres_02",
+      "courseId": "course_estres_002",
+      "title": "Módulo 2. Aprende herramientas seguras",
+      "description": "Movimiento y respiración",
+      "position": 2,
+      "status": "draft",
+      "lessons": [
+        {
+          "id": "les_estres_02_01",
+          "slug": "respiracion-relajacion",
+          "title": "3. Respiración y relajación muscular guiadas",
+          "summary": "Práctica acompañada, expectativas realistas, adaptación y circunstancias en las que detenerse.",
+          "durationSeconds": 1200,
+          "position": 1,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_estres_02"
+        },
+        {
+          "id": "les_estres_02_02",
+          "slug": "movimiento-gradual-pausas",
+          "title": "4. Movimiento gradual y pausas posibles",
+          "summary": "Variar posiciones, dosificar carga, microdescansos y exploración de movimiento cómodo; sin correcciones universales ni manipulaciones agresivas.",
+          "durationSeconds": 1200,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_estres_02"
+        }
+      ]
+    },
+    {
+      "id": "mod_estres_03",
+      "courseId": "course_estres_002",
+      "title": "Módulo 3. Construye tu protocolo personal",
+      "description": "Tu rutina diaria",
+      "position": 3,
+      "status": "draft",
+      "lessons": [
+        {
+          "id": "les_estres_03_01",
+          "slug": "detecta-tu-patron",
+          "title": "5. Detecta tu patrón de siete días",
+          "summary": "Zona, intensidad, actividad, horas de pantalla, estrés, sueño, respuesta a herramientas e impacto en la función.",
+          "durationSeconds": 1200,
+          "position": 1,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_estres_03"
+        },
+        {
+          "id": "les_estres_03_02",
+          "slug": "tu-plan",
+          "title": "6. Tu plan de 5, 10 y 20 minutos",
+          "summary": "Menú de acciones, plan para recaídas, cuándo acudir a medicina, fisioterapia o salud mental y señales de alarma.",
+          "durationSeconds": 1200,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_estres_03"
+        }
+      ]
+    }
+  ]
+,  instructor: OFFICIAL_INSTRUCTOR
+},
+{
+  "id": "course_hormonal_003",
+  "slug": "salud-hormonal-masculina",
+  "title": "Salud hormonal masculina: entiende la testosterona antes de tomar decisiones",
+  "subtitle": "Síntomas, estudios, fertilidad, tratamiento y seguimiento explicados con claridad y sin promesas de “optimización”.",
+  "shortDescription": "¿Cansancio, baja libido o un resultado aislado significan testosterona baja? Aprende qué se necesita para una evaluación adecuada, qué otros factores deben revisarse y qué preguntas hacer antes de considerar suplementos o tratamiento.",
+  "description": "La testosterona se ha convertido en una cifra cargada de expectativas. En redes se presenta como explicación para cansancio, aumento de peso, falta de motivación, cambios sexuales o pérdida de fuerza. En realidad, esos síntomas pueden tener varias causas y un resultado aislado no cuenta toda la historia.\n\nEsta masterclass explica, paso a paso, cómo funciona el eje hormonal masculino, cómo se evalúan síntomas y análisis, por qué una prueba suele necesitar condiciones adecuadas y confirmación, y cómo se investigan posibles causas. También revisarás qué puede y qué no puede esperarse de la terapia, su relación con fertilidad y los controles de seguridad que exige. El objetivo no es decirte si necesitas testosterona, sino darte criterio para no decidir a partir de miedo, vergüenza o marketing.",
+  "salesPromise": "Pasarás de preguntar “¿cómo subo mi testosterona?” a saber “¿qué necesito evaluar y qué decisión tiene sentido para mi caso?”.",
+  "recognitionPoints": [
+    "“¿Mi cansancio significa que tengo baja testosterona?”",
+    "“El laboratorio la marcó baja; ¿con eso basta?”",
+    "“¿La terapia me ayudará o me puede afectar?”",
+    "“Quiero preguntar por libido y erecciones sin sentirme juzgado”"
+  ],
+  "beforeState": [
+    "Información dispersa",
+    "Miedo",
+    "Datos sin contexto",
+    "Dificultad para hablar con el médico"
+  ],
+  "afterState": [
+    "Comprensión básica",
+    "Registro útil",
+    "Preguntas mejor formuladas",
+    "Siguiente paso más seguro"
+  ],
+  "notFor": [
+    "Quien busca una receta, una dosis, un ciclo anabólico o validación para automedicarse.",
+    "La terapia no debe iniciarse a partir de esta clase y requiere evaluación profesional; el deseo de fertilidad debe discutirse antes de cualquier decisión."
+  ],
+  "learningOutcomes": [
+    "Comprender en términos básicos cómo se produce, regula y transporta la testosterona.",
+    "Reconocer cuáles síntomas pueden justificar evaluación y por qué no son exclusivos de deficiencia hormonal.",
+    "Entender la importancia del horario, método, repetición e interpretación profesional de los análisis.",
+    "Diferenciar de forma básica causas testiculares y causas del eje hipotálamo–hipófisis.",
+    "Reconocer la influencia de sueño, apnea, enfermedades, composición corporal, medicamentos y consumo de andrógenos.",
+    "Conocer beneficios potenciales, límites, contraindicaciones, fertilidad y seguimiento de la terapia prescrita."
+  ],
+  "includedFeatures": [
+    "Expediente hormonal de una página",
+    "Mapa de síntomas y otras causas posibles",
+    "Línea del tiempo de estudios con hora, condiciones y laboratorio",
+    "Glosario de testosterona total, libre, SHBG, LH y FSH",
+    "Checklist de fertilidad, medicamentos, suplementos y uso previo de andrógenos",
+    "Guía de preguntas sobre beneficio esperado, monitoreo, costo y criterios"
+  ],
+  "targetAudience": [
+    "Un hombre adulto con fatiga, cambios en deseo sexual, erecciones, fuerza, composición corporal, ánimo o concentración.",
+    "Alguien con un resultado de testosterona que no entiende.",
+    "Quien está considerando suplementos, “boosters”, anabólicos o terapia por recomendaciones de internet."
+  ],
+  "faqs": [
+    {
+      "question": "Solo quiero saber si mi nivel es bueno",
+      "answer": "Un número se interpreta con síntomas, condiciones de la toma, método y confirmación."
+    },
+    {
+      "question": "Me da pena hablar de esto",
+      "answer": "La clase ofrece vocabulario clínico, respetuoso y privado para preparar la conversación."
+    },
+    {
+      "question": "Ya me recomendaron testosterona",
+      "answer": "El contenido permite preguntar cuál es el diagnóstico, cómo se confirmó, qué causa se investigó y cómo se vigilará."
+    },
+    {
+      "question": "No quiero que me digan que todo es por mi peso",
+      "answer": "La evaluación es multifactorial y debe evitar juicios; el peso no reemplaza la historia ni el estudio clínico."
+    }
+  ],
+  "ctaLabel": "Quiero entender mis síntomas y mis estudios",
+  "category": "salud_hombre",
+  "categoryLabel": "Salud del Hombre",
+  "level": "Introductorio",
+  "durationMinutes": 135,
+  "lessonCount": 7,
+  "shop": "salud-forte.myshopify.com",
+  "shopifyProductGid": "gid://shopify/Product/9840128917803",
+  "shopifyVariantGid": "gid://shopify/ProductVariant/4981023910233",
+  "sku": "MC-HORMONAL-003",
+  "status": "draft",
+  "accessType": "lifetime",
+  "launchDate": "2026-11-05T00:00:00Z",
+  "launchStatus": "coming_soon",
+  "previewEnabled": true,
+  "price": 950,
+  "compareAtPrice": 1250,
+  "currency": "MXN",
+  "image": "/images/masterclasses/official/salud-hormonal-masculina-2026.webp",
+  "imageFallback": "/images/masterclasses/official/salud-hormonal-masculina-2026.png",
+  "imageAlt": "Portada editorial de la masterclass sobre salud hormonal masculina",
+  "imageWidth": 1586,
+  "imageHeight": 992,
+  "imagePosition": "center",
+  "imagePriority": false,
+  "coverImage": "/images/masterclasses/official/salud-hormonal-masculina-2026.webp",
+  "coverAlt": "Portada editorial de la masterclass sobre salud hormonal masculina",
+  "imageId": "IMG-103-MASTERCLASS-HORMONAL-PORTADA",
+  "disclaimerShort": "Contenido educativo. No sustituye una consulta médica ni establece una relación médico-paciente.",
+  "disclaimerLong": "El contenido de esta masterclass tiene fines exclusivamente educativos. No prescribe ni promueve el uso no supervisado de andrógenos ni anabólicos. El hipogonadismo requiere diagnóstico clínico y confirmación de laboratorio en consulta médica presencial.",
+  "modules": [
+    {
+      "id": "mod_hormon_01",
+      "courseId": "course_hormonal_003",
+      "title": "Módulo 1. Quita la cifra del pedestal",
+      "description": "Bases y síntomas",
+      "position": 1,
+      "status": "draft",
+      "lessons": [
+        {
+          "id": "les_hormon_01_01",
+          "slug": "que-hace-testosterona",
+          "title": "1. Qué hace la testosterona y qué no explica por sí sola",
+          "summary": "Funciones, variabilidad y relación no lineal con identidad, rendimiento y bienestar.",
+          "durationSeconds": 1080,
+          "position": 1,
+          "videoProvider": "cloudflare_stream",
+          "privateVideoUid": "cf_stream_hormon_01",
+          "isPreview": true,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_hormon_01"
+        },
+        {
+          "id": "les_hormon_01_02",
+          "slug": "sintomas-reales-compartidos",
+          "title": "2. Síntomas reales, síntomas compartidos",
+          "summary": "Función sexual, energía, composición corporal, ánimo y fuerza; causas alternativas y mapa inicial.",
+          "durationSeconds": 1140,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_hormon_01"
+        }
+      ]
+    },
+    {
+      "id": "mod_hormon_02",
+      "courseId": "course_hormonal_003",
+      "title": "Módulo 2. Entiende una evaluación correcta",
+      "description": "Laboratorios",
+      "position": 2,
+      "status": "draft",
+      "lessons": [
+        {
+          "id": "les_hormon_02_01",
+          "slug": "como-se-mide",
+          "title": "3. Cómo se mide sin sacar conclusiones rápidas",
+          "summary": "Momento de la toma, enfermedad intercurrente, ensayo de laboratorio, testosterona total y libre cuando corresponde, confirmación y rangos contextualizados.",
+          "durationSeconds": 1140,
+          "position": 1,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_hormon_02"
+        },
+        {
+          "id": "les_hormon_02_02",
+          "slug": "por-que-baja",
+          "title": "4. Si está baja, todavía falta preguntar por qué",
+          "summary": "Historia, medicamentos, consumo de andrógenos, sueño y apnea, obesidad, enfermedades crónicas, LH/FSH y distinción básica de origen.",
+          "durationSeconds": 1200,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_hormon_02"
+        }
+      ]
+    },
+    {
+      "id": "mod_hormon_03",
+      "courseId": "course_hormonal_003",
+      "title": "Módulo 3. Decide con beneficios y riesgos sobre la mesa",
+      "description": "Opciones y seguridad",
+      "position": 3,
+      "status": "draft",
+      "lessons": [
+        {
+          "id": "les_hormon_03_01",
+          "slug": "habitos-salud",
+          "title": "5. Hábitos, salud metabólica y expectativas realistas",
+          "summary": "Sueño, movimiento, masa muscular, nutrición, alcohol y peso sin prometer “elevar naturalmente” una cifra específica.",
+          "durationSeconds": 1200,
+          "position": 1,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_hormon_03"
+        },
+        {
+          "id": "les_hormon_03_02",
+          "slug": "terapia-limites",
+          "title": "6. Terapia de testosterona: indicaciones, límites y seguridad",
+          "summary": "Qué requiere el diagnóstico, posibles beneficios, contraindicaciones, efectos adversos, fertilidad, hematocrito, próstata y seguimiento individual.",
+          "durationSeconds": 1200,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_hormon_03"
+        }
+      ]
+    },
+    {
+      "id": "mod_hormon_04",
+      "courseId": "course_hormonal_003",
+      "title": "Módulo 4. Prepara tu conversación",
+      "description": "Expediente organizado",
+      "position": 4,
+      "status": "draft",
+      "lessons": [
+        {
+          "id": "les_hormon_04_01",
+          "slug": "expediente-en-una-pagina",
+          "title": "7. Tu expediente hormonal en una página",
+          "summary": "Línea del tiempo de síntomas, estudios previos, medicamentos y suplementos, objetivos reproductivos y preguntas para consulta.",
+          "durationSeconds": 1140,
+          "position": 1,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_hormon_04"
+        }
+      ]
+    }
+  ]
+,  instructor: OFFICIAL_INSTRUCTOR
+},
+{
+  "id": "course_sop_004",
+  "slug": "sindrome-ovario-poliquistico",
+  "title": "SOP con claridad: entiende tu diagnóstico y elige tu siguiente paso",
+  "subtitle": "Ciclos, síntomas, estudios y tratamientos explicados sin estigma, dietas extremas ni falsas promesas de curación.",
+  "shortDescription": "Tener “quistes” o folículos en una ecografía no siempre significa SOP. Aprende cómo se construye el diagnóstico, qué otros aspectos conviene evaluar y cómo se eligen opciones según tus síntomas, tu salud y tus objetivos.",
+  "description": "El síndrome de ovario poliquístico no se presenta igual en todas. Algunas mujeres consultan por ciclos irregulares; otras por acné, vello, caída de cabello, metabolismo o fertilidad. Por eso, una ecografía, un síntoma o una cifra aislada no deberían convertirse por sí solos en una etiqueta para toda la vida.\n\nEn esta masterclass entenderás cómo se construye el diagnóstico y por qué deben considerarse otras causas. Aprenderás qué relación pueden tener los andrógenos y la insulina, qué aspectos metabólicos y emocionales conviene revisar, y cómo se eligen intervenciones de estilo de vida y tratamientos médicos según la prioridad de cada persona. Terminarás con un mapa de síntomas, estudios y preguntas para coordinar mejor tu atención.\n\nNo encontrarás una dieta obligatoria ni una “cura en 30 días”. Encontrarás criterio, estructura y un siguiente paso más claro.",
+  "salesPromise": "Dejarás de ver el SOP como una etiqueta confusa y empezarás a entenderlo como un mapa de decisiones que debe adaptarse a ti.",
+  "recognitionPoints": [
+    "“Me dijeron que tengo quistes; ¿eso significa que tengo SOP?”",
+    "“¿Voy a poder embarazarme?”",
+    "“¿Todo se debe a mi peso?”",
+    "“Cada persona me recomienda una dieta o suplemento diferente”",
+    "“¿Por qué me dieron anticonceptivos o metformina y qué se espera de ellos?”"
+  ],
+  "beforeState": [
+    "Información dispersa",
+    "Miedo",
+    "Datos sin contexto",
+    "Dificultad para hablar con el médico"
+  ],
+  "afterState": [
+    "Comprensión básica",
+    "Registro útil",
+    "Preguntas mejor formuladas",
+    "Siguiente paso más seguro"
+  ],
+  "notFor": [
+    "Quien busca autodiagnóstico, una dieta universal, indicaciones para suspender anticonceptivos o dosis de medicamentos o suplementos.",
+    "Sangrado intenso, dolor importante, embarazo o síntomas agudos necesitan orientación clínica directa."
+  ],
+  "learningOutcomes": [
+    "Comprender qué es y qué no es el SOP.",
+    "Conocer los componentes de los criterios diagnósticos y la necesidad de excluir otras causas.",
+    "Entender por qué en adolescentes el proceso diagnóstico requiere consideraciones especiales.",
+    "Reconocer la diversidad de presentaciones y evitar equiparar SOP con peso o infertilidad.",
+    "Comprender la relación posible entre andrógenos, ovulación, insulina y riesgo metabólico.",
+    "Conocer categorías de tratamiento según objetivos, sin automedicarse.",
+    "Preparar un seguimiento coordinado y respetuoso."
+  ],
+  "includedFeatures": [
+    "Rastreador de ciclos y síntomas sin juicios",
+    "Hoja “¿Qué criterios me explicaron y qué otras causas se revisaron?”",
+    "Mapa de objetivos: ciclo, piel/cabello, metabolismo, anticoncepción, fertilidad",
+    "Comparador educativo de categorías de tratamiento",
+    "Guía para coordinar especialistas según necesidades"
+  ],
+  "targetAudience": [
+    "Adolescente mayor o mujer adulta con diagnóstico reciente o sospecha de SOP.",
+    "Quien presenta ciclos irregulares, acné, crecimiento de vello, caída de cabello, dificultad reproductiva o inquietud metabólica.",
+    "Mujer que recibió el diagnóstico solo porque una ecografía mostró “quistes” y quiere confirmarlo con un profesional."
+  ],
+  "faqs": [
+    {
+      "question": "Ya me hicieron un ultrasonido",
+      "answer": "Es información útil en algunos contextos, pero el diagnóstico completo no debe reducirse a una imagen."
+    },
+    {
+      "question": "No tengo sobrepeso",
+      "answer": "El SOP puede aparecer en distintos cuerpos; el curso no usa el peso como requisito ni explicación total."
+    },
+    {
+      "question": "Solo quiero una dieta",
+      "answer": "La alimentación puede formar parte del plan, pero no existe una pauta única que diagnostique o cure el síndrome."
+    },
+    {
+      "question": "Me preocupa no poder embarazarme",
+      "answer": "El SOP puede afectar la ovulación, pero no equivale automáticamente a infertilidad; la clase ayuda a preparar una evaluación individual."
+    },
+    {
+      "question": "Ya tomo medicamentos",
+      "answer": "No se deben suspender ni modificar; el programa ayuda a entender qué objetivo y seguimiento conviene discutir."
+    }
+  ],
+  "ctaLabel": "Quiero entender mi diagnóstico y mis opciones",
+  "category": "salud_mujer",
+  "categoryLabel": "Salud de la Mujer",
+  "level": "Introductorio",
+  "durationMinutes": 150,
+  "lessonCount": 8,
+  "shop": "salud-forte.myshopify.com",
+  "shopifyProductGid": "gid://shopify/Product/9840128917804",
+  "shopifyVariantGid": "gid://shopify/ProductVariant/4981023910234",
+  "sku": "MC-SOP-004",
+  "status": "draft",
+  "accessType": "lifetime",
+  "launchDate": "2026-11-15T00:00:00Z",
+  "launchStatus": "coming_soon",
+  "previewEnabled": true,
+  "price": 990,
+  "compareAtPrice": 1300,
+  "currency": "MXN",
+  "image": "/images/masterclasses/official/sop-con-claridad-2026.webp",
+  "imageFallback": "/images/masterclasses/official/sop-con-claridad-2026.png",
+  "imageAlt": "Portada editorial de la masterclass SOP con claridad",
+  "imageWidth": 1586,
+  "imageHeight": 992,
+  "imagePosition": "center",
+  "imagePriority": false,
+  "coverImage": "/images/masterclasses/official/sop-con-claridad-2026.webp",
+  "coverAlt": "Portada editorial de la masterclass SOP con claridad",
+  "imageId": "IMG-104-MASTERCLASS-SOP-PORTADA",
+  "disclaimerShort": "Contenido educativo. No sustituye una consulta médica ni establece una relación médico-paciente.",
+  "disclaimerLong": "El contenido de esta masterclass tiene fines exclusivamente educativos. El síndrome de ovario poliquístico requiere diagnóstico diferencial con otras patologías suprarrenales e hipofisarias. No modifiques tratamientos ni dosis sin supervisión médica.",
+  "modules": [
+    {
+      "id": "mod_sop_01",
+      "courseId": "course_sop_004",
+      "title": "Módulo 1. Confirma qué significa el diagnóstico",
+      "description": "SOP y criterios",
+      "position": 1,
+      "status": "draft",
+      "lessons": [
+        {
+          "id": "les_sop_01_01",
+          "slug": "que-es-sop",
+          "title": "1. Qué es y qué no es el SOP",
+          "summary": "El nombre, la diversidad de presentaciones y por qué “quistes” puede confundir.",
+          "durationSeconds": 1080,
+          "position": 1,
+          "videoProvider": "cloudflare_stream",
+          "privateVideoUid": "cf_stream_sop_01",
+          "isPreview": true,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_sop_01"
+        },
+        {
+          "id": "les_sop_01_02",
+          "slug": "como-se-construye",
+          "title": "2. Cómo se construye el diagnóstico",
+          "summary": "Ciclos/ovulación, hiperandrogenismo clínico o bioquímico y morfología ovárica cuando corresponde; exclusión de otras causas y consideraciones especiales en adolescentes.",
+          "durationSeconds": 1080,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_sop_01"
+        }
+      ]
+    },
+    {
+      "id": "mod_sop_02",
+      "courseId": "course_sop_004",
+      "title": "Módulo 2. Entiende lo que ocurre en tu cuerpo",
+      "description": "Hormonas y metabolismo",
+      "position": 2,
+      "status": "draft",
+      "lessons": [
+        {
+          "id": "les_sop_02_01",
+          "slug": "ciclo-ovulacion",
+          "title": "3. Ciclo, ovulación y andrógenos",
+          "summary": "Cómo se relacionan con menstruación, acné, vello y cabello sin asumir que todas tendrán lo mismo.",
+          "durationSeconds": 1140,
+          "position": 1,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_sop_02"
+        },
+        {
+          "id": "les_sop_02_02",
+          "slug": "insulina-salud-metabolica",
+          "title": "4. Insulina y salud metabólica sin culpa",
+          "summary": "Qué relación puede existir, por qué no define a todas, evaluación de glucosa, lípidos, presión y sueño según el caso.",
+          "durationSeconds": 1140,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_sop_02"
+        }
+      ]
+    },
+    {
+      "id": "mod_sop_03",
+      "courseId": "course_sop_004",
+      "title": "Módulo 3. Elige opciones según tu objetivo",
+      "description": "Tratamiento personalizado",
+      "position": 3,
+      "status": "draft",
+      "lessons": [
+        {
+          "id": "les_sop_03_01",
+          "slug": "estilo-vida",
+          "title": "5. Estilo de vida sin dietas castigo",
+          "summary": "Alimentación sostenible, actividad, sueño, prevención de ganancia de peso y beneficios incluso cuando la báscula no cambia; derivación a nutrición calificada.",
+          "durationSeconds": 1140,
+          "position": 1,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_sop_03"
+        },
+        {
+          "id": "les_sop_03_02",
+          "slug": "opciones-medicas",
+          "title": "6. Opciones médicas para ciclo, piel y metabolismo",
+          "summary": "Categorías como anticonceptivos combinados, sensibilizadores a la insulina y antiandrógenos, con propósito, límites, precauciones y necesidad de prescripción individual.",
+          "durationSeconds": 1140,
+          "position": 2,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_sop_03"
+        },
+        {
+          "id": "les_sop_03_03",
+          "slug": "fertilidad",
+          "title": "7. Fertilidad y planes reproductivos",
+          "summary": "Qué preguntar si busca embarazo ahora, después o nunca; anticoncepción, preconcepción y derivación oportuna.",
+          "durationSeconds": 1140,
+          "position": 3,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_sop_03"
+        }
+      ]
+    },
+    {
+      "id": "mod_sop_04",
+      "courseId": "course_sop_004",
+      "title": "Módulo 4. Diseña seguimiento de largo plazo",
+      "description": "Tu mapa personal",
+      "position": 4,
+      "status": "draft",
+      "lessons": [
+        {
+          "id": "les_sop_04_01",
+          "slug": "tu-mapa-personal",
+          "title": "8. Tu mapa personal de SOP",
+          "summary": "Criterios que te explicaron, prioridades, bienestar emocional, estudios, profesionales involucrados, metas de seguimiento y preguntas para la siguiente consulta.",
+          "durationSeconds": 1140,
+          "position": 1,
+          "videoProvider": "none",
+          "privateVideoUid": "",
+          "isPreview": false,
+          "status": "draft",
+          "createdAt": "2026-09-01T00:00:00Z",
+          "updatedAt": "2026-09-01T00:00:00Z",
+          "moduleId": "mod_sop_04"
+        }
+      ]
+    }
+  ]
+,  instructor: OFFICIAL_INSTRUCTOR
+}
 ];
+
 
 // ==============================================================================
 // PERSISTENT REPOSITORY WITH DURABLE DISK STORE & INDEXES
@@ -1249,13 +2476,7 @@ class AcademyDatabase {
       price: data.price || 499,
       compareAtPrice: data.compareAtPrice,
       currency: 'MXN',
-      instructor: {
-        name: OFFICIAL_INSTRUCTOR.name,
-        title: OFFICIAL_INSTRUCTOR.credentials,
-        license: OFFICIAL_INSTRUCTOR.professionalLicense,
-        institution: OFFICIAL_INSTRUCTOR.institution,
-        avatarUrl: OFFICIAL_INSTRUCTOR.profileImage,
-      },
+      instructor: OFFICIAL_INSTRUCTOR,
       learningOutcomes: data.learningOutcomes || ['Comprensión profunda de la evidencia clínica', 'Estrategias prácticas de aplicación'],
       targetAudience: data.targetAudience || ['Pacientes y personas interesadas en su salud'],
       includedFeatures: data.includedFeatures || ['Acceso digital de por vida', 'Lecciones en video de alta calidad', 'Material de apoyo descargable'],

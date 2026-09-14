@@ -74,11 +74,17 @@ export function MedicalContactModal({ id = 'medical-contact-modal', isOpen, onCl
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [confirmedAppointment, setConfirmedAppointment] = useState<AppointmentRecord | null>(null);
 
-  // Mounted safety check
+  // Mounted check & URL params check when modal opens
   useEffect(() => {
     setMounted(true);
-    return () => setMounted(false);
-  }, []);
+    if (isOpen && typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tipo = params.get('tipo') || params.get('type') || params.get('modalidad');
+      if (tipo === 'online' || tipo === 'linea' || tipo === 'telemedicina' || tipo === 'consulta-linea') {
+        setModality('En línea (Telemedicina)');
+      }
+    }
+  }, [isOpen]);
 
   // Keyboard accessibility: Escape to close
   useEffect(() => {

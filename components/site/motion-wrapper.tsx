@@ -292,7 +292,16 @@ export function EditorialCurtain({
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const prefersReduced = usePrefersReducedMotion();
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (prefersReduced) {
@@ -332,16 +341,17 @@ export function EditorialCurtain({
       ref={containerRef}
       className={`relative overflow-hidden ${className}`}
     >
-      {/* Underlying content / Doctor Portrait with soft scale */}
+      {/* Underlying content / Doctor Portrait with soft scale on desktop only */}
       <div
         className="size-full gpu-accel transition-all"
         style={{
-          transform: prefersReduced
+          transform: prefersReduced || isMobile
             ? 'none'
             : isOpen
             ? 'scale(1)'
             : `scale(${motionTokens.scale.curtainInitial})`,
-          transition: prefersReduced
+          transformOrigin: 'top center',
+          transition: prefersReduced || isMobile
             ? 'none'
             : `transform ${duration + 0.1}s ${easeString} ${delay}s`,
         }}

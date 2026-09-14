@@ -1,8 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Container } from '@/components/site/container';
 import { useAuth } from '@/lib/auth/auth-context';
+import {
+  fetchStudentDashboardData,
+  StudentDashboardData,
+} from '@/lib/academy/student-dashboard-service';
 import {
   GraduationCap,
   BookOpen,
@@ -16,80 +20,47 @@ import {
   LayoutDashboard,
   AlertCircle,
   Mail,
+  RefreshCw,
 } from 'lucide-react';
 import Link from 'next/link';
 
-interface LibraryItem {
-  entitlementId: string;
-  status: 'active' | 'revoked' | 'suspended';
-  grantedAt: string;
-  course: {
-    id: string;
-    slug: string;
-    title: string;
-    subtitle?: string;
-    image?: string;
-    imageFallback?: string;
-    coverImage?: string;
-    categoryLabel?: string;
-    durationMinutes?: number;
-    lessonCount?: number;
-    instructor?: {
-      name: string;
-      title: string;
-    };
-  } | null;
-  progress: {
-    percent: number;
-    completedCount: number;
-    totalCount: number;
-    lastLessonId: string | null;
-  };
-}
-
 export default function MisMasterclassesPage() {
-  const { user, profile, isLoading, signOut } = useAuth();
-  const [library, setLibrary] = useState<LibraryItem[]>([]);
-  const [loadingLibrary, setLoadingLibrary] = useState(true);
+  const { user, profile, isLoading: authLoading, signOut } = useAuth();
+  const [dashboardData, setDashboardData] = useState<StudentDashboardData | null>(null);
+  const [dataLoading, setDataLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
-  // Fetch real library items from server
-  const loadLibrary = async () => {
-    setLoadingLibrary(true);
+  const loadData = useCallback(async (userId: string) => {
+    setDataLoading(true);
     setFetchError(null);
     try {
-      const res = await fetch('/api/academia/my-library', {
-        credentials: 'include',
-      });
-      if (!res.ok) {
-        if (res.status === 401) {
-          window.location.href = '/cuenta/iniciar-sesion?returnTo=/academia/mis-masterclasses';
-          return;
-        }
-        const err = await res.json();
-        setFetchError(err.error || 'No fue posible consultar tu biblioteca.');
-        return;
-      }
-      const data = await res.json();
-      setLibrary(data.library || []);
-    } catch (e: any) {
-      setFetchError('Error de red al consultar tus masterclasses.');
+      const data = await fetchStudentDashboardData(userId);
+      setDashboardData(data);
+    } catch (err: any) {
+      console.error('Error al cargar masterclasses:', err?.message || err);
+      setFetchError('No pudimos cargar tu información en este momento.');
     } finally {
-      setLoadingLibrary(false);
+      setDataLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    if (!isLoading) {
+    let isMounted = true;
+
+    if (!authLoading) {
       if (!user) {
         window.location.href = '/cuenta/iniciar-sesion?returnTo=/academia/mis-masterclasses';
-      } else {
-        loadLibrary();
+      } else if (user.id) {
+        loadData(user.id);
       }
     }
-  }, [user, isLoading]);
 
-  if (isLoading || loadingLibrary) {
+    return () => {
+      isMounted = false;
+    };
+  }, [user, authLoading, loadData]);
+
+  if (authLoading || (dataLoading && !dashboardData)) {
     return (
       <div className="min-h-screen bg-[#F9F7F2] flex flex-col items-center justify-center p-6 text-center">
         <div className="size-10 border-3 border-champagne border-t-transparent rounded-full animate-spin mb-4" />
@@ -100,6 +71,9 @@ export default function MisMasterclassesPage() {
   }
 
   const isDoctor = profile?.role === 'ADMIN' || profile?.role === 'INSTRUCTOR';
+  const activeEntitlements = dashboardData?.activeEntitlements || [];
+  const lessons = dashboardData?.lessons || [];
+  const progress = dashboardData?.progress || [];
 
   return (
     <div className="bg-ivory min-h-screen text-obsidian">
@@ -174,30 +148,41 @@ export default function MisMasterclassesPage() {
           )}
 
           {fetchError && (
-            <div className="p-4 rounded-xl bg-red-50 text-red-800 border border-red-200 text-xs mb-8 flex items-center gap-3">
-              <AlertCircle className="size-4 shrink-0 text-red-600" />
-              <span>{fetchError}</span>
+            <div className="p-4 rounded-2xl bg-red-50 text-red-800 border border-red-200 text-xs mb-8 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <AlertCircle className="size-4 shrink-0 text-red-600" />
+                <span>{fetchError}</span>
+              </div>
+              {user?.id && (
+                <button
+                  onClick={() => loadData(user.id)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-900 font-semibold transition-colors"
+                >
+                  <RefreshCw className="size-3.5" />
+                  <span>Intentar nuevamente</span>
+                </button>
+              )}
             </div>
           )}
 
-          {library.length === 0 ? (
-            /* Empty state */
+          {activeEntitlements.length === 0 ? (
+            /* FASE 7 & 8: Premium Empty State */
             <div className="p-10 sm:p-14 rounded-3xl bg-white border border-[#B39A6A]/25 text-center max-w-xl mx-auto shadow-xs">
               <div className="size-16 rounded-full bg-champagne/10 text-champagne flex items-center justify-center mx-auto mb-4 border border-champagne/20">
-                <BookOpen className="size-8" />
+                <GraduationCap className="size-8 text-[#8A7347]" />
               </div>
               <h2 className="font-serif text-2xl font-semibold text-obsidian mb-2">
-                Aún no tienes masterclasses activas
+                Tu biblioteca está lista para comenzar
               </h2>
               <p className="text-xs sm:text-sm text-obsidian/70 leading-relaxed mb-6">
-                Al inscribirte en cualquiera de nuestras masterclasses, tendrás acceso inmediato e ilimitado a las lecciones en video, resúmenes clínicos y materiales descargables en esta sección.
+                Cuando adquieras o recibas acceso a una masterclass, aparecerá aquí junto con tus lecciones y avance.
               </p>
               <Link
                 href="/academia"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-obsidian text-white text-xs font-semibold hover:bg-[#07182A] transition-all shadow-md"
               >
-                <span>Explorar Catálogo de Masterclasses</span>
-                <ExternalLink className="size-3.5" />
+                <span>Explorar Masterclasses</span>
+                <ExternalLink className="size-3.5 text-champagne" />
               </Link>
             </div>
           ) : (
@@ -205,7 +190,7 @@ export default function MisMasterclassesPage() {
             <div className="space-y-6">
               <div className="flex items-center justify-between pb-3 border-b border-[#B39A6A]/15">
                 <span className="text-xs font-semibold tracking-wider uppercase text-obsidian/60">
-                  {library.length} {library.length === 1 ? 'Masterclass inscrita' : 'Masterclasses inscritas'}
+                  {activeEntitlements.length} {activeEntitlements.length === 1 ? 'Masterclass activa' : 'Masterclasses activas'}
                 </span>
                 <Link
                   href="/academia"
@@ -217,28 +202,50 @@ export default function MisMasterclassesPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {library.map((item) => {
-                  const course = item.course;
+                {activeEntitlements.map((ent) => {
+                  const course = ent.masterclass;
                   if (!course) return null;
 
-                  const isComplete = item.progress.percent === 100;
+                  const mcLessons = lessons.filter((l) => l.masterclass_id === course.id);
+                  const mcProgress = progress.filter((p) =>
+                    mcLessons.some((l) => l.id === p.lesson_id)
+                  );
+
+                  const totalLessonsCount = mcLessons.length;
+                  const completedCount = mcLessons.filter((l) => {
+                    const p = mcProgress.find((prog) => prog.lesson_id === l.id);
+                    return p?.completed || p?.progress_percent === 100;
+                  }).length;
+
+                  const progressPercent =
+                    totalLessonsCount > 0
+                      ? Math.min(100, Math.round((completedCount / totalLessonsCount) * 100))
+                      : 0;
+
+                  const isComplete = totalLessonsCount > 0 && completedCount === totalLessonsCount;
+
+                  const inProgressLesson = mcProgress
+                    .filter((p) => p.progress_percent > 0)
+                    .sort((a, b) => new Date(b.last_watched_at).getTime() - new Date(a.last_watched_at).getTime())[0];
+
+                  const targetLessonId = inProgressLesson?.lesson_id || mcLessons[0]?.id || 'inicio';
 
                   return (
                     <div
-                      key={item.entitlementId}
+                      key={ent.id}
                       className="p-5 rounded-2xl bg-white border border-[#B39A6A]/25 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow"
                     >
                       <div>
                         {/* Course Image */}
                         <div className="aspect-16/10 rounded-xl overflow-hidden mb-4 bg-[#0D2235] relative">
                           <img
-                            src={course.imageFallback || course.coverImage || course.image}
+                            src={course.cover_image || '/images/course-default.jpg'}
                             alt={course.title}
                             className="w-full h-full object-cover"
                             referrerPolicy="no-referrer"
                           />
                           <div className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-md bg-[#0D2235]/85 backdrop-blur-md text-white text-[10px] font-semibold uppercase tracking-wider">
-                            {course.categoryLabel || 'Salud Femenina'}
+                            {course.category || 'Educación Médica'}
                           </div>
                           <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md bg-emerald-600/90 text-white text-[10px] font-semibold flex items-center gap-1 shadow-xs">
                             <ShieldCheck className="size-3" />
@@ -251,7 +258,7 @@ export default function MisMasterclassesPage() {
                           {course.title}
                         </h3>
                         <p className="text-xs text-obsidian/65 line-clamp-2 mb-4 leading-relaxed">
-                          {course.subtitle || 'Impartido por el Dr. Mauricio Benjamín Galindo López.'}
+                          {course.subtitle || course.short_description || 'Impartido por el Dr. Mauricio Benjamín Galindo López.'}
                         </p>
 
                         {/* Progress Bar */}
@@ -259,18 +266,18 @@ export default function MisMasterclassesPage() {
                           <div className="flex items-center justify-between text-[11px] text-obsidian/75 font-medium mb-1.5">
                             <span>Progreso de estudio</span>
                             <span className="font-mono font-semibold text-champagne">
-                              {item.progress.percent}%
+                              {progressPercent}%
                             </span>
                           </div>
                           <div className="w-full h-1.5 bg-black/10 rounded-full overflow-hidden">
                             <div
                               className="h-full bg-champagne rounded-full transition-all duration-500"
-                              style={{ width: `${item.progress.percent}%` }}
+                              style={{ width: `${progressPercent}%` }}
                             />
                           </div>
                           <div className="flex items-center justify-between text-[10px] text-obsidian/50 mt-1.5">
                             <span>
-                              {item.progress.completedCount} de {course.lessonCount || item.progress.totalCount} lecciones completadas
+                              {completedCount} de {totalLessonsCount} lecciones completadas
                             </span>
                             {isComplete && (
                               <span className="text-emerald-600 font-semibold flex items-center gap-0.5">
@@ -283,11 +290,11 @@ export default function MisMasterclassesPage() {
 
                       {/* Action CTA */}
                       <Link
-                        href={`/academia/${course.slug}/leccion/${course.slug === 'menopausia-con-claridad' ? 'bienvenida-y-alcance-educativo' : 'introduccion-a-la-ginecologia-funcional'}`}
+                        href={`/aprender/${course.slug}/${targetLessonId}`}
                         className="w-full py-2.5 px-4 rounded-xl bg-obsidian text-white text-xs font-semibold flex items-center justify-center gap-2 hover:bg-[#07182A] transition-all shadow-xs"
                       >
                         <Play className="size-3.5 fill-white text-white" />
-                        <span>{item.progress.percent > 0 ? 'Continuar Lección' : 'Comenzar Masterclass'}</span>
+                        <span>{progressPercent > 0 ? 'Continuar Lección' : 'Comenzar Masterclass'}</span>
                       </Link>
                     </div>
                   );
@@ -300,3 +307,4 @@ export default function MisMasterclassesPage() {
     </div>
   );
 }
+

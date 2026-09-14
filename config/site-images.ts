@@ -66,8 +66,8 @@ export const SITE_IMAGES: Record<'homeHero' | 'aboutPortrait' | 'bookingPortrait
     },
     alt: 'Dr. Mauricio Benjamín Galindo López, Médico Cirujano con bata blanca y estetoscopio',
     objectFit: 'cover',
-    desktopPosition: 'object-center',
-    mobilePosition: 'object-[72%_center]',
+    desktopPosition: 'object-[center_top]',
+    mobilePosition: 'object-[72%_top]',
   },
 
   /**
@@ -85,9 +85,9 @@ export const SITE_IMAGES: Record<'homeHero' | 'aboutPortrait' | 'bookingPortrait
       webp: '/images/doctor/official/mauricio-about-2026.webp',
     },
     alt: 'Retrato profesional del Dr. Mauricio Benjamín Galindo López, Médico Cirujano',
-    objectFit: 'cover',
-    desktopPosition: 'object-[center_20%]',
-    mobilePosition: 'object-[center_20%]',
+    objectFit: 'contain',
+    desktopPosition: 'object-center',
+    mobilePosition: 'object-center',
   },
 
   /**

@@ -27,8 +27,8 @@ export const OFFICIAL_INSTRUCTOR: InstructorProfile = {
   institution: 'Tecnológico de Monterrey · Creador de Salud Forte',
   shortBio:
     'Médico Cirujano graduado del Tecnológico de Monterrey y creador del podcast médico Salud Forte. Comprometido con la divulgación médica rigurosa, la medicina preventiva y la autonomía informada del paciente.',
-  profileImage: '/images/doctor/official/mauricio-instructor-2026.webp',
-  profileImageOriginal: '/images/doctor/official/mauricio-instructor-2026.png',
+  profileImage: '/images/doctor/official/mauricio-instructor-user-provided-2026.webp',
+  profileImageOriginal: '/images/doctor/official/mauricio-instructor-user-provided-2026.png',
   profileImageAlt: 'Retrato del Dr. Mauricio Benjamín Galindo López',
   profileImagePosition: 'center 20%',
   profileImageWidth: 1254,

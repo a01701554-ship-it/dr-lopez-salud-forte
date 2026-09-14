@@ -31,17 +31,21 @@ export function InstructorAvatar({ size = 'compact', className = '' }: Instructo
         style={{ aspectRatio: '1 / 1' }}
       >
         {!hasError ? (
-          <img
-            data-image-id="IMG-304-DR-MAURICIO-GALINDO-INSTRUCTOR"
-            src={OFFICIAL_INSTRUCTOR.profileImage}
-            alt={OFFICIAL_INSTRUCTOR.profileImageAlt}
-            width={OFFICIAL_INSTRUCTOR.profileImageWidth}
-            height={OFFICIAL_INSTRUCTOR.profileImageHeight}
-            loading="lazy"
-            referrerPolicy="no-referrer"
-            onError={handleError}
-            className="w-full h-full object-cover object-[center_20%] transition-transform duration-300"
-          />
+          <picture className="w-full h-full">
+            <source srcSet={OFFICIAL_INSTRUCTOR.profileImage} type="image/webp" />
+            <source srcSet={OFFICIAL_INSTRUCTOR.profileImageOriginal} type="image/png" />
+            <img
+              data-image-id="IMG-304-DR-MAURICIO-GALINDO-INSTRUCTOR"
+              src={OFFICIAL_INSTRUCTOR.profileImageOriginal}
+              alt={OFFICIAL_INSTRUCTOR.profileImageAlt}
+              width={OFFICIAL_INSTRUCTOR.profileImageWidth}
+              height={OFFICIAL_INSTRUCTOR.profileImageHeight}
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              onError={handleError}
+              className="w-full h-full object-cover object-[center_20%] transition-transform duration-300"
+            />
+          </picture>
         ) : (
           <div
             className="w-full h-full flex items-center justify-center bg-[#0D2235] text-[#F5F3EE] font-serif font-semibold text-xs tracking-wider"
@@ -58,20 +62,24 @@ export function InstructorAvatar({ size = 'compact', className = '' }: Instructo
   // Variant "featured" para la sección grande "Instructor Oficial"
   return (
     <div
-      className={`relative shrink-0 w-[180px] sm:w-[210px] md:w-[260px] aspect-[4/5] sm:aspect-square rounded-2xl overflow-hidden border border-[#B39A6A]/30 bg-white shadow-xs select-none ${className}`}
+      className={`relative shrink-0 w-[180px] sm:w-[210px] md:w-[260px] aspect-[4/5] sm:aspect-square rounded-2xl overflow-hidden border border-[#B39A6A]/30 bg-[#0D2235] shadow-xs select-none ${className}`}
     >
       {!hasError ? (
-        <img
-          data-image-id="IMG-304-DR-MAURICIO-GALINDO-INSTRUCTOR"
-          src={OFFICIAL_INSTRUCTOR.profileImage}
-          alt={OFFICIAL_INSTRUCTOR.profileImageAlt}
-          width={OFFICIAL_INSTRUCTOR.profileImageWidth}
-          height={OFFICIAL_INSTRUCTOR.profileImageHeight}
-          loading="lazy"
-          referrerPolicy="no-referrer"
-          onError={handleError}
-          className="w-full h-full object-cover object-[center_20%] transition-transform duration-500 hover:scale-102"
-        />
+        <picture className="w-full h-full">
+          <source srcSet={OFFICIAL_INSTRUCTOR.profileImage} type="image/webp" />
+          <source srcSet={OFFICIAL_INSTRUCTOR.profileImageOriginal} type="image/png" />
+          <img
+            data-image-id="IMG-304-DR-MAURICIO-GALINDO-INSTRUCTOR"
+            src={OFFICIAL_INSTRUCTOR.profileImageOriginal}
+            alt={OFFICIAL_INSTRUCTOR.profileImageAlt}
+            width={OFFICIAL_INSTRUCTOR.profileImageWidth}
+            height={OFFICIAL_INSTRUCTOR.profileImageHeight}
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            onError={handleError}
+            className="w-full h-full object-cover object-[center_20%] transition-transform duration-500 hover:scale-102"
+          />
+        </picture>
       ) : (
         <div
           className="w-full h-full flex flex-col items-center justify-center p-6 bg-[#0D2235] text-center border border-[#B39A6A]/30"

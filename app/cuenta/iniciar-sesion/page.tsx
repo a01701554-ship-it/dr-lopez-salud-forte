@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/auth-context';
-import { ArrowRight, Mail, Lock, Eye, EyeOff, ShieldCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Mail, Lock, Eye, EyeOff, ShieldCheck, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
+
+function sanitizeRedirect(param: string | null, fallback: string): string {
+  if (!param) return fallback;
+  const decoded = decodeURIComponent(param).trim();
+  if (decoded.startsWith('/') && !decoded.startsWith('//') && !decoded.includes(':\\')) {
+    return decoded;
+  }
+  return fallback;
+}
 
 export default function LoginPage() {
-  const { signIn, isAuthenticated, isLoading, isAdmin } = useAuth();
+  const { signIn, resendVerification, isAuthenticated, isLoading, isAdmin } = useAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -11,13 +20,19 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   // Auto-redirect if already authenticated
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       const searchParams = new URLSearchParams(window.location.search);
-      const redirect = searchParams.get('redirect') || (isAdmin ? '/admin/academia' : '/mi-cuenta');
-      window.location.href = redirect;
+      const target = sanitizeRedirect(
+        searchParams.get('redirect') || searchParams.get('returnTo'),
+        isAdmin ? '/admin/academia' : '/mi-cuenta'
+      );
+      window.location.href = target;
     }
   }, [isAuthenticated, isLoading, isAdmin]);
 
@@ -33,6 +48,15 @@ export default function LoginPage() {
     }
   }, []);
 
+  // Timer for resend cooldown
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password || submitting) return;
@@ -40,6 +64,7 @@ export default function LoginPage() {
     setSubmitting(true);
     setError(null);
     setSuccessMsg(null);
+    setUnconfirmedEmail(null);
 
     const result = await signIn(email, password);
     setSubmitting(false);
@@ -48,11 +73,33 @@ export default function LoginPage() {
       setSuccessMsg('Acceso concedido. Entrando a tu área privada...');
       setTimeout(() => {
         const searchParams = new URLSearchParams(window.location.search);
-        const redirect = searchParams.get('redirect') || (result.user?.role === 'ADMIN' ? '/admin/academia' : '/mi-cuenta');
-        window.location.href = redirect;
+        const target = sanitizeRedirect(
+          searchParams.get('redirect') || searchParams.get('returnTo'),
+          result.user?.role === 'ADMIN' ? '/admin/academia' : '/mi-cuenta'
+        );
+        window.location.href = target;
       }, 400);
     } else {
       setError(result.error || 'Correo electrónico o contraseña incorrectos.');
+      if (result.isUnconfirmed) {
+        setUnconfirmedEmail(email.toLowerCase().trim());
+      }
+    }
+  };
+
+  const handleResendClick = async () => {
+    if (!unconfirmedEmail || resendCooldown > 0 || resending) return;
+    setResending(true);
+    setError(null);
+
+    const res = await resendVerification(unconfirmedEmail);
+    setResending(false);
+
+    if (res.success) {
+      setSuccessMsg('Te hemos enviado un nuevo correo de verificación. Por favor revisa tu bandeja de entrada o spam.');
+      setResendCooldown(60);
+    } else {
+      setError(res.error || 'No se pudo reenviar el correo de verificación.');
     }
   };
 
@@ -79,9 +126,29 @@ export default function LoginPage() {
 
         {/* Status Alerts */}
         {error && (
-          <div aria-live="polite" className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm flex items-start gap-3">
-            <AlertCircle className="size-5 shrink-0 text-red-600 mt-0.5" />
-            <div className="font-medium leading-snug">{error}</div>
+          <div aria-live="polite" className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm space-y-3">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="size-5 shrink-0 text-red-600 mt-0.5" />
+              <div className="font-medium leading-snug">{error}</div>
+            </div>
+
+            {unconfirmedEmail && (
+              <div className="pt-2 border-t border-red-200/60 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={handleResendClick}
+                  disabled={resendCooldown > 0 || resending}
+                  className="w-full h-9 rounded-lg bg-red-700 text-white font-medium hover:bg-red-800 transition-colors disabled:opacity-50 text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <RefreshCw className={`size-3.5 ${resending ? 'animate-spin' : ''}`} />
+                  {resendCooldown > 0
+                    ? `Reenviar en ${resendCooldown}s`
+                    : resending
+                    ? 'Enviando...'
+                    : 'Reenviar correo de verificación'}
+                </button>
+              </div>
+            )}
           </div>
         )}
 

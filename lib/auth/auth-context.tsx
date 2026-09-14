@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { User, Session } from '@supabase/supabase-js';
 
 export type UserRole = 'CUSTOMER' | 'INSTRUCTOR' | 'ADMIN';
 
@@ -12,8 +14,7 @@ export type Profile = {
   phone?: string;
   email_verified: boolean;
   marketing_consent?: boolean;
-  mfa_enabled?: boolean;
-  shopifyCustomerGid?: string;
+  terms_accepted_at?: string;
 };
 
 export type RegisterData = {
@@ -22,6 +23,7 @@ export type RegisterData = {
   email: string;
   password: string;
   confirm_password: string;
+  phone?: string;
   terms_accepted: boolean;
   marketing_consent?: boolean;
 };
@@ -33,18 +35,19 @@ type AuthContextType = {
   isAuthenticated: boolean;
   isAdmin: boolean;
   isInstructor: boolean;
-  signIn: (email: string, password: string) => Promise<{ success: boolean; user?: Profile; error?: string }>;
-  signUp: (data: RegisterData) => Promise<{ success: boolean; message?: string; verificationUrl?: string; error?: string }>;
-  verifyEmail: (token: string) => Promise<{ success: boolean; message?: string; error?: string }>;
+  sessionToken: string | null;
+  signIn: (email: string, password: string) => Promise<{ success: boolean; user?: Profile; error?: string; isUnconfirmed?: boolean }>;
+  signUp: (data: RegisterData) => Promise<{ success: boolean; message?: string; error?: string }>;
+  verifyEmail: (token?: string) => Promise<{ success: boolean; message?: string; error?: string }>;
+  resendVerification: (email: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   requestPasswordReset: (email: string) => Promise<{ success: boolean; message?: string; error?: string }>;
-  resetPassword: (token: string, password: string, confirmPassword: string) => Promise<{ success: boolean; message?: string; error?: string }>;
+  resetPassword: (password: string, confirmPassword: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
-  // Backward compatibility hooks
-  requestCode?: (email: string) => Promise<{ success: boolean; message: string; error?: string }>;
-  verifyCode?: (email: string, code: string) => Promise<{ success: boolean; message?: string; error?: string }>;
-  loginWithShopify?: (returnTo?: string) => void;
+  fetchWithAuth: (url: string, options?: RequestInit) => Promise<Response>;
 };
+
+const UNCONFIGURED_ERROR = 'El servicio de autenticación de Supabase no está configurado. Por favor configura las variables VITE_SUPABASE_URL y VITE_SUPABASE_PUBLISHABLE_KEY.';
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -53,193 +56,380 @@ const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   isAdmin: false,
   isInstructor: false,
+  sessionToken: null,
   signIn: async () => ({ success: false, error: 'No inicializado' }),
   signUp: async () => ({ success: false, error: 'No inicializado' }),
   verifyEmail: async () => ({ success: false, error: 'No inicializado' }),
+  resendVerification: async () => ({ success: false, error: 'No inicializado' }),
   requestPasswordReset: async () => ({ success: false, error: 'No inicializado' }),
   resetPassword: async () => ({ success: false, error: 'No inicializado' }),
   signOut: async () => {},
   refreshSession: async () => {},
+  fetchWithAuth: async (url, options) => fetch(url, options),
 });
+
+export function translateSupabaseError(msg: string): string {
+  const lower = msg.toLowerCase();
+  if (lower.includes('invalid login credentials') || lower.includes('invalid_credentials')) {
+    return 'Correo electrónico o contraseña incorrectos.';
+  }
+  if (lower.includes('user already registered') || lower.includes('already_exists')) {
+    return 'Ya existe una cuenta registrada con este correo electrónico. Por favor inicia sesión.';
+  }
+  if (lower.includes('password should be at least')) {
+    return 'La contraseña debe tener al menos 10 caracteres.';
+  }
+  if (lower.includes('email not confirmed')) {
+    return 'Debes confirmar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada.';
+  }
+  if (lower.includes('rate limit') || lower.includes('too many requests')) {
+    return 'Demasiados intentos. Por favor espera un minuto antes de reintentar.';
+  }
+  return msg || 'Ocurrió un error al procesar la solicitud.';
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const checkSession = useCallback(async () => {
-    try {
-      const res = await fetch('/api/auth/me', { credentials: 'include' });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.authenticated && data.user) {
-          const userObj: Profile = {
-            id: data.user.id,
-            full_name: data.user.full_name || 'Usuario',
-            first_name: data.user.first_name,
-            last_name: data.user.last_name,
-            email: data.user.email,
-            role: (data.user.role as UserRole) || 'CUSTOMER',
-            email_verified: !!data.user.email_verified,
-            marketing_consent: !!data.user.marketing_consent,
-            mfa_enabled: !!data.user.mfa_enabled,
-            shopifyCustomerGid: data.user.shopifyCustomerGid,
+  const fetchProfile = useCallback(async (authUser: User): Promise<Profile> => {
+    const meta = authUser.user_metadata || {};
+
+    if (isSupabaseConfigured) {
+      try {
+        const { data: dbProfile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authUser.id)
+          .maybeSingle();
+
+        if (dbProfile) {
+          let role: UserRole = 'CUSTOMER';
+          if (dbProfile.role === 'ADMIN' || dbProfile.role === 'admin') role = 'ADMIN';
+          else if (dbProfile.role === 'INSTRUCTOR') role = 'INSTRUCTOR';
+
+          return {
+            id: authUser.id,
+            full_name: dbProfile.full_name || meta.full_name || 'Usuario',
+            first_name: dbProfile.first_name || meta.first_name,
+            last_name: dbProfile.last_name || meta.last_name,
+            email: authUser.email || dbProfile.email || '',
+            role,
+            phone: dbProfile.phone || meta.phone,
+            email_verified: !!authUser.email_confirmed_at,
+            marketing_consent: dbProfile.marketing_consent ?? meta.marketing_consent ?? false,
+            terms_accepted_at: dbProfile.terms_accepted_at || meta.terms_accepted_at,
           };
-          setProfile(userObj);
-        } else {
-          setProfile(null);
         }
-      } else {
-        setProfile(null);
+      } catch (err) {
+        console.warn('[AuthProvider] Could not read profile table:', err);
       }
-    } catch (err) {
-      console.error('[AuthContext] Session check error:', err);
-      setProfile(null);
-    } finally {
-      setIsLoading(false);
     }
+
+    // Default fallback when row does not exist yet
+    return {
+      id: authUser.id,
+      full_name: meta.full_name || `${meta.first_name || ''} ${meta.last_name || ''}`.trim() || 'Usuario',
+      first_name: meta.first_name,
+      last_name: meta.last_name,
+      email: authUser.email || '',
+      role: 'CUSTOMER',
+      email_verified: !!authUser.email_confirmed_at,
+      marketing_consent: !!meta.marketing_consent,
+      terms_accepted_at: meta.terms_accepted_at,
+    };
   }, []);
 
+  const syncSession = useCallback(async (session: Session | null) => {
+    if (session?.user) {
+      setSessionToken(session.access_token);
+      const userProfile = await fetchProfile(session.user);
+      setProfile(userProfile);
+    } else {
+      setSessionToken(null);
+      setProfile(null);
+    }
+    setIsLoading(false);
+  }, [fetchProfile]);
+
   useEffect(() => {
-    checkSession();
-  }, [checkSession]);
+    if (!isSupabaseConfigured) {
+      setIsLoading(false);
+      return;
+    }
+
+    let mounted = true;
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted) {
+        syncSession(session);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (mounted) {
+        await syncSession(session);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [syncSession]);
 
   const signIn = async (email: string, password: string) => {
+    if (!isSupabaseConfigured) {
+      return { success: false, error: UNCONFIGURED_ERROR };
+    }
+
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email, password }),
+      setIsLoading(true);
+      const normalizedEmail = email.toLowerCase().trim();
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password,
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        return { success: false, error: data.error || 'Correo o contraseña incorrectos.' };
-      }
-
-      if (data.user) {
-        const userObj: Profile = {
-          id: data.user.id,
-          full_name: data.user.full_name,
-          first_name: data.user.first_name,
-          last_name: data.user.last_name,
-          email: data.user.email,
-          role: (data.user.role as UserRole) || 'CUSTOMER',
-          email_verified: !!data.user.email_verified,
-          marketing_consent: !!data.user.marketing_consent,
-          mfa_enabled: !!data.user.mfa_enabled,
-          shopifyCustomerGid: data.user.shopifyCustomerGid,
+      if (error) {
+        setIsLoading(false);
+        const isUnconfirmed = error.message.toLowerCase().includes('email not confirmed');
+        return {
+          success: false,
+          error: translateSupabaseError(error.message),
+          isUnconfirmed,
         };
-        setProfile(userObj);
       }
 
-      await checkSession();
-      return { success: true, user: data.user };
+      if (data.session && data.user) {
+        setSessionToken(data.session.access_token);
+        const userProfile = await fetchProfile(data.user);
+        setProfile(userProfile);
+        setIsLoading(false);
+        return { success: true, user: userProfile };
+      }
+
+      setIsLoading(false);
+      return { success: false, error: 'No se pudo iniciar sesión. Por favor intenta de nuevo.' };
     } catch (err: any) {
-      return { success: false, error: err.message || 'Error de conexión con el servidor.' };
+      setIsLoading(false);
+      return { success: false, error: err.message || 'Error al conectar con el servidor.' };
     }
   };
 
   const signUp = async (data: RegisterData) => {
+    if (!isSupabaseConfigured) {
+      return { success: false, error: UNCONFIGURED_ERROR };
+    }
+
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(data),
+      if (data.password !== data.confirm_password) {
+        return { success: false, error: 'Las contraseñas no coinciden.' };
+      }
+
+      if (data.password.length < 10) {
+        return { success: false, error: 'La contraseña debe tener al menos 10 caracteres.' };
+      }
+
+      if (data.password.length > 128) {
+        return { success: false, error: 'La contraseña no debe exceder 128 caracteres.' };
+      }
+
+      if (!data.terms_accepted) {
+        return { success: false, error: 'Debes aceptar los Términos de Servicio y el Aviso de Privacidad.' };
+      }
+
+      const normalizedEmail = data.email.toLowerCase().trim();
+      const fullName = `${data.first_name.trim()} ${data.last_name.trim()}`;
+      const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/cuenta/verificar-correo` : undefined;
+
+      const { data: authData, error } = await supabase.auth.signUp({
+        email: normalizedEmail,
+        password: data.password,
+        options: {
+          emailRedirectTo: redirectTo,
+          data: {
+            full_name: fullName,
+            first_name: data.first_name.trim(),
+            last_name: data.last_name.trim(),
+            phone: data.phone?.trim() || '',
+            terms_accepted_at: new Date().toISOString(),
+            marketing_consent: !!data.marketing_consent,
+          },
+        },
       });
 
-      const resData = await res.json();
-      if (!res.ok) {
-        return { success: false, error: resData.error || 'No se pudo crear la cuenta.' };
+      if (error) {
+        return { success: false, error: translateSupabaseError(error.message) };
+      }
+
+      if (!authData.user) {
+        return { success: false, error: 'No se pudo crear el registro de usuario.' };
       }
 
       return {
         success: true,
-        message: resData.message || 'Cuenta creada correctamente.',
-        verificationUrl: resData.verificationUrl,
+        message: 'Cuenta creada exitosamente. Te hemos enviado un correo de confirmación a tu bandeja de entrada.',
       };
     } catch (err: any) {
-      return { success: false, error: err.message || 'Error de conexión con el servidor.' };
+      return { success: false, error: err.message || 'Error inesperado durante el registro.' };
     }
   };
 
-  const verifyEmail = async (token: string) => {
-    try {
-      const res = await fetch('/api/auth/verify-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ token }),
-      });
+  const verifyEmail = async (token?: string) => {
+    if (!isSupabaseConfigured) {
+      return { success: false, error: UNCONFIGURED_ERROR };
+    }
 
-      const data = await res.json();
-      if (!res.ok) {
-        return { success: false, error: data.error || 'El enlace de verificación es inválido o ha expirado.' };
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const userProfile = await fetchProfile(session.user);
+        setProfile(userProfile);
+        return {
+          success: true,
+          message: 'Tu correo electrónico ha sido verificado satisfactoriamente.',
+        };
       }
 
-      await checkSession();
-      return { success: true, message: data.message };
+      if (token) {
+        const { data, error } = await supabase.auth.exchangeCodeForSession(token);
+        if (error) {
+          return { success: false, error: translateSupabaseError(error.message) };
+        }
+        if (data.session && data.user) {
+          setSessionToken(data.session.access_token);
+          const userProfile = await fetchProfile(data.user);
+          setProfile(userProfile);
+          return { success: true, message: 'Correo verificado exitosamente.' };
+        }
+      }
+
+      return {
+        success: false,
+        error: 'No se pudo verificar el correo o el enlace ha expirado.',
+      };
     } catch (err: any) {
       return { success: false, error: err.message || 'Error al verificar correo.' };
     }
   };
 
-  const requestPasswordReset = async (email: string) => {
+  const resendVerification = async (email: string) => {
+    if (!isSupabaseConfigured) {
+      return { success: false, error: UNCONFIGURED_ERROR };
+    }
+
     try {
-      const res = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+      const normalizedEmail = email.toLowerCase().trim();
+      const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/cuenta/verificar-correo` : undefined;
+
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: normalizedEmail,
+        options: {
+          emailRedirectTo: redirectTo,
+        },
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        return { success: false, error: data.error || 'No se pudo procesar la solicitud.' };
+      if (error) {
+        return { success: false, error: translateSupabaseError(error.message) };
       }
 
-      return { success: true, message: data.message };
+      return {
+        success: true,
+        message: 'Se ha reenviado el correo de verificación. Revisa tu bandeja de entrada o spam.',
+      };
     } catch (err: any) {
-      return { success: false, error: err.message || 'Error de conexión con el servidor.' };
+      return { success: false, error: err.message || 'Error al reenviar correo de verificación.' };
     }
   };
 
-  const resetPassword = async (token: string, password: string, confirmPassword: string) => {
+  const requestPasswordReset = async (email: string) => {
+    if (!isSupabaseConfigured) {
+      return { success: false, error: UNCONFIGURED_ERROR };
+    }
+
     try {
-      const res = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, password, confirm_password: confirmPassword }),
+      const normalizedEmail = email.toLowerCase().trim();
+      const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/cuenta/reset-password` : undefined;
+
+      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+        redirectTo,
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        return { success: false, error: data.error || 'Error al restablecer contraseña.' };
+      if (error) {
+        return { success: false, error: translateSupabaseError(error.message) };
       }
 
-      return { success: true, message: data.message };
+      return {
+        success: true,
+        message: 'Si existe una cuenta asociada a este correo, recibirás un enlace para restablecer tu contraseña.',
+      };
     } catch (err: any) {
-      return { success: false, error: err.message || 'Error de conexión con el servidor.' };
+      return { success: false, error: err.message || 'Error de conexión.' };
+    }
+  };
+
+  const resetPassword = async (password: string, confirmPassword: string) => {
+    if (!isSupabaseConfigured) {
+      return { success: false, error: UNCONFIGURED_ERROR };
+    }
+
+    try {
+      if (password !== confirmPassword) {
+        return { success: false, error: 'Las contraseñas no coinciden.' };
+      }
+      if (password.length < 10) {
+        return { success: false, error: 'La contraseña debe tener al menos 10 caracteres.' };
+      }
+
+      const { error } = await supabase.auth.updateUser({ password });
+
+      if (error) {
+        return { success: false, error: translateSupabaseError(error.message) };
+      }
+
+      return {
+        success: true,
+        message: 'Tu contraseña ha sido actualizada con éxito.',
+      };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Error al actualizar la contraseña.' };
     }
   };
 
   const signOut = async () => {
     try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
+      if (isSupabaseConfigured) {
+        await supabase.auth.signOut();
+      }
     } catch (err) {
-      console.error('[AuthContext] SignOut error:', err);
+      console.error('[AuthProvider] SignOut error:', err);
     } finally {
       setProfile(null);
-      window.location.href = '/cuenta/iniciar-sesion?logout=true';
+      setSessionToken(null);
+      if (typeof window !== 'undefined') {
+        window.location.href = '/cuenta/iniciar-sesion?logout=true';
+      }
     }
   };
 
   const refreshSession = async () => {
-    await checkSession();
+    if (isSupabaseConfigured) {
+      const { data: { session } } = await supabase.auth.getSession();
+      await syncSession(session);
+    }
   };
+
+  const fetchWithAuth = useCallback(async (url: string, options: RequestInit = {}): Promise<Response> => {
+    const headers = new Headers(options.headers || {});
+    if (sessionToken) {
+      headers.set('Authorization', `Bearer ${sessionToken}`);
+    }
+    return fetch(url, { ...options, headers });
+  }, [sessionToken]);
 
   const isAuthenticated = !!profile;
   const isAdmin = profile?.role === 'ADMIN';
@@ -254,18 +444,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated,
         isAdmin,
         isInstructor,
+        sessionToken,
         signIn,
         signUp,
         verifyEmail,
+        resendVerification,
         requestPasswordReset,
         resetPassword,
         signOut,
         refreshSession,
-        requestCode: async (email) => {
-          return { success: true, message: 'Función en transición.' };
-        },
-        verifyCode: async () => ({ success: false, error: 'Utiliza inicio de sesión con correo y contraseña.' }),
-        loginWithShopify: () => {},
+        fetchWithAuth,
       }}
     >
       {children}
@@ -276,7 +464,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth debe ser utilizado dentro de un AuthProvider');
   }
   return context;
 }

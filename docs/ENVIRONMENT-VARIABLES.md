@@ -61,6 +61,7 @@ Este documento especifica exhaustivamente cada variable de entorno utilizada por
 | :--- | :--- | :--- | :--- | :--- |
 | `CLOUDFLARE_ACCOUNT_ID` | Servidor | Media | ID de cuenta de Cloudflare. | Reproductor utiliza enlaces seguros de respaldo (YouTube embed no listado o video demo). |
 | `CLOUDFLARE_STREAM_API_TOKEN` | Servidor | **Alta** | Token con permisos de lectura para firmar URLs de streaming. | Fallback a reproductor informativo. |
+| `CLOUDFLARE_STREAM_CUSTOMER_SUBDOMAIN` | Servidor | Alta | Subdominio `customer-….cloudflarestream.com` usado para construir el reproductor firmado. | Reproducción no disponible. |
 | `CLOUDFLARE_STREAM_KEY_ID` | Servidor | Media | ID del certificado de firma para tokens JWT de video. | Modo fallback. |
 | `CLOUDFLARE_STREAM_PRIVATE_KEY`| Servidor | **Crítica** | Llave privada para generar tokens con expiración por lección. | Modo fallback. |
 

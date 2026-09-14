@@ -93,7 +93,7 @@ export function MasterclassCard({ course, hasAccess = false }: MasterclassCardPr
             </a>
           </h3>
 
-          <p className="mt-2.5 text-xs sm:text-sm text-obsidian/75 leading-relaxed line-clamp-3">
+          <p className="mt-2.5 text-xs sm:text-sm text-obsidian/75 leading-relaxed">
             {course.shortDescription}
           </p>
 
@@ -132,7 +132,7 @@ export function MasterclassCard({ course, hasAccess = false }: MasterclassCardPr
           </div>
           <div className="text-right">
             <span className="text-[11px] text-emerald-800 font-medium bg-emerald-50 px-2 py-0.5 rounded-full">
-              {isFree ? 'Inscripción abierta' : 'Acceso vitalicio'}
+              {isFree ? 'Inscripción abierta' : course.accessType === 'lifetime' ? 'Acceso vitalicio' : 'Acceso limitado'}
             </span>
           </div>
         </div>

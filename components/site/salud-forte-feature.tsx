@@ -183,7 +183,7 @@ export function SaludForteFeature({
 
             {/* 2. Main Title con revelado por máscara editorial */}
             <MaskReveal delay={0.12} duration={0.80} direction="up" distance={28}>
-              <HeadingTag className="mt-3.5 sm:mt-4 font-serif text-[clamp(2.4rem,4.8vw,5.2rem)] leading-[0.96] tracking-[-0.035em] text-[#F4F0E8] font-normal">
+              <HeadingTag className="mt-3.5 sm:mt-4 font-serif text-[clamp(2.25rem,3.4vw,3.5rem)] leading-[0.96] tracking-[-0.035em] text-[#F4F0E8] font-normal">
                 Medicina clara para la vida diaria.
               </HeadingTag>
             </MaskReveal>
@@ -191,7 +191,7 @@ export function SaludForteFeature({
             {/* 3. Single Description Paragraph */}
             <ScrollReveal direction="right" distance={28} delay={0.20} duration={0.70}>
               <p className="mt-5 sm:mt-6 max-w-[720px] font-sans text-base sm:text-lg lg:text-[1.12rem] leading-[1.6] text-[#F4F0E8]/90 font-normal">
-                Un espacio de divulgación donde el Dr. Mauricio Galindo aborda temas de salud, prevención y estilo de vida con rigor científico y lenguaje accesible. Escúchalo en tus plataformas favoritas.
+                Salud, prevención y hábitos explicados con rigor científico y lenguaje accesible. Escúchalo en tu plataforma favorita.
               </p>
             </ScrollReveal>
 
@@ -250,7 +250,7 @@ export function SaludForteFeature({
               <ScrollReveal direction="up" distance={16} delay={0.50} duration={0.65}>
                 <Link
                   href={singleCta.href}
-                  className="group inline-flex h-[58px] sm:h-[64px] lg:h-[68px] w-full sm:w-auto min-w-[280px] sm:min-w-[340px] lg:min-w-[390px] items-center justify-center gap-3.5 sm:gap-4 rounded-full bg-[#F4F0E8] px-8 sm:px-10 lg:px-12 text-xs sm:text-[13px] lg:text-[14px] font-bold uppercase tracking-[0.14em] text-[#07182A] shadow-[0_12px_32px_rgba(0,0,0,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_16px_40px_rgba(255,255,255,0.22)] active:translate-y-0 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C5A462] focus-visible:ring-offset-4 focus-visible:ring-offset-[#061522] whitespace-nowrap"
+                  className="group inline-flex h-[48px] sm:h-[52px] w-full sm:w-auto min-w-[240px] items-center justify-center gap-3.5 sm:gap-4 rounded-full bg-[#F4F0E8] px-8 sm:px-10 lg:px-12 text-xs sm:text-[13px] font-bold uppercase tracking-[0.14em] text-[#07182A] shadow-[0_12px_32px_rgba(0,0,0,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_16px_40px_rgba(255,255,255,0.22)] active:translate-y-0 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C5A462] focus-visible:ring-offset-4 focus-visible:ring-offset-[#061522] whitespace-nowrap"
                 >
                   <span>{singleCta.label}</span>
                   <ArrowRight

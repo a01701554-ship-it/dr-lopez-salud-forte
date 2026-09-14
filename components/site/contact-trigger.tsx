@@ -108,11 +108,11 @@ export function ContactTrigger() {
           disabled={isHidden}
           className={`pointer-events-auto flex items-center justify-start rounded-full border border-[#B39A6A]/22 bg-[#071B2A]/95 backdrop-blur-md shadow-[0_10px_28px_rgba(0,0,0,0.22)] transition-all duration-300 ease-out hover:border-[#B39A6A]/45 hover:bg-[#0A2236] hover:shadow-[0_14px_32px_rgba(0,0,0,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-champagne overflow-hidden cursor-pointer ${
             isExpanded 
-              ? 'w-[175px] sm:w-[195px] lg:w-[210px] h-[40px] sm:h-[44px] lg:h-[46px] pr-4 sm:pr-5' 
-              : 'w-[44px] sm:w-[48px] lg:w-[52px] h-[40px] sm:h-[44px] lg:h-[46px]'
+              ? 'w-[175px] sm:w-[195px] lg:w-[200px] h-[44px] sm:h-[48px] lg:h-[48px] pr-4 sm:pr-5' 
+              : 'w-[44px] sm:w-[48px] lg:w-[48px] h-[44px] sm:h-[48px] lg:h-[48px]'
           }`}
         >
-          <div className="flex items-center justify-center w-[44px] sm:w-[48px] lg:w-[52px] h-full gap-1.5 sm:gap-2 shrink-0">
+          <div className="flex items-center justify-center w-[44px] sm:w-[48px] lg:w-[48px] h-full gap-1.5 sm:gap-2 shrink-0">
             {/* Green availability indicator */}
             <span className="relative flex size-1.5 sm:size-2 items-center justify-center shrink-0" aria-hidden="true">
               <span className="absolute inline-flex size-1.5 sm:size-2 rounded-full bg-[#00D6A3]/50 animate-ping duration-1000 motion-reduce:animate-none" />

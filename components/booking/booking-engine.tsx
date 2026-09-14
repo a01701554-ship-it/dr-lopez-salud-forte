@@ -22,7 +22,7 @@ import { AppointmentSummary } from './appointment-summary';
 import { BookingPatientForm, BookingFormData } from './booking-patient-form';
 import { BookingReview } from './booking-review';
 import { BookingConfirmation } from './booking-confirmation';
-import { Shield, Sparkles, MapPin, Calendar, Clock, AlertCircle } from 'lucide-react';
+import { Shield, Sparkles, MapPin, Calendar, Clock, AlertCircle, Video } from 'lucide-react';
 
 type BookingStep =
   | 'type-and-slots'
@@ -82,13 +82,72 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
     ];
   }, [pricing]);
 
-  // State Management
+  // Filter mode state: 'online' | 'presencial' | 'all'
+  const [filterMode, setFilterMode] = useState<'online' | 'presencial' | 'all'>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tipo = params.get('tipo') || params.get('type') || params.get('modalidad');
+      if (tipo === 'online' || tipo === 'linea' || tipo === 'telemedicina' || tipo === 'consulta-linea') {
+        return 'online';
+      }
+      if (tipo === 'presencial') {
+        return 'presencial';
+      }
+    }
+    if (initialTypeId === 'online') return 'online';
+    return 'all';
+  });
+
   const [selectedTypeId, setSelectedTypeId] = useState<ConsultationTypeId>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tipo = params.get('tipo') || params.get('type') || params.get('modalidad');
+      if (tipo === 'online' || tipo === 'linea' || tipo === 'telemedicina' || tipo === 'consulta-linea') {
+        return 'online';
+      }
+      if (tipo === 'presencial') {
+        return 'first-visit';
+      }
+    }
     if (initialTypeId && consultationTypes.some((t) => t.id === initialTypeId && t.available)) {
       return initialTypeId;
     }
     return 'first-visit';
   });
+
+  // Sync state if URL query params change or popstate occurs
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const checkUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      const tipo = params.get('tipo') || params.get('type') || params.get('modalidad');
+      if (tipo === 'online' || tipo === 'linea' || tipo === 'telemedicina' || tipo === 'consulta-linea') {
+        setSelectedTypeId('online');
+        setFilterMode('online');
+      } else if (tipo === 'presencial') {
+        if (selectedTypeId === 'online') {
+          setSelectedTypeId('first-visit');
+        }
+        setFilterMode('presencial');
+      }
+    };
+
+    checkUrl();
+    window.addEventListener('popstate', checkUrl);
+    return () => window.removeEventListener('popstate', checkUrl);
+  }, []);
+
+  // Filtered types displayed in the dropdown
+  const displayedConsultationTypes = useMemo(() => {
+    if (filterMode === 'online' || selectedTypeId === 'online') {
+      return consultationTypes.filter((t) => t.id === 'online');
+    }
+    if (filterMode === 'presencial') {
+      return consultationTypes.filter((t) => t.id === 'first-visit' || t.id === 'follow-up');
+    }
+    return consultationTypes;
+  }, [consultationTypes, filterMode, selectedTypeId]);
 
   const selectedType = useMemo(() => {
     return consultationTypes.find((t) => t.id === selectedTypeId) || consultationTypes[0];
@@ -357,17 +416,58 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
           {step === 'type-and-slots' && (
             <div className="space-y-6">
               {/* Type and Reason Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <ConsultationTypeSelect
-                  types={consultationTypes}
-                  selectedId={selectedTypeId}
-                  onChange={(newId) => setSelectedTypeId(newId)}
-                />
-                <VisitReasonSelect
-                  reasons={availableReasons}
-                  selectedId={selectedReasonId}
-                  onChange={(newId) => setSelectedReasonId(newId)}
-                />
+              <div className="space-y-2.5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <ConsultationTypeSelect
+                    types={displayedConsultationTypes}
+                    selectedId={selectedTypeId}
+                    onChange={(newId) => {
+                      setSelectedTypeId(newId);
+                      if (newId === 'online') {
+                        setFilterMode('online');
+                      }
+                    }}
+                  />
+                  <VisitReasonSelect
+                    reasons={availableReasons}
+                    selectedId={selectedReasonId}
+                    onChange={(newId) => setSelectedReasonId(newId)}
+                  />
+                </div>
+
+                {(filterMode === 'online' || selectedTypeId === 'online') && (
+                  <div className="flex items-center justify-between rounded-lg bg-[#0D2235]/5 border border-[#B39A6A]/20 px-3.5 py-2 text-xs">
+                    <span className="text-[#8A7347] font-semibold flex items-center gap-1.5">
+                      <Video className="size-3.5 text-[#8A7347]" /> Modalidad exclusiva: Consulta médica en línea (Telemedicina)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFilterMode('all');
+                      }}
+                      className="text-xs text-obsidian/70 hover:text-obsidian font-medium underline cursor-pointer"
+                    >
+                      Ver todas las opciones
+                    </button>
+                  </div>
+                )}
+
+                {filterMode === 'presencial' && (
+                  <div className="flex items-center justify-between rounded-lg bg-[#0D2235]/5 border border-[#B39A6A]/20 px-3.5 py-2 text-xs">
+                    <span className="text-obsidian/75 font-semibold flex items-center gap-1.5">
+                      <Calendar className="size-3.5 text-[#8A7347]" /> Modalidad: Consulta presencial
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFilterMode('all');
+                      }}
+                      className="text-xs text-obsidian/70 hover:text-obsidian font-medium underline cursor-pointer"
+                    >
+                      Ver todas las opciones
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Next Available Slots Section */}

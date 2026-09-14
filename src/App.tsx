@@ -30,6 +30,8 @@ import VerifyEmailPage from '@/app/cuenta/verificar-correo/page';
 import MyAccountPage from '@/app/mi-cuenta/page';
 import MisPedidosPage from '@/app/mi-cuenta/pedidos/page';
 import MiPerfilPage from '@/app/mi-cuenta/perfil/page';
+import StudentMasterclassesPage from '@/app/mi-cuenta/masterclasses/page';
+import AuthCallbackPage from '@/app/auth/callback/page';
 
 function getInitialPath(): string {
   if (typeof window !== 'undefined') {
@@ -91,7 +93,8 @@ export default function App() {
   }, [pathname]);
 
   const renderContent = () => {
-    const normalized = pathname === '' ? '/' : pathname;
+    const rawPath = pathname === '' ? '/' : pathname;
+    const normalized = rawPath.length > 1 ? rawPath.replace(/\/+$/, '') : rawPath;
 
     if (normalized === '/') {
       return <Home />;
@@ -142,11 +145,21 @@ export default function App() {
     if (normalized === '/cuenta/recuperar-contrasena') {
       return <RecoverPasswordPage />;
     }
+    if (normalized === '/auth/callback') {
+      return <AuthCallbackPage />;
+    }
     if (normalized === '/cuenta/reset-password') {
       return <ResetPasswordPage />;
     }
     if (normalized === '/mi-cuenta') {
       return <MyAccountPage />;
+    }
+    if (normalized === '/mi-cuenta/masterclasses') {
+      return <StudentMasterclassesPage />;
+    }
+    const studentMasterclassMatch = normalized.match(/^\/mi-cuenta\/masterclasses\/([^/]+)$/);
+    if (studentMasterclassMatch) {
+      return <MasterclassDetailPage slugProp={studentMasterclassMatch[1]} />;
     }
     if (normalized === '/mi-cuenta/pedidos') {
       return <MisPedidosPage />;
@@ -154,7 +167,6 @@ export default function App() {
     if (normalized === '/mi-cuenta/perfil') {
       return <MiPerfilPage />;
     }
-
     // Official Tienda Routes
     if (normalized === '/tienda') {
       return <TiendaPage />;
@@ -179,6 +191,12 @@ export default function App() {
     const appProxyMatch = normalized.match(/^\/apps\/academia\/cursos\/([^/]+)\/lecciones\/([^/]+)/);
     if (appProxyMatch) {
       return <LessonPlayerPage slugProp={appProxyMatch[1]} lessonSlugProp={appProxyMatch[2]} />;
+    }
+
+    // Pattern: /aprender/:slug/:lessonSlug
+    const aprenderMatch = normalized.match(/^\/aprender\/([^/]+)\/([^/]+)/);
+    if (aprenderMatch) {
+      return <LessonPlayerPage slugProp={aprenderMatch[1]} lessonSlugProp={aprenderMatch[2]} />;
     }
 
     // Pattern: /academia/:slug/leccion/:lessonSlug

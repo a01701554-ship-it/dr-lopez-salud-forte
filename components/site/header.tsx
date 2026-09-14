@@ -33,8 +33,8 @@ export function Header() {
       <div
         className={`mx-auto flex max-w-[1728px] items-center justify-between px-5 sm:px-8 lg:px-10 xl:px-14 transition-all duration-300 ${
           isScrolled
-            ? 'h-[68px] sm:h-[72px] lg:h-[76px] xl:h-[80px]'
-            : 'h-[76px] sm:h-[82px] lg:h-[88px] xl:h-[92px]'
+            ? 'h-[60px] sm:h-[60px] lg:h-[64px] xl:h-[64px]'
+            : 'h-[64px] sm:h-[68px] lg:h-[72px] xl:h-[72px]'
         }`}
       >
         <div className="flex items-center">
@@ -46,7 +46,7 @@ export function Header() {
               aria-label="Ir a la página de inicio — Dr. Mauricio Benjamín Galindo López"
               className="group flex shrink-0 items-center justify-center cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-[#0D2235]/70 focus-visible:outline-offset-[5px] focus-visible:rounded-lg"
             >
-              <div className="w-[56px] h-[56px] sm:w-[64px] sm:h-[64px] lg:w-[72px] lg:h-[72px] xl:w-[76px] xl:h-[76px] flex items-center justify-center shrink-0">
+              <div className="w-[48px] h-[48px] sm:w-[52px] sm:h-[52px] lg:w-[56px] lg:h-[56px] xl:w-[60px] xl:h-[60px] flex items-center justify-center shrink-0">
                 <MbglLogo
                   size="100%"
                   className="w-full h-full"
@@ -73,9 +73,9 @@ export function Header() {
             aria-label={user ? "Ir a mi cuenta" : "Iniciar sesión"}
             className="relative hidden sm:flex items-center gap-2 p-2 sm:p-2.5 rounded-full text-obsidian/75 hover:text-obsidian hover:bg-[#B39A6A]/15 transition-all duration-200 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-champagne"
           >
-            <UserRound className="size-5 sm:size-5.5 stroke-[1.4]" />
+            <UserRound className="size-4.5 sm:size-5 stroke-[1.4]" />
             {!isLoading && (
-               <span className="hidden xl:inline text-sm font-medium tracking-wide">
+               <span className="hidden xl:inline text-[13px] font-medium tracking-wide tracking-wide">
                  {user ? "Mi Cuenta" : "Iniciar sesión"}
                </span>
             )}
@@ -86,7 +86,7 @@ export function Header() {
             aria-label={`Abrir bolsa de compra (${itemCount} productos)`}
             className="relative p-2 sm:p-2.5 rounded-full text-obsidian/75 hover:text-obsidian hover:bg-[#B39A6A]/15 transition-all duration-200 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-champagne"
           >
-            <ShoppingBag className="size-5 sm:size-5.5 stroke-[1.4]" />
+            <ShoppingBag className="size-4.5 sm:size-5 stroke-[1.4]" />
             {itemCount > 0 && (
               <span className="absolute top-0.5 right-0.5 size-4.5 rounded-full bg-obsidian text-white text-[10px] font-bold flex items-center justify-center border border-white">
                 {itemCount}

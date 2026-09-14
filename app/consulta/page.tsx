@@ -3,6 +3,8 @@ import { Container } from '@/components/site/container';
 import { ActionLink } from '@/components/site/action-link';
 import { Reveal, StaggerGroup, StaggerItem } from '@/components/site/motion-wrapper';
 import { ConsultationSteps } from '@/components/site/consultation-steps';
+import { InteractiveDoctorAvatar } from '@/components/site/interactive-doctor-avatar';
+import { MobileCarousel } from '@/components/site/mobile-carousel';
 import { usePricing } from '@/lib/pricing-store';
 import { siteConfig } from '@/config/site';
 import Link from 'next/link';
@@ -25,12 +27,12 @@ export default function ConsultationPage() {
 
   return (
     <main id="contenido-principal" className="bg-ivory">
-      <section className="border-b border-[#B39A6A]/20 py-20 sm:py-28 lg:py-36 overflow-hidden">
+      <section className="border-b border-[#B39A6A]/20 py-16 sm:py-24 lg:py-28 overflow-hidden">
         <Container>
           <Reveal direction="up" distance={12}>
             <p className="eyebrow text-sage">Consulta Médica</p>
           </Reveal>
-          <div className="mt-6 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:gap-16">
+          <div className="mt-6 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start lg:gap-16">
             <div>
               <Reveal direction="up" distance={16} delay={0.05}>
                 <h1 className="max-w-4xl text-balance font-serif text-[clamp(3.4rem,7vw,7rem)] leading-[0.9] tracking-[-0.04em] text-obsidian">
@@ -43,19 +45,33 @@ export default function ConsultationPage() {
                 </p>
               </Reveal>
             </div>
-            <div className="border-l border-[#B39A6A]/20 pl-6 sm:pl-9">
-              <Reveal direction="left" distance={14} delay={0.15}>
-                <p className="text-xs font-bold uppercase tracking-widest text-sage">Atención directa por</p>
-                <p className="mt-2 font-serif text-2xl text-obsidian sm:text-3xl">{siteConfig.doctorName}</p>
-                <p className="mt-1 text-xs text-obsidian/60 leading-relaxed">
-                  {siteConfig.professionalTitle} · {siteConfig.university}
-                  <br />
-                  Cédula Profesional {siteConfig.professionalLicense}
-                </p>
-                <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                  <ActionLink href="/agendar">Ver disponibilidad y agendar</ActionLink>
-                </div>
-              </Reveal>
+
+            {/* Columna Derecha: Avatar Interactivo en zona superior + Atención Directa */}
+            <div className="flex flex-col justify-between">
+              {/* Avatar Interactivo: ubicado en la zona superior derecha del Hero sin marcos ni recuadros azules */}
+              <div className="w-full max-w-[540px] xl:max-w-[600px] aspect-[1280/722] mx-auto lg:ml-auto lg:mr-0 mb-8 sm:mb-10 relative">
+                <InteractiveDoctorAvatar
+                  priority
+                  className="w-full h-full"
+                  imgClassName="size-full object-contain object-center"
+                />
+              </div>
+
+              {/* Bloque Atención Directa */}
+              <div className="border-l border-[#B39A6A]/20 pl-6 sm:pl-9">
+                <Reveal direction="left" distance={14} delay={0.15}>
+                  <p className="text-xs font-bold uppercase tracking-widest text-sage">Atención directa por</p>
+                  <p className="mt-2 font-serif text-2xl text-obsidian sm:text-3xl">{siteConfig.doctorName}</p>
+                  <p className="mt-1 text-xs text-obsidian/60 leading-relaxed">
+                    {siteConfig.professionalTitle} · {siteConfig.university}
+                    <br />
+                    Cédula Profesional {siteConfig.professionalLicense}
+                  </p>
+                  <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                    <ActionLink href="/agendar">Ver disponibilidad y agendar</ActionLink>
+                  </div>
+                </Reveal>
+              </div>
             </div>
           </div>
         </Container>
@@ -94,7 +110,145 @@ export default function ConsultationPage() {
             </Reveal>
           </div>
 
-          <StaggerGroup staggerDelay={0.08} className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {/* Mobile Auto Carousel (< 768px) */}
+          <div className="md:hidden mt-6">
+            <MobileCarousel
+              id="honorarios-profesionales"
+              ariaLabel="Tarjetas de honorarios profesionales de consulta"
+              itemCount={4}
+              intervalMs={2200}
+              transitionDurationMs={300}
+              cardMaxWidth="330px"
+            >
+              {/* Card 1: Primera Consulta Médica */}
+              <div className="w-full flex-1 rounded-[20px] border border-[#B39A6A]/30 bg-white p-5 sm:p-6 shadow-[0_8px_24px_rgba(15,31,54,0.04)] flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <Stethoscope className="size-4 text-champagne" />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-sage">{pricing.firstVisit.duration}</span>
+                  </div>
+                  <h3 className="mt-3.5 font-serif text-xl sm:text-2xl leading-tight text-obsidian">{pricing.firstVisit.title}</h3>
+                  <p className="mt-2 text-xs sm:text-sm leading-relaxed text-obsidian/75">{pricing.firstVisit.description}</p>
+                  <ul className="mt-3 space-y-1.5 border-t border-stone/60 pt-2.5 text-xs text-obsidian/80">
+                    {pricing.firstVisit.includedNotes.map((note, idx) => (
+                      <li key={idx} className="flex items-start gap-1.5">
+                        <span className="text-champagne font-bold">✓</span>
+                        <span>{note}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mt-5 border-t border-stone/60 pt-3">
+                  <span className="block text-[10px] uppercase tracking-wider text-obsidian/50 font-semibold">Honorarios</span>
+                  <span className="font-serif text-2xl font-medium text-obsidian">{firstPrice}</span>
+                  <div className="mt-3">
+                    <Link href="/agendar?tipo=presencial" className="flex w-full min-h-[44px] items-center justify-center gap-2 rounded-xl border border-[#0D2235] bg-[#0D2235] px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-[#F5F3EE] hover:bg-obsidian active:scale-[0.99] transition-all">
+                      <span>Agendar Cita</span>
+                      <ArrowRight className="size-3.5 text-champagne" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: Consulta de Seguimiento */}
+              <div className="w-full flex-1 rounded-[20px] border border-[#B39A6A]/30 bg-white p-5 sm:p-6 shadow-[0_8px_24px_rgba(15,31,54,0.04)] flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <Clock className="size-4 text-champagne" />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-sage">{pricing.followUp.duration}</span>
+                  </div>
+                  <h3 className="mt-3.5 font-serif text-xl sm:text-2xl leading-tight text-obsidian">{pricing.followUp.title}</h3>
+                  <p className="mt-2 text-xs sm:text-sm leading-relaxed text-obsidian/75">{pricing.followUp.description}</p>
+                  <ul className="mt-3 space-y-1.5 border-t border-stone/60 pt-2.5 text-xs text-obsidian/80">
+                    {pricing.followUp.includedNotes.map((note, idx) => (
+                      <li key={idx} className="flex items-start gap-1.5">
+                        <span className="text-champagne font-bold">✓</span>
+                        <span>{note}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mt-5 border-t border-stone/60 pt-3">
+                  <span className="block text-[10px] uppercase tracking-wider text-obsidian/50 font-semibold">Honorarios</span>
+                  <span className="font-serif text-2xl font-medium text-obsidian">{followUpPrice}</span>
+                  <div className="mt-3">
+                    <Link href="/agendar?tipo=presencial" className="flex w-full min-h-[44px] items-center justify-center gap-2 rounded-xl border border-[#0D2235] bg-[#0D2235] px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-[#F5F3EE] hover:bg-obsidian active:scale-[0.99] transition-all">
+                      <span>Agendar Cita</span>
+                      <ArrowRight className="size-3.5 text-champagne" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: Consulta Médica en Línea */}
+              <div className="w-full flex-1 rounded-[20px] border border-[#B39A6A]/30 bg-white p-5 sm:p-6 shadow-[0_8px_24px_rgba(15,31,54,0.04)] flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <Video className="size-4 text-champagne" />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-sage">{pricing.online.duration}</span>
+                  </div>
+                  <h3 className="mt-3.5 font-serif text-xl sm:text-2xl leading-tight text-obsidian">{pricing.online.title}</h3>
+                  <p className="mt-2 text-xs sm:text-sm leading-relaxed text-obsidian/75">{pricing.online.description}</p>
+                  <ul className="mt-3 space-y-1.5 border-t border-stone/60 pt-2.5 text-xs text-obsidian/80">
+                    {pricing.online.includedNotes.map((note, idx) => (
+                      <li key={idx} className="flex items-start gap-1.5">
+                        <span className="text-champagne font-bold">✓</span>
+                        <span>{note}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mt-5 border-t border-stone/60 pt-3">
+                  <span className="block text-[10px] uppercase tracking-wider text-obsidian/50 font-semibold">Honorarios</span>
+                  <span className="font-serif text-2xl font-medium text-obsidian">{onlinePrice}</span>
+                  <div className="mt-3">
+                    <Link href="/agendar?tipo=online" className="flex w-full min-h-[44px] items-center justify-center gap-2 rounded-xl border border-[#0D2235] bg-[#0D2235] px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-[#F5F3EE] hover:bg-obsidian active:scale-[0.99] transition-all">
+                      <span>Agendar Cita</span>
+                      <ArrowRight className="size-3.5 text-champagne" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 4: Consulta a Domicilio */}
+              <div className="w-full flex-1 rounded-[20px] border border-[#B39A6A]/30 bg-white p-5 sm:p-6 shadow-[0_8px_24px_rgba(15,31,54,0.04)] flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <Home className="size-4 text-champagne" />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-sage">{pricing.homeVisit.duration}</span>
+                  </div>
+                  <h3 className="mt-3.5 font-serif text-xl sm:text-2xl leading-tight text-obsidian">{pricing.homeVisit.title}</h3>
+                  <p className="mt-2 text-xs sm:text-sm leading-relaxed text-obsidian/75">{pricing.homeVisit.description}</p>
+                  <ul className="mt-3 space-y-1.5 border-t border-stone/60 pt-2.5 text-xs text-obsidian/80">
+                    {pricing.homeVisit.includedNotes.map((note, idx) => (
+                      <li key={idx} className="flex items-start gap-1.5">
+                        <span className="text-champagne font-bold">✓</span>
+                        <span>{note}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mt-5 border-t border-stone/60 pt-3">
+                  <span className="block text-[10px] uppercase tracking-wider text-obsidian/50 font-semibold">Honorarios</span>
+                  <span className="font-serif text-2xl font-medium text-obsidian">{homeVisitPrice}</span>
+                  <div className="mt-3">
+                    <a
+                      href="https://wa.me/524421275952?text=Hola%20Dr.%20Mauricio%20Galindo,%20quisiera%20solicitar%20información%20sobre%20consulta%20a%20domicilio."
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="flex w-full min-h-[44px] items-center justify-center gap-2 rounded-xl border border-stone bg-white px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-obsidian hover:bg-stone/30 active:scale-[0.99] transition-all"
+                    >
+                      <span>Coordinar por WhatsApp</span>
+                      <MessageSquare className="size-3.5 text-emerald-600" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </MobileCarousel>
+          </div>
+
+          {/* Desktop Grid (>= 768px) */}
+          <StaggerGroup staggerDelay={0.08} className="hidden md:grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <StaggerItem distance={12} className="flex flex-col justify-between rounded-xl border border-stone/90 bg-white p-7 shadow-xs">
               <div>
                 <div className="flex items-center justify-between">
@@ -116,7 +270,7 @@ export default function ConsultationPage() {
                 <span className="block text-[10px] uppercase tracking-wider text-obsidian/50 font-semibold">Honorarios</span>
                 <span className="font-serif text-2xl font-medium text-obsidian">{firstPrice}</span>
                 <div className="mt-4">
-                  <Link href="/agendar" className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#0D2235] bg-[#0D2235] py-2 text-xs font-semibold uppercase tracking-wider text-[#F5F3EE] hover:bg-obsidian transition-colors">
+                  <Link href="/agendar?tipo=presencial" className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#0D2235] bg-[#0D2235] py-2 text-xs font-semibold uppercase tracking-wider text-[#F5F3EE] hover:bg-obsidian transition-colors">
                     <span>Agendar</span>
                     <ArrowRight className="size-3 text-champagne" />
                   </Link>
@@ -145,7 +299,7 @@ export default function ConsultationPage() {
                 <span className="block text-[10px] uppercase tracking-wider text-obsidian/50 font-semibold">Honorarios</span>
                 <span className="font-serif text-2xl font-medium text-obsidian">{followUpPrice}</span>
                 <div className="mt-4">
-                  <Link href="/agendar" className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#0D2235] bg-[#0D2235] py-2 text-xs font-semibold uppercase tracking-wider text-[#F5F3EE] hover:bg-obsidian transition-colors">
+                  <Link href="/agendar?tipo=presencial" className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#0D2235] bg-[#0D2235] py-2 text-xs font-semibold uppercase tracking-wider text-[#F5F3EE] hover:bg-obsidian transition-colors">
                     <span>Agendar</span>
                     <ArrowRight className="size-3 text-champagne" />
                   </Link>
@@ -174,7 +328,7 @@ export default function ConsultationPage() {
                 <span className="block text-[10px] uppercase tracking-wider text-obsidian/50 font-semibold">Honorarios</span>
                 <span className="font-serif text-2xl font-medium text-obsidian">{onlinePrice}</span>
                 <div className="mt-4">
-                  <Link href="/agendar" className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#0D2235] bg-[#0D2235] py-2 text-xs font-semibold uppercase tracking-wider text-[#F5F3EE] hover:bg-obsidian transition-colors">
+                  <Link href="/agendar?tipo=online" className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#0D2235] bg-[#0D2235] py-2 text-xs font-semibold uppercase tracking-wider text-[#F5F3EE] hover:bg-obsidian transition-colors">
                     <span>Agendar</span>
                     <ArrowRight className="size-3 text-champagne" />
                   </Link>

@@ -479,33 +479,44 @@ export function FAQSection({ showConsultationLink = true }: FAQSectionProps) {
 
   return (
     <div className="w-full">
-      {/* Search Bar */}
-      <div className="max-w-[700px] mx-auto mb-10 px-4 sm:px-0">
-        <div className="relative flex items-center w-full h-[54px] bg-[#FFFDF9] border border-[#B39A6A]/30 rounded-2xl shadow-sm focus-within:border-[#B39A6A] focus-within:ring-2 focus-within:ring-[#B39A6A]/20 transition-all duration-200">
-          <svg className="absolute left-4 size-5 text-obsidian/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+      {/* 4. Buscador Compacto y Elegante */}
+      <div className="w-full max-w-[820px] mx-auto mt-6 sm:mt-8 px-2 sm:px-0">
+        <div className="relative flex items-center w-full min-h-[52px] sm:min-h-[56px] h-[52px] sm:h-[56px] bg-[#FFFDF9]/90 border border-[#B39A6A]/25 rounded-[14px] sm:rounded-[16px] shadow-xs focus-within:border-[#B39A6A] focus-within:bg-[#FFFDF9] focus-within:ring-2 focus-within:ring-[#B39A6A]/15 transition-all duration-200">
+          <svg
+            className="absolute left-4 sm:left-5 size-5 text-obsidian/45 shrink-0 pointer-events-none"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
           <input
             type="text"
             placeholder="Buscar una pregunta..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-full bg-transparent pl-12 pr-12 text-obsidian placeholder:text-obsidian/40 focus:outline-none rounded-2xl text-base"
+            className="w-full h-full bg-transparent pl-12 sm:pl-13 pr-11 sm:pr-12 text-obsidian placeholder:text-obsidian/40 focus:outline-none rounded-[14px] sm:rounded-[16px] text-[15px] sm:text-[16.5px]"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-4 p-1 text-obsidian/40 hover:text-obsidian transition-colors rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-champagne"
+              className="absolute right-3.5 sm:right-4 p-1.5 text-obsidian/40 hover:text-obsidian transition-colors rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-champagne cursor-pointer"
               aria-label="Limpiar búsqueda"
             >
-              <svg className="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              <svg className="size-4 sm:size-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           )}
         </div>
       </div>
 
-      {/* Category Filter Pills */}
+      {/* 5. Categorías en Pills Compactas */}
       {!searchQuery && (
-        <div className="mb-10 px-4 sm:px-0">
-          <div className="flex flex-nowrap sm:flex-wrap items-center sm:justify-center gap-2 sm:gap-3 overflow-x-auto scrollbar-none pb-4 sm:pb-0 -mx-4 px-4 sm:mx-0">
+        <div className="mt-5 sm:mt-6 mb-7 sm:mb-9 px-2 sm:px-0">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 max-w-[960px] mx-auto">
             {CATEGORIES.map((cat) => {
               const isActive = selectedCategory === cat.id;
               return (
@@ -514,10 +525,10 @@ export function FAQSection({ showConsultationLink = true }: FAQSectionProps) {
                   type="button"
                   aria-pressed={isActive}
                   onClick={() => handleCategoryChange(cat.id)}
-                  className={`relative px-5 py-2.5 rounded-full text-[13px] font-medium tracking-wide transition-all duration-200 whitespace-nowrap border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-obsidian focus-visible:ring-offset-2 ${
+                  className={`min-h-[38px] sm:min-h-[42px] px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full text-[13.5px] sm:text-[15px] font-medium leading-[1.2] transition-all duration-180 border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-obsidian focus-visible:ring-offset-2 cursor-pointer ${
                     isActive
-                      ? 'bg-obsidian border-obsidian text-[#FFFDF9] shadow-sm'
-                      : 'bg-transparent border-[#B39A6A]/30 text-obsidian/70 hover:border-[#B39A6A] hover:text-obsidian'
+                      ? 'bg-obsidian border-obsidian text-white shadow-xs'
+                      : 'bg-[#FFFDF9]/60 hover:bg-[#FFFDF9] border-[#B39A6A]/25 text-obsidian/75 hover:border-[#B39A6A]/50 hover:text-obsidian'
                   }`}
                 >
                   {cat.label}
@@ -528,15 +539,15 @@ export function FAQSection({ showConsultationLink = true }: FAQSectionProps) {
         </div>
       )}
 
-      {/* Accordion List */}
-      <div className="w-full motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-8 motion-safe:duration-700">
+      {/* 6. Acordeón de Preguntas Proporcionado */}
+      <div className="w-full max-w-[1120px] mx-auto motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-500">
         {visibleFaqs.length === 0 ? (
-          <div className="text-center py-20 px-6">
-            <p className="text-obsidian font-serif text-2xl mb-3">No encontramos una respuesta con esos términos.</p>
-            <p className="text-obsidian/70 text-sm sm:text-base">Prueba otra búsqueda o comunícate con nuestro asistente médico.</p>
+          <div className="text-center py-16 px-6 bg-[#FFFDF9]/60 border border-[#B39A6A]/20 rounded-2xl">
+            <p className="text-obsidian font-serif text-xl sm:text-2xl mb-2">No encontramos una respuesta con esos términos.</p>
+            <p className="text-obsidian/70 text-sm sm:text-[15px]">Prueba otra búsqueda o comunícate con nuestro asistente médico.</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid gap-2.5 sm:gap-3.5">
             {visibleFaqs.map((faq) => {
               const isOpen = openItemId === faq.id;
               const contentId = `faq-answer-${faq.id}`;
@@ -545,15 +556,12 @@ export function FAQSection({ showConsultationLink = true }: FAQSectionProps) {
               return (
                 <div
                   key={faq.id}
-                  className={`group relative rounded-2xl sm:rounded-3xl transition-all duration-300 border ${
+                  className={`group relative rounded-[18px] transition-all duration-200 border overflow-hidden ${
                     isOpen 
-                      ? 'bg-[#FFFDF9] border-[#B39A6A]/40 shadow-sm' 
-                      : 'bg-[#F9F7F2]/60 border-[#B39A6A]/15 hover:bg-[#FFFDF9] hover:border-[#B39A6A]/30'
+                      ? 'bg-[#FFFDF9] border-[#B39A6A]/45 shadow-xs' 
+                      : 'bg-white/45 border-[#B39A6A]/22 hover:bg-white/70 hover:border-[#B39A6A]/35 hover:shadow-xs'
                   }`}
                 >
-                  {/* Decorative left border accent when open */}
-                  <div className={`absolute left-0 top-6 bottom-6 w-1 rounded-r-full bg-[#B39A6A] transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`} />
-
                   <h3>
                     <button
                       type="button"
@@ -561,22 +569,26 @@ export function FAQSection({ showConsultationLink = true }: FAQSectionProps) {
                       aria-expanded={isOpen}
                       aria-controls={contentId}
                       onClick={() => toggleItem(faq.id)}
-                      className="flex w-full items-center justify-between gap-4 sm:gap-8 px-5 sm:px-9 py-6 sm:py-8 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-champagne focus-visible:ring-offset-2 rounded-2xl sm:rounded-3xl cursor-pointer"
+                      className="w-full min-h-[72px] sm:min-h-[88px] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3.5 sm:gap-6 px-4.5 sm:px-7 py-4 sm:py-5 text-left rounded-[18px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-champagne focus-visible:ring-offset-2 cursor-pointer"
                     >
-                      <span className={`font-serif text-[1.25rem] sm:text-[clamp(1.45rem,2vw,2rem)] leading-snug transition-colors duration-300 pr-2 ${isOpen ? 'text-obsidian font-medium' : 'text-obsidian/90 font-normal'}`}>
+                      <span className={`font-serif text-[clamp(17.5px,4.5vw,21px)] sm:text-[clamp(21px,1.65vw,26px)] leading-[1.24] tracking-[-0.02em] pr-1 transition-colors duration-200 ${
+                        isOpen ? 'text-obsidian font-medium' : 'text-obsidian/90 font-normal group-hover:text-obsidian'
+                      }`}>
                         {faq.question}
                       </span>
                       <span
                         aria-hidden="true"
-                        className={`flex size-10 sm:size-12 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${
+                        className={`size-9 sm:size-[42px] flex-[0_0_36px] sm:flex-[0_0_42px] flex items-center justify-center rounded-full border transition-all duration-200 ${
                           isOpen 
-                            ? 'border-[#B39A6A] bg-[#B39A6A]/10 text-obsidian' 
-                            : 'border-[#B39A6A]/30 text-obsidian/50 group-hover:border-[#B39A6A]/50 group-hover:text-obsidian/80'
+                            ? 'border-[#B39A6A] bg-[#B39A6A]/12 text-obsidian' 
+                            : 'border-[#B39A6A]/30 text-obsidian/55 group-hover:border-[#B39A6A]/50 group-hover:text-obsidian'
                         }`}
                       >
-                        <div className="relative size-3.5 sm:size-4">
-                          <div className={`absolute inset-0 bg-current rounded-full transition-transform duration-300 h-[1.5px] w-full top-1/2 -translate-y-1/2 ${isOpen ? 'rotate-180' : 'rotate-0'}`} />
-                          <div className={`absolute inset-0 bg-current rounded-full transition-transform duration-300 w-[1.5px] h-full left-1/2 -translate-x-1/2 ${isOpen ? 'rotate-90 scale-0' : 'rotate-0 scale-100'}`} />
+                        <div className={`relative size-3.5 sm:size-4 transition-transform duration-200 ease-out ${isOpen ? 'rotate-45' : 'rotate-0'}`}>
+                          {/* Barra horizontal */}
+                          <div className="absolute inset-0 m-auto h-[1.6px] w-full bg-current rounded-full" />
+                          {/* Barra vertical */}
+                          <div className="absolute inset-0 m-auto w-[1.6px] h-full bg-current rounded-full" />
                         </div>
                       </span>
                     </button>
@@ -588,14 +600,14 @@ export function FAQSection({ showConsultationLink = true }: FAQSectionProps) {
                         id={contentId}
                         role="region"
                         aria-labelledby={buttonId}
-                        initial={{ height: 0, opacity: 0, y: -10 }}
+                        initial={{ height: 0, opacity: 0, y: -4 }}
                         animate={{ height: 'auto', opacity: 1, y: 0 }}
-                        exit={{ height: 0, opacity: 0, y: -10 }}
-                        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                        exit={{ height: 0, opacity: 0, y: -4 }}
+                        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                         className="overflow-hidden"
                       >
-                        <div className="px-5 sm:px-9 pb-7 sm:pb-9 pt-1 max-w-[980px]">
-                          <div className="text-[16px] sm:text-[18px] leading-[1.7] text-obsidian/80 font-sans">
+                        <div className="max-w-[850px] px-4.5 sm:px-7 pb-5 sm:pb-6 pt-1">
+                          <div className="pt-3 sm:pt-4 border-t border-[#B39A6A]/15 text-[15.5px] sm:text-[17px] leading-[1.65] text-obsidian/80 font-sans">
                             {faq.renderAnswer(renderedProps)}
                           </div>
                         </div>

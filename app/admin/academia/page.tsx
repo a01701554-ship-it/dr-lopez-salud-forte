@@ -76,7 +76,7 @@ interface Student {
 }
 
 export default function AdminAcademiaPage() {
-  const { user, profile, isLoading: authLoading } = useAuth();
+  const { user, profile, isLoading: authLoading, fetchWithAuth } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'cursos' | 'alumnos' | 'metricas' | 'agenda' | 'webhooks'>('cursos');
   const [courses, setCourses] = useState<Course[]>([]);
@@ -120,7 +120,7 @@ export default function AdminAcademiaPage() {
     setLoading(true);
     try {
       // 1. Fetch courses
-      const cRes = await fetch('/api/admin/courses', { credentials: 'include' });
+      const cRes = await fetchWithAuth('/api/admin/courses');
       if (cRes.ok) {
         const cData = await cRes.json();
         setCourses(cData.courses || []);
@@ -130,14 +130,14 @@ export default function AdminAcademiaPage() {
       }
 
       // 2. Fetch students
-      const sRes = await fetch('/api/admin/students', { credentials: 'include' });
+      const sRes = await fetchWithAuth('/api/admin/students');
       if (sRes.ok) {
         const sData = await sRes.json();
         setStudents(sData.students || []);
       }
 
       // 3. Fetch metrics
-      const mRes = await fetch('/api/admin/metrics', { credentials: 'include' });
+      const mRes = await fetchWithAuth('/api/admin/metrics');
       if (mRes.ok) {
         const mData = await mRes.json();
         setMetrics(mData.metrics);
@@ -165,10 +165,9 @@ export default function AdminAcademiaPage() {
 
     setValidatingYt(true);
     try {
-      const res = await fetch('/api/admin/youtube/parse', {
+      const res = await fetchWithAuth('/api/admin/youtube/parse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ url }),
       });
       const data = await res.json();
@@ -192,10 +191,9 @@ export default function AdminAcademiaPage() {
     const slug = newCourseSlug || newCourseTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
     try {
-      const res = await fetch('/api/admin/courses', {
+      const res = await fetchWithAuth('/api/admin/courses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           title: newCourseTitle,
           subtitle: newCourseSubtitle,
@@ -227,10 +225,9 @@ export default function AdminAcademiaPage() {
     if (!selectedCourseForLesson || !selectedModuleId || !newLessonTitle) return;
 
     try {
-      const res = await fetch(`/api/admin/courses/${selectedCourseForLesson.id}/modules/${selectedModuleId}/lessons`, {
+      const res = await fetchWithAuth(`/api/admin/courses/${selectedCourseForLesson.id}/modules/${selectedModuleId}/lessons`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           title: newLessonTitle,
           videoUrl: newLessonUrl,
@@ -263,10 +260,9 @@ export default function AdminAcademiaPage() {
     if (!grantEmail || !grantCourseId) return;
 
     try {
-      const res = await fetch('/api/admin/students/grant-course', {
+      const res = await fetchWithAuth('/api/admin/students/grant-course', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           customerEmail: grantEmail,
           courseId: grantCourseId,

@@ -167,3 +167,11 @@ body {
     clip-path: none !important;
   }
 }
+
+/* ==========================================================================
+   Home Hero Section Layout: natural, compact and content-driven
+   ========================================================================== */
+.home-viewport-section {
+  min-height: 0;
+  height: auto;
+}

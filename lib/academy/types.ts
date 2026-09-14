@@ -111,13 +111,7 @@ export interface Course {
   compareAtPrice?: number | null;
   currency: string;
   sku?: string;
-  instructor: {
-    name: string;
-    title: string;
-    license: string;
-    institution: string;
-    avatarUrl?: string;
-  };
+  instructor: import('./instructor').InstructorProfile;
   image: string;
   imageFallback: string;
   imageAlt: string;
@@ -143,6 +137,12 @@ export interface Course {
   imageId?: string;
   createdAt?: string;
   updatedAt?: string;
+  salesPromise?: string;
+  recognitionPoints?: string[];
+  beforeState?: string[];
+  afterState?: string[];
+  notFor?: string[];
+  ctaLabel?: string;
 }
 
 export interface CourseProductMapping {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/auth-context';
+import { supabase } from '@/lib/supabase';
 import { Lock, Eye, EyeOff, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
 
 export default function ResetPasswordPage() {
@@ -13,17 +14,34 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const t = params.get('token');
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const t = params.get('token') || params.get('code') || hashParams.get('access_token');
+    
     if (t) {
       setToken(t);
+      setError(null);
+      // Clean sensitive parameters from browser location bar
+      if (typeof window !== 'undefined') {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
     } else {
-      setError('Enlace inválido o sin token de seguridad.');
+      // Check if user has an active session from recovery link
+      if (supabase) {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session) {
+            setToken(session.access_token);
+            setError(null);
+          } else {
+            setError('Ingresa tu nueva contraseña o accede mediante el enlace de recuperación enviado a tu correo.');
+          }
+        });
+      }
     }
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (submitting || !token) return;
+    if (submitting) return;
 
     if (password.length < 10) {
       setError('La nueva contraseña debe tener al menos 10 caracteres.');
@@ -31,14 +49,14 @@ export default function ResetPasswordPage() {
     }
 
     if (password !== confirmPassword) {
-      setError('Las contraseñas no coinciden.');
+      setError('Las contraseñas no coinciden. Revisa que ambas sean idénticas.');
       return;
     }
 
     setSubmitting(true);
     setError(null);
 
-    const res = await resetPassword(token, password, confirmPassword);
+    const res = await resetPassword(password, confirmPassword);
     setSubmitting(false);
 
     if (res.success) {
@@ -84,6 +102,7 @@ export default function ResetPasswordPage() {
                 type={showPassword ? 'text' : 'password'}
                 required
                 minLength={10}
+                maxLength={128}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full h-12 pl-11 pr-11 rounded-xl border border-[#B39A6A]/30 focus:outline-none focus:border-champagne focus:ring-1 focus:ring-champagne transition-colors bg-ivory/20 text-sm text-obsidian placeholder:text-obsidian/40"
@@ -111,6 +130,7 @@ export default function ResetPasswordPage() {
                 type={showPassword ? 'text' : 'password'}
                 required
                 minLength={10}
+                maxLength={128}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full h-12 pl-11 pr-11 rounded-xl border border-[#B39A6A]/30 focus:outline-none focus:border-champagne focus:ring-1 focus:ring-champagne transition-colors bg-ivory/20 text-sm text-obsidian placeholder:text-obsidian/40"
@@ -123,7 +143,7 @@ export default function ResetPasswordPage() {
 
           <button
             type="submit"
-            disabled={submitting || !password || !token}
+            disabled={submitting || !password}
             className="w-full h-12 rounded-xl bg-obsidian text-white font-medium hover:bg-[#07182A] transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-xs tracking-wider uppercase cursor-pointer mt-4"
           >
             {submitting ? 'Guardando...' : 'GUARDAR NUEVA CONTRASEÑA'}
