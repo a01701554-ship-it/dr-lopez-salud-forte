@@ -361,15 +361,19 @@ async function createCloudflareSignedPlaybackUrl(videoId: string) {
   const customerSubdomain = (process.env.CLOUDFLARE_STREAM_CUSTOMER_SUBDOMAIN || '').trim();
 
   if (!accountId || !apiToken || !customerSubdomain) {
-    throw new Error('CLOUDFLARE_NOT_CONFIGURED');
+    throw new Error('CLOUDFLARE_CREDENTIALS_MISSING');
   }
 
-  if (!/^[a-zA-Z0-9_-]+$/.test(videoId)) {
+  if (!videoId || !/^[a-zA-Z0-9_-]+$/.test(videoId)) {
     throw new Error('INVALID_VIDEO_ID');
   }
 
   const cleanSubdomain = customerSubdomain.replace(/^https?:\/\//, '').replace(/\/$/, '');
-  if (!/^customer-[a-zA-Z0-9_-]+\.cloudflarestream\.com$/.test(cleanSubdomain)) {
+  if (
+    !cleanSubdomain ||
+    cleanSubdomain.includes('xxxxxxxx') ||
+    !/^customer-[a-zA-Z0-9_-]+\.cloudflarestream\.com$/.test(cleanSubdomain)
+  ) {
     throw new Error('INVALID_CUSTOMER_SUBDOMAIN');
   }
 
@@ -385,7 +389,7 @@ async function createCloudflareSignedPlaybackUrl(videoId: string) {
   );
 
   if (!response.ok) {
-    throw new Error('CLOUDFLARE_TOKEN_REQUEST_FAILED');
+    throw new Error(`CLOUDFLARE_API_ERROR_${response.status}`);
   }
 
   const payload: any = await response.json();
@@ -787,10 +791,50 @@ async function startServer() {
       return res.status(access.status).json({ error: access.error, code: access.code });
     }
 
-    const provider = String(access.lesson.video_provider || 'none').toLowerCase();
+    const { data: playbackLesson, error: playbackLessonError } =
+      await access.requestSupabase
+        .from('lessons')
+        .select('id, slug, status, video_provider, video_asset_id, video_external_id')
+        .eq('id', access.lesson.id)
+        .maybeSingle();
 
-    if (provider === 'youtube' && access.lesson.video_external_id) {
-      const videoId = extractYouTubeVideoId(access.lesson.video_external_id);
+    if (playbackLessonError) {
+      return res.status(503).json({
+        error: 'No fue posible consultar la configuración de video de la lección.',
+        code: 'LESSON_VIDEO_QUERY_FAILED',
+      });
+    }
+
+    const lessonRow = (playbackLesson ?? access.lesson) as any;
+
+    const provider = String(
+      lessonRow?.video_provider ??
+      lessonRow?.videoProvider ??
+      ''
+    ).trim().toLowerCase();
+
+    const videoAssetId = String(
+      lessonRow?.video_asset_id ??
+      lessonRow?.videoAssetId ??
+      ''
+    ).trim();
+
+    const videoExternalId = String(
+      lessonRow?.video_external_id ??
+      lessonRow?.videoExternalId ??
+      ''
+    ).trim();
+
+    console.info('stream_playback_config', {
+      courseSlug: slug,
+      lessonSlug,
+      lessonFound: Boolean(playbackLesson),
+      provider,
+      hasVideoAssetId: Boolean(videoAssetId),
+    });
+
+    if (provider === 'youtube' && videoExternalId) {
+      const videoId = extractYouTubeVideoId(videoExternalId);
       if (!videoId) {
         return res.status(409).json({
           error: 'El video de esta lección no está configurado correctamente.',
@@ -809,17 +853,29 @@ async function startServer() {
       });
     }
 
-    if ((provider === 'cloudflare' || provider === 'cloudflare_stream') && access.lesson.video_asset_id) {
+    if (
+      (provider === 'cloudflare' || provider === 'cloudflare_stream') &&
+      videoAssetId
+    ) {
       try {
-        const signedPlayback = await createCloudflareSignedPlaybackUrl(access.lesson.video_asset_id);
+        const signedPlayback =
+          await createCloudflareSignedPlaybackUrl(videoAssetId);
+
         return res.json({
           type: 'cloudflare',
           playbackUrl: signedPlayback.playbackUrl,
           expiresIn: signedPlayback.expiresIn,
         });
-      } catch {
+      } catch (error) {
+        console.error('stream_authorization_failed', {
+          courseSlug: slug,
+          lessonSlug,
+          reason:
+            error instanceof Error ? error.message : 'UNKNOWN_ERROR',
+        });
+
         return res.status(502).json({
-          error: 'No fue posible autorizar la reproducción segura. Intenta nuevamente.',
+          error: 'No fue posible autorizar la reproducción segura.',
           code: 'STREAM_AUTHORIZATION_FAILED',
         });
       }

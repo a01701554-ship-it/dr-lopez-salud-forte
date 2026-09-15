@@ -467,18 +467,18 @@ export function HomeSections() {
         - max-w-[1220px], py-16 sm:py-20 (64-80px), gap de 56-68px entre columnas.
         ========================================================================
       */}
-      <section className="bg-white border-b border-[#B39A6A]/15 overflow-hidden py-16 sm:py-20">
+      <section className="bg-white border-b border-[#B39A6A]/15 overflow-hidden py-16 sm:py-20 lg:py-24">
         <div className="mx-auto max-w-[1220px] px-6 sm:px-10 lg:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-[40%_60%] gap-10 sm:gap-12 lg:gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-[42%_58%] xl:grid-cols-[40%_60%] gap-10 sm:gap-12 lg:gap-14 items-center">
             
-            {/* Columna Izquierda: Fotografía estática compacta y limpia */}
-            <div className="flex justify-center items-center w-full">
+            {/* Columna Izquierda: Fotografía real integrada directamente sobre el fondo (estilo Hero) */}
+            <div className="flex justify-center items-end w-full relative z-0 bg-transparent border-0 outline-0 shadow-none">
               <ScrollReveal direction="up" distance={20} delay={0.10} duration={0.75} className="w-full flex justify-center">
-                <div className="w-full max-w-[min(82vw,340px)] lg:max-w-[450px] aspect-[3/4] relative rounded-[18px] overflow-hidden bg-[#E1EDFB]">
+                <div className="w-[min(84vw,340px)] sm:w-[360px] lg:w-[410px] xl:w-[430px] max-w-full relative bg-transparent border-0 outline-0 shadow-none">
                   <DoctorPortrait
                     variant="about"
-                    className="size-full bg-[#E1EDFB] rounded-[18px]"
-                    imgClassName="size-full object-contain object-center"
+                    className="w-full bg-transparent border-0 shadow-none"
+                    imgClassName="w-full h-auto aspect-[1086/1448] object-contain object-bottom"
                   />
                 </div>
               </ScrollReveal>
