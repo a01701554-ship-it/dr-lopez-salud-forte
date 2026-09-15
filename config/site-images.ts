@@ -77,17 +77,17 @@ export const SITE_IMAGES: Record<'homeHero' | 'aboutPortrait' | 'bookingPortrait
   aboutPortrait: {
     id: 'IMG-302-DR-MAURICIO-GALINDO-ABOUT',
     current: {
-      png: '/images/doctor/official/mauricio-about-2026.png',
-      webp: '/images/doctor/official/mauricio-about-2026.webp',
+      png: '/images/doctor-sobre-mi-cutout.png',
+      webp: '/images/doctor-sobre-mi-cutout.webp',
     },
     doctor: {
-      png: '/images/doctor/official/mauricio-about-2026.png',
-      webp: '/images/doctor/official/mauricio-about-2026.webp',
+      png: '/images/doctor-sobre-mi-cutout.png',
+      webp: '/images/doctor-sobre-mi-cutout.webp',
     },
     alt: 'Retrato profesional del Dr. Mauricio Benjamín Galindo López, Médico Cirujano',
     objectFit: 'contain',
-    desktopPosition: 'object-center',
-    mobilePosition: 'object-center',
+    desktopPosition: 'object-bottom',
+    mobilePosition: 'object-bottom',
   },
 
   /**

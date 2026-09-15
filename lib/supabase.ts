@@ -98,20 +98,7 @@ export function createSupabaseServerUserClient(
   });
 }
 
-// Server client limited to the public/anonymous permissions defined by RLS.
-// It never uses a service-role key and therefore cannot bypass database rules.
-export function createSupabaseServerPublicClient(): SupabaseClient {
-  const { url, key } = getServerSupabaseConfig();
 
-  if (!url || !key) {
-    throw new Error('Supabase no está configurado en el servidor');
-  }
 
-  return createClient(url, key, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-    },
-  });
-}
+
+

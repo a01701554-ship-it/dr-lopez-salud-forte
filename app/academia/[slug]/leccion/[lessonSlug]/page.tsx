@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   Mail,
   RefreshCw,
+  ExternalLink,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 
@@ -72,7 +73,6 @@ interface VideoPlaybackData {
   token?: string;
   playbackUrl?: string;
   notice?: string;
-  expiresIn?: number;
 }
 
 export default function LessonPlayerPage({
@@ -92,8 +92,6 @@ export default function LessonPlayerPage({
   const [moduleData, setModuleData] = useState<ModuleData | null>(null);
   const [lesson, setLesson] = useState<LessonData | null>(null);
   const [playbackData, setPlaybackData] = useState<VideoPlaybackData | null>(null);
-  const [playbackLoading, setPlaybackLoading] = useState(false);
-  const [playbackError, setPlaybackError] = useState<string | null>(null);
 
   const [isCompleted, setIsCompleted] = useState(false);
   const [progressRecords, setProgressRecords] = useState<any[]>([]);
@@ -134,7 +132,7 @@ export default function LessonPlayerPage({
       }
 
       // Fetch video playback token / details
-      await fetchPlaybackDetails();
+      fetchPlaybackDetails();
     } catch (err: any) {
       setErrorStatus('NETWORK_ERROR');
       setErrorMessage('Error de conexión al cargar la clase.');
@@ -144,27 +142,17 @@ export default function LessonPlayerPage({
   };
 
   const fetchPlaybackDetails = async () => {
-    setPlaybackLoading(true);
-    setPlaybackError(null);
-    setPlaybackData(null);
-
     try {
       const res = await fetchWithAuth(`/api/academia/courses/${slug}/lessons/${lessonSlug}/token`, {
         method: 'POST',
         credentials: 'include',
       });
-
-      const pData = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setPlaybackError(pData.error || 'No fue posible preparar la reproducción segura.');
-        return;
+      if (res.ok) {
+        const pData = await res.json();
+        setPlaybackData(pData);
       }
-
-      setPlaybackData(pData);
     } catch (e) {
-      setPlaybackError('No fue posible conectar con el servicio de reproducción.');
-    } finally {
-      setPlaybackLoading(false);
+      console.warn('Playback detail error:', e);
     }
   };
 
@@ -405,52 +393,26 @@ export default function LessonPlayerPage({
         <div className="flex-1 flex flex-col bg-black">
           {/* Video Player Canvas */}
           <div className="relative aspect-16/9 w-full bg-[#030910] flex items-center justify-center overflow-hidden">
-            {playbackLoading ? (
-              <div className="flex flex-col items-center justify-center text-center p-6 bg-[#07131F] w-full h-full">
-                <div className="size-10 border-2 border-champagne border-t-transparent rounded-full animate-spin mb-4" />
-                <p className="text-white/80 text-sm">Preparando reproducción segura…</p>
-                <p className="text-white/45 text-xs mt-1">Verificando tu acceso a esta lección</p>
-              </div>
-            ) : playbackData?.type === 'cloudflare' && playbackData.playbackUrl ? (
-              <iframe
-                id="lesson_cloudflare_iframe"
-                src={playbackData.playbackUrl}
-                title={activeLesson?.title || 'Video seguro de la lección'}
-                className="w-full h-full border-0"
-                allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
-                allowFullScreen
-                referrerPolicy="strict-origin-when-cross-origin"
-              />
-            ) : playbackData?.type === 'youtube' && (playbackData.embedUrl || playbackData.videoId) ? (
+            {playbackData?.type === 'youtube' && playbackData.videoId ? (
               <iframe
                 id="lesson_youtube_iframe"
-                src={
-                  playbackData.embedUrl ||
-                  `https://www.youtube-nocookie.com/embed/${playbackData.videoId}?rel=0&modestbranding=1&autoplay=1&enablejsapi=1`
-                }
+                src={`https://www.youtube-nocookie.com/embed/${playbackData.videoId}?rel=0&modestbranding=1&autoplay=1&enablejsapi=1`}
                 title={activeLesson?.title || 'Video de la lección'}
                 className="w-full h-full border-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
               />
             ) : (
+              // Fallback / Cloudflare / Preview Player
               <div className="relative w-full h-full flex items-center justify-center bg-[#07131F]">
                 <div className="text-center p-6">
-                  <div className="size-16 rounded-full bg-red-500/10 text-red-300 mx-auto flex items-center justify-center mb-3 border border-red-400/20">
-                    <AlertCircle className="size-8" />
+                  <div className="size-16 rounded-full bg-champagne/20 text-champagne mx-auto flex items-center justify-center mb-3">
+                    <Play className="size-8 fill-champagne ml-1" />
                   </div>
-                  <h3 className="text-white font-serif text-lg font-medium">Video no disponible</h3>
+                  <h3 className="text-white font-serif text-lg font-medium">{activeLesson?.title}</h3>
                   <p className="text-white/60 text-xs mt-1 max-w-sm">
-                    {playbackError || playbackData?.notice || 'Esta lección todavía no tiene un video publicado.'}
+                    {playbackData?.notice || 'Video exclusivo de Salud Forte presentado por el Dr. Mauricio Galindo.'}
                   </p>
-                  <button
-                    type="button"
-                    onClick={fetchPlaybackDetails}
-                    className="mt-4 inline-flex items-center gap-2 rounded-lg bg-champagne px-4 py-2 text-xs font-semibold text-obsidian hover:brightness-105"
-                  >
-                    <RefreshCw className="size-3.5" />
-                    Intentar nuevamente
-                  </button>
                 </div>
               </div>
             )}

@@ -31,6 +31,7 @@ import MyAccountPage from '@/app/mi-cuenta/page';
 import MisPedidosPage from '@/app/mi-cuenta/pedidos/page';
 import MiPerfilPage from '@/app/mi-cuenta/perfil/page';
 import StudentMasterclassesPage from '@/app/mi-cuenta/masterclasses/page';
+import CloudflareStreamTestPage from '@/app/mi-cuenta/prueba-video/page';
 import AuthCallbackPage from '@/app/auth/callback/page';
 
 function getInitialPath(): string {
@@ -81,6 +82,8 @@ export default function App() {
       pageTitle = `Panel Academia & Shopify | Salud Forte`;
     } else if (pathname === '/admin/productos') {
       pageTitle = `Puerta de Publicación de Suplementos | Panel Administrativo`;
+    } else if (pathname.replace(/\/+$/, '') === '/mi-cuenta/prueba-video') {
+      pageTitle = 'Prueba de Video Seguro | Salud Forte';
     } else if (pathname !== '/') {
       const cleanPath = pathname.replace(/^\/+|\/+$/g, '');
       const slug = cleanPath.split('/');
@@ -167,6 +170,10 @@ export default function App() {
     if (normalized === '/mi-cuenta/perfil') {
       return <MiPerfilPage />;
     }
+    if (normalized === '/mi-cuenta/prueba-video') {
+      return <CloudflareStreamTestPage />;
+    }
+
     // Official Tienda Routes
     if (normalized === '/tienda') {
       return <TiendaPage />;

@@ -11,6 +11,7 @@ import { academyDb } from './lib/academy/db';
 import {
   verifyShopifyWebhookHmac,
   verifyShopifyAppProxySignature,
+  generateCloudflareStreamToken,
 } from './lib/academy/security';
 import { Course, Entitlement, ProcessedWebhook } from './lib/academy/types';
 import {
@@ -156,260 +157,6 @@ const getAuthenticatedUser = async (req: Request): Promise<AuthenticatedUser | n
   const result = await getAuthenticatedUserResult(req);
   return result.user;
 };
-
-type LessonAccessFailure = {
-  ok: false;
-  status: number;
-  code: string;
-  error: string;
-};
-
-type LessonAccessSuccess = {
-  ok: true;
-  user: AuthenticatedUser;
-  requestSupabase: ReturnType<typeof createSupabaseServerUserClient>;
-  course: any;
-  modules: any[];
-  lessons: any[];
-  lesson: any;
-  module: any | null;
-  entitlementStatus: 'active' | 'preview' | 'admin_override';
-};
-
-type LessonAccessResult = LessonAccessFailure | LessonAccessSuccess;
-
-function getBearerToken(req: Request): string {
-  const header = req.headers.authorization || '';
-  return header.startsWith('Bearer ') ? header.slice(7).trim() : '';
-}
-
-function entitlementIsCurrent(entitlement: any): boolean {
-  if (!entitlement || entitlement.status !== 'active' || entitlement.revoked_at) {
-    return false;
-  }
-
-  if (!entitlement.expires_at) return true;
-  const expiresAt = new Date(entitlement.expires_at).getTime();
-  return Number.isFinite(expiresAt) && expiresAt > Date.now();
-}
-
-function mapLessonForBrowser(lesson: any) {
-  return {
-    id: lesson.id,
-    moduleId: lesson.module_id,
-    slug: lesson.slug,
-    title: lesson.title,
-    summary: lesson.summary || lesson.description || '',
-    description: lesson.description || '',
-    position: lesson.position || 0,
-    durationSeconds: lesson.duration_seconds || 0,
-    isPreview: Boolean(lesson.is_preview),
-    transcript: lesson.transcript || '',
-    status: lesson.status,
-    attachments: [],
-  };
-}
-
-async function loadAuthorizedSupabaseLesson(
-  req: Request,
-  slug: string,
-  lessonSlug: string,
-): Promise<LessonAccessResult> {
-  const authResult = await getAuthenticatedUserResult(req);
-  if (!authResult.user) {
-    return {
-      ok: false,
-      status: 401,
-      code: 'UNAUTHENTICATED',
-      error: 'Esta lección requiere una sesión válida. Inicia sesión e inténtalo nuevamente.',
-    };
-  }
-
-  const token = getBearerToken(req);
-  const requestSupabase = createSupabaseServerUserClient(token);
-
-  const { data: course, error: courseError } = await requestSupabase
-    .from('masterclasses')
-    .select('id, slug, title, subtitle, short_description, lesson_count, status')
-    .eq('slug', slug)
-    .maybeSingle();
-
-  if (courseError) {
-    return {
-      ok: false,
-      status: 503,
-      code: 'ACADEMY_DATABASE_ERROR',
-      error: 'No fue posible consultar la masterclass en este momento.',
-    };
-  }
-
-  if (!course) {
-    return {
-      ok: false,
-      status: 404,
-      code: 'COURSE_NOT_FOUND',
-      error: 'Masterclass no encontrada.',
-    };
-  }
-
-  const isStaff = authResult.user.role === 'ADMIN' || authResult.user.role === 'INSTRUCTOR';
-  let entitlementStatus: LessonAccessSuccess['entitlementStatus'] = 'admin_override';
-
-  if (!isStaff) {
-    const { data: entitlement, error: entitlementError } = await requestSupabase
-      .from('entitlements')
-      .select('id, status, expires_at, revoked_at')
-      .eq('user_id', authResult.user.id)
-      .eq('masterclass_id', course.id)
-      .maybeSingle();
-
-    if (entitlementError) {
-      return {
-        ok: false,
-        status: 503,
-        code: 'ENTITLEMENT_CHECK_FAILED',
-        error: 'No fue posible verificar tu acceso a la masterclass.',
-      };
-    }
-
-    entitlementStatus = entitlementIsCurrent(entitlement) ? 'active' : 'preview';
-  }
-
-  const { data: lessons, error: lessonsError } = await requestSupabase
-    .from('lessons')
-    .select('id, masterclass_id, module_id, slug, title, summary, description, position, duration_seconds, video_provider, video_asset_id, video_external_id, is_preview, transcript, status')
-    .eq('masterclass_id', course.id)
-    .eq('status', 'published')
-    .order('position', { ascending: true });
-
-  if (lessonsError) {
-    return {
-      ok: false,
-      status: 503,
-      code: 'LESSON_QUERY_FAILED',
-      error: 'No fue posible consultar las lecciones de esta masterclass.',
-    };
-  }
-
-  const targetLesson = (lessons || []).find(
-    (item: any) => item.slug === lessonSlug || item.id === lessonSlug,
-  );
-
-  if (!targetLesson) {
-    if (!isStaff && entitlementStatus !== 'active') {
-      return {
-        ok: false,
-        status: 403,
-        code: 'ENTITLEMENT_REQUIRED',
-        error: 'No cuentas con una compra o inscripción activa para esta masterclass.',
-      };
-    }
-
-    return {
-      ok: false,
-      status: 404,
-      code: 'LESSON_NOT_FOUND',
-      error: 'Lección no encontrada.',
-    };
-  }
-
-  if (!isStaff && entitlementStatus !== 'active' && !targetLesson.is_preview) {
-    return {
-      ok: false,
-      status: 403,
-      code: 'ENTITLEMENT_REQUIRED',
-      error: 'No cuentas con una compra o inscripción activa para esta masterclass.',
-    };
-  }
-
-  if (targetLesson.is_preview && entitlementStatus !== 'active' && !isStaff) {
-    entitlementStatus = 'preview';
-  }
-
-  const { data: modules, error: modulesError } = await requestSupabase
-    .from('modules')
-    .select('id, masterclass_id, title, description, position, status')
-    .eq('masterclass_id', course.id)
-    .eq('status', 'published')
-    .order('position', { ascending: true });
-
-  if (modulesError) {
-    return {
-      ok: false,
-      status: 503,
-      code: 'MODULE_QUERY_FAILED',
-      error: 'No fue posible consultar el temario de esta masterclass.',
-    };
-  }
-
-  return {
-    ok: true,
-    user: authResult.user,
-    requestSupabase,
-    course,
-    modules: modules || [],
-    lessons: lessons || [],
-    lesson: targetLesson,
-    module: (modules || []).find((item: any) => item.id === targetLesson.module_id) || null,
-    entitlementStatus,
-  };
-}
-
-async function createCloudflareSignedPlaybackUrl(videoId: string) {
-  const accountId = (process.env.CLOUDFLARE_ACCOUNT_ID || '').trim();
-  const apiToken = (process.env.CLOUDFLARE_STREAM_API_TOKEN || '').trim();
-  const customerSubdomain = (process.env.CLOUDFLARE_STREAM_CUSTOMER_SUBDOMAIN || '').trim();
-
-  if (!accountId || !apiToken || !customerSubdomain) {
-    throw new Error('CLOUDFLARE_CREDENTIALS_MISSING');
-  }
-
-  if (!videoId || !/^[a-zA-Z0-9_-]+$/.test(videoId)) {
-    throw new Error('INVALID_VIDEO_ID');
-  }
-
-  const cleanSubdomain = customerSubdomain.replace(/^https?:\/\//, '').replace(/\/$/, '');
-  if (
-    !cleanSubdomain ||
-    cleanSubdomain.includes('xxxxxxxx') ||
-    !/^customer-[a-zA-Z0-9_-]+\.cloudflarestream\.com$/.test(cleanSubdomain)
-  ) {
-    throw new Error('INVALID_CUSTOMER_SUBDOMAIN');
-  }
-
-  const response = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}/stream/${encodeURIComponent(videoId)}/token`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiToken}`,
-        'Content-Type': 'application/json',
-      },
-    },
-  );
-
-  if (!response.ok) {
-    throw new Error(`CLOUDFLARE_API_ERROR_${response.status}`);
-  }
-
-  const payload: any = await response.json();
-  const signedToken =
-    typeof payload?.result === 'string' ? payload.result : payload?.result?.token;
-
-  if (!payload?.success || !signedToken) {
-    throw new Error('CLOUDFLARE_INVALID_RESPONSE');
-  }
-
-  const expiresIn =
-    typeof payload?.result === 'object' && Number.isFinite(payload.result?.expiresIn)
-      ? Number(payload.result.expiresIn)
-      : 3600;
-
-  return {
-    playbackUrl: `https://${cleanSubdomain}/${signedToken}/iframe`,
-    expiresIn,
-  };
-}
 
 async function startServer() {
   const app = express();
@@ -721,125 +468,155 @@ async function startServer() {
   app.get('/api/academia/courses/:slug/lessons/:lessonSlug', async (req: Request, res: Response) => {
     res.setHeader('Cache-Control', 'private, no-store');
     const { slug, lessonSlug } = req.params;
-    const access = await loadAuthorizedSupabaseLesson(req, slug, lessonSlug);
+    const course = academyDb.getCourseBySlug(slug);
 
-    if (access.ok === false) {
-      return res.status(access.status).json({ error: access.error, code: access.code });
+    if (!course) {
+      return res.status(404).json({ error: 'Masterclass no encontrada' });
     }
 
-    const modulePayload = access.modules.map((moduleRow: any) => ({
-      id: moduleRow.id,
-      title: moduleRow.title,
-      description: moduleRow.description || '',
-      position: moduleRow.position || 0,
-      lessons: access.lessons
-        .filter((lessonRow: any) => lessonRow.module_id === moduleRow.id)
-        .map(mapLessonForBrowser),
-    }));
+    let targetLesson: any = null;
+    let targetModule: any = null;
 
-    const ungroupedLessons = access.lessons.filter((lessonRow: any) => !lessonRow.module_id);
-    if (ungroupedLessons.length > 0) {
-      modulePayload.push({
-        id: 'general',
-        title: 'Contenido principal',
-        description: '',
-        position: modulePayload.length + 1,
-        lessons: ungroupedLessons.map(mapLessonForBrowser),
+    for (const mod of course.modules || []) {
+      for (const les of mod.lessons) {
+        if (les.slug === lessonSlug || les.id === lessonSlug) {
+          targetLesson = les;
+          targetModule = mod;
+          break;
+        }
+      }
+      if (targetLesson) break;
+    }
+
+    // Graceful fallback to first lesson if generic alias or not found
+    if (!targetLesson && course.modules && course.modules.length > 0) {
+      const firstMod = course.modules[0];
+      if (firstMod.lessons && firstMod.lessons.length > 0) {
+        targetLesson = firstMod.lessons[0];
+        targetModule = firstMod;
+      }
+    }
+
+    if (!targetLesson) {
+      return res.status(404).json({ error: 'Lección no encontrada' });
+    }
+
+    if (targetLesson.isPreview) {
+      return res.json({
+        course: {
+          id: course.id,
+          slug: course.slug,
+          title: course.title,
+          instructor: course.instructor,
+          modules: course.modules,
+        },
+        module: {
+          id: targetModule.id,
+          title: targetModule.title,
+        },
+        lesson: targetLesson,
+        entitlementStatus: 'preview',
       });
     }
 
-    const { data: progressRows } = await access.requestSupabase
-      .from('lesson_progress')
-      .select('lesson_id, position_seconds, progress_percent, completed, last_watched_at')
-      .eq('user_id', access.user.id)
-      .eq('masterclass_id', access.course.id);
+    const user = await getAuthenticatedUser(req);
+    if (!user) {
+      return res.status(401).json({
+        error: 'Esta lección requiere acceso activo. Por favor inicia sesión con tu cuenta.',
+        code: 'UNAUTHENTICATED',
+      });
+    }
 
-    const progress = (progressRows || []).map((row: any) => ({
-      lessonId: row.lesson_id,
-      status: row.completed ? 'completed' : row.progress_percent > 0 ? 'in_progress' : 'not_started',
-      positionSeconds: row.position_seconds || 0,
-      progressPercent: row.progress_percent || 0,
-      lastWatchedAt: row.last_watched_at,
-    }));
+    const isDoctor = user.role === 'ADMIN' || user.role === 'INSTRUCTOR';
+    let entitlement: Entitlement | null = null;
 
-    return res.json({
+    if (!isDoctor) {
+      entitlement = academyDb.getActiveEntitlement(user.customerGid, course.id, user.email) || null;
+      if (!entitlement || entitlement.status !== 'active') {
+        return res.status(403).json({
+          error: 'No cuentas con una suscripción o compra activa para esta masterclass.',
+          code: 'ENTITLEMENT_REQUIRED',
+        });
+      }
+    }
+
+    const progressList = academyDb.getStudentProgress(user.customerGid, course.id, user.email);
+    const userProgress = progressList.find((p) => p.lessonId === targetLesson.id) || null;
+
+    academyDb.logAccessAudit({
+      id: `audit_${Date.now()}`,
+      shop: 'salud-forte',
+      customerGid: user.customerGid,
+      courseId: course.id,
+      lessonId: targetLesson.id,
+      action: 'lesson_access',
+      result: 'granted',
+      createdAt: new Date().toISOString(),
+    });
+
+    res.json({
       course: {
-        id: access.course.id,
-        slug: access.course.slug,
-        title: access.course.title,
-        subtitle: access.course.subtitle,
-        lessonCount: access.course.lesson_count || access.lessons.length,
-        disclaimerShort: 'Material educativo bajo licencia individual. Prohibida su difusión o descarga no autorizada.',
-        modules: modulePayload,
+        id: course.id,
+        slug: course.slug,
+        title: course.title,
+        instructor: course.instructor,
+        modules: course.modules,
       },
-      module: access.module
-        ? { id: access.module.id, title: access.module.title }
-        : { id: 'general', title: 'Contenido principal' },
-      lesson: mapLessonForBrowser(access.lesson),
-      progress,
-      entitlementStatus: access.entitlementStatus,
+      module: {
+        id: targetModule.id,
+        title: targetModule.title,
+      },
+      lesson: targetLesson,
+      progress: userProgress,
+      entitlementStatus: isDoctor ? 'admin_override' : entitlement?.status,
     });
   });
 
-  // Short-lived Cloudflare Stream / YouTube playback endpoint.
+  // Cloudflare Stream / YouTube signed token endpoint
   app.post('/api/academia/courses/:slug/lessons/:lessonSlug/token', async (req: Request, res: Response) => {
-    res.setHeader('Cache-Control', 'private, no-store');
     const { slug, lessonSlug } = req.params;
-    const access = await loadAuthorizedSupabaseLesson(req, slug, lessonSlug);
+    const course = academyDb.getCourseBySlug(slug);
 
-    if (access.ok === false) {
-      return res.status(access.status).json({ error: access.error, code: access.code });
+    if (!course) {
+      return res.status(404).json({ error: 'Masterclass no encontrada' });
     }
 
-    const { data: playbackLesson, error: playbackLessonError } =
-      await access.requestSupabase
-        .from('lessons')
-        .select('id, slug, status, video_provider, video_asset_id, video_external_id')
-        .eq('id', access.lesson.id)
-        .maybeSingle();
-
-    if (playbackLessonError) {
-      return res.status(503).json({
-        error: 'No fue posible consultar la configuración de video de la lección.',
-        code: 'LESSON_VIDEO_QUERY_FAILED',
-      });
+    let targetLesson: any = null;
+    for (const mod of course.modules || []) {
+      const found = mod.lessons.find((l) => l.slug === lessonSlug || l.id === lessonSlug);
+      if (found) {
+        targetLesson = found;
+        break;
+      }
     }
 
-    const lessonRow = (playbackLesson ?? access.lesson) as any;
+    if (!targetLesson && course.modules?.[0]?.lessons?.[0]) {
+      targetLesson = course.modules[0].lessons[0];
+    }
 
-    const provider = String(
-      lessonRow?.video_provider ??
-      lessonRow?.videoProvider ??
-      ''
-    ).trim().toLowerCase();
+    if (!targetLesson) {
+      return res.status(404).json({ error: 'Lección no encontrada' });
+    }
 
-    const videoAssetId = String(
-      lessonRow?.video_asset_id ??
-      lessonRow?.videoAssetId ??
-      ''
-    ).trim();
+    if (!targetLesson.isPreview) {
+      const user = await getAuthenticatedUser(req);
+      if (!user) {
+        return res.status(401).json({ error: 'Autenticación requerida para reproducir el contenido.' });
+      }
 
-    const videoExternalId = String(
-      lessonRow?.video_external_id ??
-      lessonRow?.videoExternalId ??
-      ''
-    ).trim();
+      const isDoctor = user.role === 'ADMIN' || user.role === 'INSTRUCTOR';
+      if (!isDoctor) {
+        const ent = academyDb.getActiveEntitlement(user.customerGid, course.id, user.email);
+        if (!ent || ent.status !== 'active') {
+          return res.status(403).json({ error: 'Acceso denegado. Se requiere compra activa.' });
+        }
+      }
+    }
 
-    console.info('stream_playback_config', {
-      courseSlug: slug,
-      lessonSlug,
-      lessonFound: Boolean(playbackLesson),
-      provider,
-      hasVideoAssetId: Boolean(videoAssetId),
-    });
-
-    if (provider === 'youtube' && videoExternalId) {
-      const videoId = extractYouTubeVideoId(videoExternalId);
+    if (targetLesson.videoProvider === 'YOUTUBE' && targetLesson.videoExternalId) {
+      const videoId = extractYouTubeVideoId(targetLesson.videoExternalId);
       if (!videoId) {
-        return res.status(409).json({
-          error: 'El video de esta lección no está configurado correctamente.',
-          code: 'VIDEO_NOT_CONFIGURED',
-        });
+        return res.status(400).json({ error: 'Identificador de video de YouTube no válido.' });
       }
 
       const embedUrl = buildYouTubeEmbedUrl(videoId, {
@@ -847,105 +624,149 @@ async function startServer() {
       });
 
       return res.json({
-        type: 'youtube',
+        provider: 'YOUTUBE',
         videoId,
         embedUrl,
       });
     }
 
-    if (
-      (provider === 'cloudflare' || provider === 'cloudflare_stream') &&
-      videoAssetId
-    ) {
-      try {
-        const signedPlayback =
-          await createCloudflareSignedPlaybackUrl(videoAssetId);
+    const signingKeyPem = process.env.CLOUDFLARE_STREAM_KEY_PEM;
+    const keyId = process.env.CLOUDFLARE_STREAM_KEY_ID;
 
-        return res.json({
-          type: 'cloudflare',
-          playbackUrl: signedPlayback.playbackUrl,
-          expiresIn: signedPlayback.expiresIn,
-        });
-      } catch (error) {
-        console.error('stream_authorization_failed', {
-          courseSlug: slug,
-          lessonSlug,
-          reason:
-            error instanceof Error ? error.message : 'UNKNOWN_ERROR',
-        });
+    const streamToken = generateCloudflareStreamToken(
+      targetLesson.privateVideoUid,
+      'guest_customer',
+      { keyId, privateKey: signingKeyPem, expirationMinutes: 60 }
+    );
 
-        return res.status(502).json({
-          error: 'No fue posible autorizar la reproducción segura.',
-          code: 'STREAM_AUTHORIZATION_FAILED',
-        });
-      }
-    }
-
-    return res.status(409).json({
-      error: 'Esta lección todavía no tiene un video publicado.',
-      code: 'VIDEO_NOT_CONFIGURED',
+    res.json({
+      provider: 'CLOUDFLARE_STREAM',
+      ...streamToken,
     });
   });
 
-  // Track lesson progress in Supabase after the same entitlement validation.
-  app.post('/api/academia/courses/:slug/lessons/:lessonSlug/progress', async (req: Request, res: Response) => {
+  // ============================================================================
+  // TEMPORARY CLOUDFLARE STREAM TEST TOKEN ENDPOINT
+  // ============================================================================
+  app.post('/api/academia/stream-test-token', async (req: Request, res: Response) => {
     res.setHeader('Cache-Control', 'private, no-store');
-    const { slug, lessonSlug } = req.params;
-    const { status, positionSeconds } = req.body;
-    const access = await loadAuthorizedSupabaseLesson(req, slug, lessonSlug);
 
-    if (access.ok === false) {
-      return res.status(access.status).json({ error: access.error, code: access.code });
+    // 1. Require Authorization: Bearer <Supabase access token> & validate user
+    const authResult = await getAuthenticatedUserResult(req);
+    if (!authResult.user) {
+      return res.status(401).json({
+        error: 'Autenticación requerida. Token no proporcionado o no válido.',
+        code: authResult.failureReason || 'AUTH_HEADER_MISSING',
+      });
     }
+    const user = authResult.user;
 
-    const normalizedStatus = status === 'completed' ? 'completed' : 'in_progress';
-    const safePosition = Math.max(0, Number.parseInt(String(positionSeconds || 0), 10) || 0);
-    const duration = Math.max(0, Number(access.lesson.duration_seconds || 0));
-    const progressPercent =
-      normalizedStatus === 'completed'
-        ? 100
-        : duration > 0
-          ? Math.min(99, Math.round((safePosition / duration) * 100))
-          : 0;
-    const now = new Date().toISOString();
+    // 2. Read environment variables exclusively from process.env (server side)
+    const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+    const videoId = process.env.CLOUDFLARE_STREAM_TEST_VIDEO_ID;
+    const apiToken = process.env.CLOUDFLARE_STREAM_API_TOKEN;
+    const customerSubdomain = process.env.CLOUDFLARE_STREAM_CUSTOMER_SUBDOMAIN;
 
-    const { data: savedProgress, error: progressError } = await access.requestSupabase
-      .from('lesson_progress')
-      .upsert(
-        {
-          user_id: access.user.id,
-          lesson_id: access.lesson.id,
-          masterclass_id: access.course.id,
-          position_seconds: safePosition,
-          progress_percent: progressPercent,
-          completed: normalizedStatus === 'completed',
-          last_watched_at: now,
-          updated_at: now,
-        },
-        { onConflict: 'user_id,lesson_id' },
-      )
-      .select('lesson_id, position_seconds, progress_percent, completed, last_watched_at')
-      .single();
-
-    if (progressError || !savedProgress) {
-      return res.status(503).json({
-        error: 'No fue posible guardar tu avance en este momento.',
-        code: 'PROGRESS_SAVE_FAILED',
+    if (!accountId || !videoId || !apiToken || !customerSubdomain) {
+      return res.status(500).json({
+        error: 'La configuración de Cloudflare Stream no se encuentra completa en el servidor.',
       });
     }
 
-    return res.json({
-      success: true,
-      progress: [
-        {
-          lessonId: savedProgress.lesson_id,
-          status: savedProgress.completed ? 'completed' : 'in_progress',
-          positionSeconds: savedProgress.position_seconds || 0,
-          progressPercent: savedProgress.progress_percent || 0,
-          lastWatchedAt: savedProgress.last_watched_at,
+    try {
+      // 3. Request signed token from Cloudflare Stream API
+      const cfUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/stream/${videoId}/token`;
+      const cfRes = await fetch(cfUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiToken}`,
+          'Content-Type': 'application/json',
         },
-      ],
-    });
+      });
+
+      if (!cfRes.ok) {
+        return res.status(502).json({
+          error: 'No fue posible obtener la autorización del servicio de streaming.',
+        });
+      }
+
+      const cfData = await cfRes.json();
+      if (!cfData.success || !cfData.result) {
+        return res.status(502).json({
+          error: 'El servicio de streaming no devolvió una respuesta válida.',
+        });
+      }
+
+      const signedToken = typeof cfData.result === 'string' ? cfData.result : cfData.result.token;
+      const expiresIn =
+        (typeof cfData.result === 'object' && cfData.result?.expiresIn) || 3600;
+
+      if (!signedToken) {
+        return res.status(502).json({
+          error: 'No se recibió el token de reproducción firmado.',
+        });
+      }
+
+      // 4. Construct playback URL using customer subdomain
+      const cleanSubdomain = customerSubdomain.replace(/^https?:\/\//, '').replace(/\/$/, '');
+      if (!/^customer-[a-zA-Z0-9_-]+\.cloudflarestream\.com$/.test(cleanSubdomain)) {
+        return res.status(500).json({
+          error: 'La configuración de streaming del servidor no tiene un formato válido.',
+        });
+      }
+
+      const playbackUrl = `https://${cleanSubdomain}/${signedToken}/iframe`;
+
+      // 5. Return only playbackUrl and expiresIn
+      return res.json({
+        playbackUrl,
+        expiresIn,
+      });
+    } catch (err) {
+      return res.status(500).json({
+        error: 'Error interno al comunicarse con el servidor de streaming.',
+      });
+    }
+  });
+
+  // Track lesson progress
+  app.post('/api/academia/courses/:slug/lessons/:lessonSlug/progress', async (req: Request, res: Response) => {
+    const user = await getAuthenticatedUser(req);
+    if (!user) {
+      return res.status(401).json({ error: 'Acceso no autorizado' });
+    }
+
+    const { slug, lessonSlug } = req.params;
+    const { status, positionSeconds } = req.body;
+
+    const course = academyDb.getCourseBySlug(slug);
+    if (!course) {
+      return res.status(404).json({ error: 'Masterclass no encontrada' });
+    }
+
+    let lessonId: string | null = null;
+    for (const mod of course.modules || []) {
+      const les = mod.lessons.find((l) => l.slug === lessonSlug || l.id === lessonSlug);
+      if (les) {
+        lessonId = les.id;
+        break;
+      }
+    }
+
+    if (!lessonId) {
+      return res.status(404).json({ error: 'Lección no encontrada' });
+    }
+
+    const updatedProgress = academyDb.saveLessonProgress(
+      user.customerGid,
+      course.id,
+      lessonId,
+      status || 'in_progress',
+      Math.max(0, parseInt(positionSeconds, 10) || 0),
+      user.email
+    );
+
+    res.json({ success: true, progress: updatedProgress });
   });
 
   // Download lesson attachment

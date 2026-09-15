@@ -460,25 +460,24 @@ export function HomeSections() {
       {/* 
         ========================================================================
         4. SECCIÓN: TRAYECTORIA Y COMPROMISO (Sobre Mí)
-        Rediseño compacto, refinado y editorial:
-        - Fotografía estática natural 3:4 con visualización íntegra (manos, brazos, torso y rostro).
-        - Proporción equilibrada: Columna foto (38-40%) y texto (60-62%).
-        - Sin marcos, contornos, bordes ni dobles paneles.
-        - max-w-[1220px], py-16 sm:py-20 (64-80px), gap de 56-68px entre columnas.
+        - Integración visual médica idéntica al Hero con fondo continuo #F3F7FC.
+        - Sin tarjetas, sin marcos, sin esquinas redondeadas ni dobles paneles.
+        - Proporción equilibrada: Columna foto (40%) y texto (60%).
+        - Fotografía con fondo transparente integrada directamente sobre la sección.
         ========================================================================
       */}
-      <section className="bg-white border-b border-[#B39A6A]/15 overflow-hidden py-16 sm:py-20 lg:py-24">
+      <section className="relative w-full bg-[#F3F7FC] border-b border-[#B39A6A]/15 overflow-hidden py-16 sm:py-20 lg:py-24">
         <div className="mx-auto max-w-[1220px] px-6 sm:px-10 lg:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-[42%_58%] xl:grid-cols-[40%_60%] gap-10 sm:gap-12 lg:gap-14 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-[40%_60%] gap-10 sm:gap-12 lg:gap-16 items-center">
             
-            {/* Columna Izquierda: Fotografía real integrada directamente sobre el fondo (estilo Hero) */}
-            <div className="flex justify-center items-end w-full relative z-0 bg-transparent border-0 outline-0 shadow-none">
+            {/* Columna Izquierda: Fotografía transparente integrada directamente sobre el fondo */}
+            <div className="flex justify-center items-end w-full">
               <ScrollReveal direction="up" distance={20} delay={0.10} duration={0.75} className="w-full flex justify-center">
-                <div className="w-[min(84vw,340px)] sm:w-[360px] lg:w-[410px] xl:w-[430px] max-w-full relative bg-transparent border-0 outline-0 shadow-none">
+                <div className="w-full max-w-[min(88vw,360px)] lg:max-w-[440px] aspect-[3/4] relative bg-transparent overflow-visible">
                   <DoctorPortrait
                     variant="about"
-                    className="w-full bg-transparent border-0 shadow-none"
-                    imgClassName="w-full h-auto aspect-[1086/1448] object-contain object-bottom"
+                    className="size-full bg-transparent overflow-visible"
+                    imgClassName="size-full object-contain object-bottom"
                   />
                 </div>
               </ScrollReveal>

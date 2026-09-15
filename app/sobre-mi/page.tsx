@@ -6,21 +6,21 @@ import { CredentialCard } from '@/components/site/credential-card';
 export default function AboutPage() {
   return (
     <main id="contenido-principal" className="bg-ivory">
-      <section className="border-b border-obsidian/10 overflow-hidden relative">
-        <div className="mx-auto grid max-w-[1728px] lg:grid-cols-2 items-end">
-          <div className="flex items-center px-5 pt-16 pb-12 sm:px-10 sm:pt-24 sm:pb-16 lg:px-14 lg:py-24 xl:px-20">
+      <section className="border-b border-obsidian/10">
+        <div className="mx-auto grid max-w-[1728px] lg:grid-cols-2">
+          <div className="flex items-center px-5 py-20 sm:px-10 sm:py-28 lg:px-14 xl:px-20">
             <div className="max-w-2xl">
               <p className="eyebrow">Sobre mí</p>
-              <h1 className="mt-6 text-balance font-serif text-[clamp(3.2rem,6vw,6.4rem)] leading-[0.92] tracking-[-0.045em] text-obsidian">
+              <h1 className="mt-6 text-balance font-serif text-[clamp(3.7rem,7vw,7.4rem)] leading-[0.88] tracking-[-0.045em] text-obsidian">
                 Medicina que comienza escuchando.
               </h1>
-              <p className="mt-8 text-base leading-[1.8] text-obsidian/75 sm:text-lg">
+              <p className="mt-9 text-base leading-[1.8] text-obsidian/66 sm:text-lg">
                 Soy Mauricio Benjamín Galindo López, Médico Cirujano egresado del Tecnológico de Monterrey.
               </p>
-              <p className="mt-5 text-base leading-[1.8] text-obsidian/70 sm:text-lg">
+              <p className="mt-5 text-base leading-[1.8] text-obsidian/66 sm:text-lg">
                 Creo en una medicina que comienza escuchando, continúa explicando y permite que cada persona comprenda mejor las decisiones relacionadas con su salud.
               </p>
-              <p className="mt-5 text-base leading-[1.8] text-obsidian/70 sm:text-lg">
+              <p className="mt-5 text-base leading-[1.8] text-obsidian/66 sm:text-lg">
                 A través de la consulta, el contenido educativo y Salud Forte, busco acercar información médica de manera clara, responsable y basada en evidencia.
               </p>
               <ActionLink href="/consulta" variant="secondary" className="mt-9">
@@ -28,17 +28,13 @@ export default function AboutPage() {
               </ActionLink>
             </div>
           </div>
-
-          {/* Columna Derecha: Fotografía real integrada directamente sobre el fondo (estilo Hero) */}
-          <div className="w-full flex justify-center lg:justify-end items-end relative z-0 mt-4 lg:mt-0 px-5 sm:px-10 lg:pr-14 xl:pr-20 bg-transparent border-0 outline-0 shadow-none">
-            <div className="w-[min(86vw,380px)] sm:w-[420px] lg:w-[clamp(440px,38vw,560px)] xl:w-[clamp(480px,40vw,620px)] max-w-full relative bg-transparent border-0 outline-0 shadow-none">
-              <DoctorPortrait
-                variant="about"
-                priority
-                className="w-full bg-transparent border-0 shadow-none"
-                imgClassName="w-full h-auto aspect-[1086/1448] object-contain object-bottom"
-              />
-            </div>
+          {/* Columna Derecha: Fondo azul médico continuo (#F3F7FC) idéntico al Hero, sin tarjetas ni paneles interiores */}
+          <div className="relative flex items-end justify-center w-full bg-[#F3F7FC] overflow-hidden min-h-[440px] sm:min-h-[520px] lg:min-h-[640px]">
+            <DoctorPortrait
+              variant="about"
+              className="w-full max-w-[560px] h-full flex items-end justify-center bg-transparent overflow-visible"
+              imgClassName="w-full h-auto max-h-[90%] lg:max-h-[94%] object-contain object-bottom"
+            />
           </div>
         </div>
       </section>
