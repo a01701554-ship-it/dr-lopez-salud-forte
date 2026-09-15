@@ -20,12 +20,14 @@ export interface EntitlementData {
   status: string;
   source?: string | null;
   granted_at: string;
+  expires_at?: string | null;
   revoked_at?: string | null;
   masterclass: MasterclassData | null;
 }
 
 export interface LessonData {
   id: string;
+  slug: string;
   masterclass_id: string;
   title: string;
   position: number;
@@ -63,6 +65,7 @@ export interface ContinueItemData {
   masterclassSlug: string;
   lessonTitle: string;
   lessonId: string;
+  lessonSlug: string;
   lessonPosition: number;
   progressPercent: number;
   remainingSeconds: number | null;
@@ -106,6 +109,7 @@ export async function fetchStudentDashboardData(userId: string): Promise<Student
       status,
       source,
       granted_at,
+      expires_at,
       revoked_at,
       masterclasses:masterclass_id (
         id,
@@ -135,7 +139,9 @@ export async function fetchStudentDashboardData(userId: string): Promise<Student
 
   if (entitlementRows && Array.isArray(entitlementRows)) {
     for (const row of entitlementRows) {
-      if (row.status !== 'active' || row.revoked_at !== null) continue;
+      const expirationTime = row.expires_at ? new Date(row.expires_at).getTime() : null;
+      const isExpired = expirationTime !== null && (!Number.isFinite(expirationTime) || expirationTime <= Date.now());
+      if (row.status !== 'active' || row.revoked_at !== null || isExpired) continue;
       const mcData = Array.isArray(row.masterclasses)
         ? row.masterclasses[0]
         : row.masterclasses;
@@ -151,6 +157,7 @@ export async function fetchStudentDashboardData(userId: string): Promise<Student
         status: row.status,
         source: row.source,
         granted_at: row.granted_at,
+        expires_at: row.expires_at,
         revoked_at: row.revoked_at,
         masterclass: {
           id: mcData.id,
@@ -200,7 +207,7 @@ export async function fetchStudentDashboardData(userId: string): Promise<Student
   const masterclassIds = activeEntitlements.map((e) => e.masterclass_id);
   const { data: lessonRows, error: lessonError } = await supabase
     .from('lessons')
-    .select('id, masterclass_id, title, position, duration_seconds, is_preview, status')
+    .select('id, slug, masterclass_id, title, position, duration_seconds, is_preview, status')
     .in('masterclass_id', masterclassIds)
     .order('position', { ascending: true });
 
@@ -291,6 +298,7 @@ export async function fetchStudentDashboardData(userId: string): Promise<Student
             masterclassSlug: ent.masterclass.slug,
             lessonTitle: lesson.title,
             lessonId: lesson.id,
+            lessonSlug: lesson.slug,
             lessonPosition: lesson.position,
             progressPercent: latestProgress.progress_percent || 0,
             remainingSeconds,

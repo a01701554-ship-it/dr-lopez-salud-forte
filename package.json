@@ -1,12 +1,12 @@
 {
-  "name": "react-example",
+  "name": "dr-galindo-salud-forte",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
-    "start": "node dist/server.cjs",
+    "start": "NODE_ENV=production node dist/server.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
@@ -29,7 +29,6 @@
     "vite": "^6.2.3"
   },
   "devDependencies": {
-    "@imgly/background-removal-node": "^1.4.5",
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",

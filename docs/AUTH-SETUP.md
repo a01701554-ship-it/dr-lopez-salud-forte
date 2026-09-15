@@ -53,10 +53,11 @@ Asegúrate de contar con las siguientes variables en tu entorno de producción o
 NEXT_PUBLIC_SUPABASE_URL=https://<TU-PROYECTO>.supabase.co
 
 # Llave Anónima de Supabase (Pública, segura para el navegador)
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<TU-LLAVE-PUBLICA-O-ANON>
 
-# Llave de Servicio / Admin de Supabase (PRIVADA - NUNCA expuesta al cliente)
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+# Llave de Servicio / Admin de Supabase (PRIVADA - NUNCA expuesta al cliente).
+# No es necesaria para el acceso normal a lecciones ni para Cloudflare Stream.
+SUPABASE_SERVICE_ROLE_KEY=<SOLO-SI-UN-PROCESO-ADMINISTRATIVO-SEPARADO-LA-REQUIERE>
 
 # URL pública de la aplicación para redirecciones de correo
 NEXT_PUBLIC_SITE_URL=https://saludforte.com

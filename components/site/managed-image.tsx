@@ -23,7 +23,6 @@ export interface ManagedImageProps {
   device?: 'desktop' | 'mobile' | 'all';
   alt?: string;
   objectFit?: 'cover' | 'contain';
-  style?: React.CSSProperties;
 }
 
 export function ManagedImage({
@@ -37,7 +36,6 @@ export function ManagedImage({
   device = 'all',
   alt: customAlt,
   objectFit,
-  style,
 }: ManagedImageProps) {
   const [hasError, setHasError] = useState(false);
 
@@ -70,7 +68,6 @@ export function ManagedImage({
   return (
     <div
       data-image-id={resolvedId}
-      style={style}
       className={cn(
         'relative overflow-hidden bg-[#0D2235] flex items-center justify-center select-none',
         className,
