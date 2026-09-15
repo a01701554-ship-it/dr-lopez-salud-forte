@@ -43,6 +43,7 @@ interface LessonData {
     title: string;
     fileSizeLabel: string;
     format: string;
+    mimeType?: string;
   }>;
 }
 
@@ -99,6 +100,8 @@ export default function LessonPlayerPage({
   const [progressRecords, setProgressRecords] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'resumen' | 'transcripcion' | 'materiales'>('resumen');
   const [savingProgress, setSavingProgress] = useState(false);
+  const [downloadingAttachmentId, setDownloadingAttachmentId] = useState<string | null>(null);
+  const [attachmentError, setAttachmentError] = useState<string | null>(null);
 
   // Fetch lesson data and validate entitlement
   const fetchLesson = async () => {
@@ -199,6 +202,37 @@ export default function LessonPlayerPage({
       console.error('Error saving progress:', e);
     } finally {
       setSavingProgress(false);
+    }
+  };
+
+  const handleAttachmentDownload = async (attachmentId: string) => {
+    if (!lesson) return;
+    setDownloadingAttachmentId(attachmentId);
+    setAttachmentError(null);
+
+    try {
+      const res = await fetchWithAuth(
+        `/api/academia/courses/${slug}/lessons/${lesson.slug}/attachment/${attachmentId}`,
+        { credentials: 'include' },
+      );
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data.downloadUrl) {
+        setAttachmentError(data.error || 'No fue posible preparar la descarga.');
+        return;
+      }
+
+      const downloadLink = document.createElement('a');
+      downloadLink.href = data.downloadUrl;
+      downloadLink.download = data.filename || '';
+      downloadLink.rel = 'noopener noreferrer';
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      downloadLink.remove();
+    } catch {
+      setAttachmentError('No fue posible conectar con el servicio de descarga.');
+    } finally {
+      setDownloadingAttachmentId(null);
     }
   };
 
@@ -549,6 +583,11 @@ export default function LessonPlayerPage({
 
               {activeTab === 'materiales' && (
                 <div className="space-y-3">
+                  {attachmentError && (
+                    <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+                      {attachmentError}
+                    </div>
+                  )}
                   {activeLesson?.attachments && activeLesson.attachments.length > 0 ? (
                     activeLesson.attachments.map((att) => (
                       <div
@@ -559,16 +598,18 @@ export default function LessonPlayerPage({
                           <FileText className="size-5 text-champagne" />
                           <div>
                             <div className="font-medium text-obsidian text-xs sm:text-sm">{att.title}</div>
-                            <div className="text-[11px] text-obsidian/50">{att.fileSizeLabel} · Formato PDF</div>
+                            <div className="text-[11px] text-obsidian/50">{att.fileSizeLabel} · Formato {att.format}</div>
                           </div>
                         </div>
-                        <a
-                          href={`/api/academia/courses/${activeCourse.slug}/lessons/${activeLesson.slug}/attachment/${att.id}`}
+                        <button
+                          type="button"
+                          onClick={() => handleAttachmentDownload(att.id)}
+                          disabled={downloadingAttachmentId === att.id}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-obsidian text-white text-xs font-semibold hover:bg-[#07182A] transition-colors"
                         >
                           <Download className="size-3.5" />
-                          <span>Descargar</span>
-                        </a>
+                          <span>{downloadingAttachmentId === att.id ? 'Preparando…' : 'Descargar'}</span>
+                        </button>
                       </div>
                     ))
                   ) : (

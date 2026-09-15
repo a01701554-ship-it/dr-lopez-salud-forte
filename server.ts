@@ -193,7 +193,30 @@ function entitlementIsCurrent(entitlement: any): boolean {
   return Number.isFinite(expiresAt) && expiresAt > Date.now();
 }
 
-function mapLessonForBrowser(lesson: any) {
+function formatFileSize(bytes: number | null | undefined): string {
+  if (!bytes || bytes < 1) return 'Tamaño no disponible';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function mapAttachmentForBrowser(attachment: any) {
+  const mimeType = attachment.mime_type || 'application/octet-stream';
+  const format = mimeType === 'application/pdf'
+    ? 'PDF'
+    : (attachment.storage_path?.split('.').pop() || 'Archivo').toUpperCase();
+
+  return {
+    id: attachment.id,
+    title: attachment.title,
+    mimeType,
+    format,
+    fileSizeLabel: formatFileSize(attachment.file_size_bytes),
+    position: attachment.position || 0,
+  };
+}
+
+function mapLessonForBrowser(lesson: any, attachments: any[] = []) {
   return {
     id: lesson.id,
     moduleId: lesson.module_id,
@@ -206,7 +229,7 @@ function mapLessonForBrowser(lesson: any) {
     isPreview: Boolean(lesson.is_preview),
     transcript: lesson.transcript || '',
     status: lesson.status,
-    attachments: [],
+    attachments: attachments.map(mapAttachmentForBrowser),
   };
 }
 
@@ -727,6 +750,30 @@ async function startServer() {
       return res.status(access.status).json({ error: access.error, code: access.code });
     }
 
+    const lessonIds = access.lessons.map((lessonRow: any) => lessonRow.id);
+    let attachmentRows: any[] = [];
+
+    if (lessonIds.length > 0) {
+      const { data, error: attachmentsError } = await access.requestSupabase
+        .from('lesson_attachments')
+        .select('id, lesson_id, title, storage_path, mime_type, file_size_bytes, position, status')
+        .in('lesson_id', lessonIds)
+        .eq('status', 'published')
+        .order('position', { ascending: true });
+
+      if (attachmentsError) {
+        return res.status(503).json({
+          error: 'No fue posible consultar los materiales descargables de esta lección.',
+          code: 'ATTACHMENTS_QUERY_FAILED',
+        });
+      }
+
+      attachmentRows = data || [];
+    }
+
+    const attachmentsForLesson = (lessonId: string) =>
+      attachmentRows.filter((attachment: any) => attachment.lesson_id === lessonId);
+
     const modulePayload = access.modules.map((moduleRow: any) => ({
       id: moduleRow.id,
       title: moduleRow.title,
@@ -734,7 +781,7 @@ async function startServer() {
       position: moduleRow.position || 0,
       lessons: access.lessons
         .filter((lessonRow: any) => lessonRow.module_id === moduleRow.id)
-        .map(mapLessonForBrowser),
+        .map((lessonRow: any) => mapLessonForBrowser(lessonRow, attachmentsForLesson(lessonRow.id))),
     }));
 
     const ungroupedLessons = access.lessons.filter((lessonRow: any) => !lessonRow.module_id);
@@ -744,7 +791,8 @@ async function startServer() {
         title: 'Contenido principal',
         description: '',
         position: modulePayload.length + 1,
-        lessons: ungroupedLessons.map(mapLessonForBrowser),
+        lessons: ungroupedLessons.map((lessonRow: any) =>
+          mapLessonForBrowser(lessonRow, attachmentsForLesson(lessonRow.id))),
       });
     }
 
@@ -775,7 +823,7 @@ async function startServer() {
       module: access.module
         ? { id: access.module.id, title: access.module.title }
         : { id: 'general', title: 'Contenido principal' },
-      lesson: mapLessonForBrowser(access.lesson),
+      lesson: mapLessonForBrowser(access.lesson, attachmentsForLesson(access.lesson.id)),
       progress,
       entitlementStatus: access.entitlementStatus,
     });
@@ -948,42 +996,66 @@ async function startServer() {
     });
   });
 
-  // Download lesson attachment
+  // Create a short-lived download URL for an authorized lesson attachment.
   app.get('/api/academia/courses/:slug/lessons/:lessonSlug/attachment/:attachmentId', async (req: Request, res: Response) => {
-    const user = await getAuthenticatedUser(req);
-    if (!user) {
-      return res.status(401).json({ error: 'Autenticación requerida para descargar adjuntos.' });
-    }
-
     const { slug, lessonSlug, attachmentId } = req.params;
-    const course = academyDb.getCourseBySlug(slug);
-    if (!course) {
-      return res.status(404).json({ error: 'Masterclass no encontrada' });
+    const access = await loadAuthorizedSupabaseLesson(req, slug, lessonSlug);
+
+    if (access.ok === false) {
+      return res.status(access.status).json({ error: access.error, code: access.code });
     }
 
-    const isDoctor = user.role === 'ADMIN' || user.role === 'INSTRUCTOR';
-    if (!isDoctor) {
-      const ent = academyDb.getActiveEntitlement(user.customerGid, course.id, user.email);
-      if (!ent || ent.status !== 'active') {
-        return res.status(403).json({ error: 'Acceso no autorizado a este material descargable.' });
-      }
+    const { data: attachment, error: attachmentError } = await access.requestSupabase
+      .from('lesson_attachments')
+      .select('id, lesson_id, title, storage_path, mime_type, status')
+      .eq('id', attachmentId)
+      .eq('lesson_id', access.lesson.id)
+      .eq('status', 'published')
+      .maybeSingle();
+
+    if (attachmentError) {
+      return res.status(503).json({
+        error: 'No fue posible consultar este material descargable.',
+        code: 'ATTACHMENT_QUERY_FAILED',
+      });
+    }
+
+    if (!attachment) {
+      return res.status(404).json({
+        error: 'El material solicitado no existe o no pertenece a esta lección.',
+        code: 'ATTACHMENT_NOT_FOUND',
+      });
     }
 
     academyDb.logAccessAudit({
       id: `audit_${Date.now()}`,
       shop: 'salud-forte',
-      customerGid: user.customerGid,
-      courseId: course.id,
-      lessonId: lessonSlug,
+      customerGid: access.user.customerGid,
+      courseId: access.course.id,
+      lessonId: access.lesson.id,
       action: 'attachment_download',
       result: 'granted',
       reason: `Descarga de adjunto ID: ${attachmentId}`,
       createdAt: new Date().toISOString(),
     });
 
+    const { data: signedDownload, error: signedDownloadError } =
+      await access.requestSupabase.storage
+        .from('academy-materials')
+        .createSignedUrl(attachment.storage_path, 60, { download: attachment.title });
+
+    if (signedDownloadError || !signedDownload?.signedUrl) {
+      return res.status(503).json({
+        error: 'No fue posible preparar la descarga segura. Inténtalo nuevamente.',
+        code: 'ATTACHMENT_SIGNING_FAILED',
+      });
+    }
+
+    res.setHeader('Cache-Control', 'private, no-store');
     res.json({
-      downloadUrl: `/api/academia/download-mock/${attachmentId}`,
-      filename: `Guia_Clinica_Salud_Forte_${attachmentId}.pdf`,
+      downloadUrl: signedDownload.signedUrl,
+      filename: attachment.title,
+      expiresIn: 60,
     });
   });
 
