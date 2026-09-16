@@ -173,7 +173,7 @@ type LessonAccessSuccess = {
   lessons: any[];
   lesson: any;
   module: any | null;
-  entitlementStatus: 'active' | 'preview' | 'admin_override';
+  entitlementStatus: 'active' | 'free_access' | 'preview' | 'admin_override';
 };
 
 type LessonAccessResult = LessonAccessFailure | LessonAccessSuccess;
@@ -253,7 +253,7 @@ async function loadAuthorizedSupabaseLesson(
 
   const { data: course, error: courseError } = await requestSupabase
     .from('masterclasses')
-    .select('id, slug, title, subtitle, short_description, lesson_count, status')
+    .select('id, slug, title, subtitle, short_description, lesson_count, status, access_type')
     .eq('slug', slug)
     .maybeSingle();
 
@@ -276,9 +276,12 @@ async function loadAuthorizedSupabaseLesson(
   }
 
   const isStaff = authResult.user.role === 'ADMIN' || authResult.user.role === 'INSTRUCTOR';
+  const isFreeCourse = course.access_type === 'free';
   let entitlementStatus: LessonAccessSuccess['entitlementStatus'] = 'admin_override';
 
-  if (!isStaff) {
+  if (!isStaff && isFreeCourse) {
+    entitlementStatus = 'free_access';
+  } else if (!isStaff) {
     const { data: entitlement, error: entitlementError } = await requestSupabase
       .from('entitlements')
       .select('id, status, expires_at, revoked_at')
@@ -319,7 +322,7 @@ async function loadAuthorizedSupabaseLesson(
   );
 
   if (!targetLesson) {
-    if (!isStaff && entitlementStatus !== 'active') {
+    if (!isStaff && entitlementStatus !== 'active' && entitlementStatus !== 'free_access') {
       return {
         ok: false,
         status: 403,
@@ -336,7 +339,12 @@ async function loadAuthorizedSupabaseLesson(
     };
   }
 
-  if (!isStaff && entitlementStatus !== 'active' && !targetLesson.is_preview) {
+  if (
+    !isStaff
+    && entitlementStatus !== 'active'
+    && entitlementStatus !== 'free_access'
+    && !targetLesson.is_preview
+  ) {
     return {
       ok: false,
       status: 403,
@@ -345,7 +353,12 @@ async function loadAuthorizedSupabaseLesson(
     };
   }
 
-  if (targetLesson.is_preview && entitlementStatus !== 'active' && !isStaff) {
+  if (
+    targetLesson.is_preview
+    && entitlementStatus !== 'active'
+    && entitlementStatus !== 'free_access'
+    && !isStaff
+  ) {
     entitlementStatus = 'preview';
   }
 
