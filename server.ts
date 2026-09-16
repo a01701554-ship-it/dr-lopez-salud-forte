@@ -1230,17 +1230,14 @@ async function startServer() {
 
     try {
       if (provider === 'cloudflare') {
-        const requestHost = (req.get('host') || '').split(':')[0];
-        const allowedOrigins = Array.from(new Set([
-          'dr-lopez-salud-forte.ai.studio',
-          '*.ai.studio',
-          requestHost,
-        ].filter(Boolean)));
-
         await cloudflareStreamRequest(`/${encodeURIComponent(assetId)}`, {
           method: 'POST',
           body: JSON.stringify({
-            allowedOrigins,
+            // Google AI Studio can serve the public app through more than one
+            // internal origin. Keep playback portable while signed URLs remain
+            // mandatory, short-lived, and issued only after academy access is
+            // verified by the server.
+            allowedOrigins: [],
             requireSignedURLs: true,
           }),
         });

@@ -1155,7 +1155,7 @@ export default function AdminAcademiaPage() {
               )}
 
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-[11px] leading-relaxed text-emerald-900">
-                Al guardar un video de Cloudflare, el sistema autoriza automáticamente el dominio público de Salud Forte y activa la reproducción mediante enlaces firmados.
+                Al guardar un video de Cloudflare, el sistema activa la reproducción protegida mediante enlaces firmados y temporales.
               </div>
 
               <div className="pt-2 flex items-center justify-end gap-3">
