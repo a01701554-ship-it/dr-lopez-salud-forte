@@ -1229,8 +1229,9 @@ async function startServer() {
     }
 
     try {
+      let cloudflareDurationSeconds: number | null = null;
       if (provider === 'cloudflare') {
-        await cloudflareStreamRequest(`/${encodeURIComponent(assetId)}`, {
+        const streamPayload = await cloudflareStreamRequest(`/${encodeURIComponent(assetId)}`, {
           method: 'POST',
           body: JSON.stringify({
             // Google AI Studio can serve the public app through more than one
@@ -1241,14 +1242,23 @@ async function startServer() {
             requireSignedURLs: true,
           }),
         });
+        const detectedDuration = Math.round(Number(streamPayload?.result?.duration) || 0);
+        cloudflareDurationSeconds = detectedDuration > 0 ? detectedDuration : null;
       }
 
       const requestSupabase = getRequestSupabase(req);
       const update = provider === 'none'
         ? { video_provider: 'none', video_asset_id: null, video_external_id: null, updated_at: new Date().toISOString() }
         : provider === 'youtube'
-          ? { video_provider: 'youtube', video_asset_id: null, video_external_id: assetId, updated_at: new Date().toISOString() }
-          : { video_provider: 'cloudflare', video_asset_id: assetId, video_external_id: null, updated_at: new Date().toISOString() };
+          ? { video_provider: 'youtube', video_asset_id: null, video_external_id: assetId, status: 'published', updated_at: new Date().toISOString() }
+          : {
+              video_provider: 'cloudflare',
+              video_asset_id: assetId,
+              video_external_id: null,
+              status: 'published',
+              ...(cloudflareDurationSeconds ? { duration_seconds: cloudflareDurationSeconds } : {}),
+              updated_at: new Date().toISOString(),
+            };
 
       const { data: lesson, error } = await requestSupabase
         .from('lessons')

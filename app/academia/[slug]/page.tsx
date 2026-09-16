@@ -12,11 +12,25 @@ import { Container } from '@/components/site/container';
 import { InstructorOfficialSection } from '@/components/academia/instructor-portrait';
 import { INITIAL_COURSES } from '@/lib/academy/db';
 import { Course } from '@/lib/academy/types';
+import { useAuth } from '@/lib/auth/auth-context';
+
+interface PreviewPlaybackData {
+  type: 'youtube' | 'cloudflare';
+  playbackUrl?: string;
+  embedUrl?: string;
+  videoId?: string;
+}
 
 export default function MasterclassDetailPage({ slugProp }: { slugProp?: string }) {
+  const { fetchWithAuth, isAuthenticated, isLoading: authLoading } = useAuth();
   // Use slugProp if provided, otherwise try to extract from window.location
   const currentSlug = slugProp || (typeof window !== 'undefined' ? window.location.pathname.split('/').pop() : '');
   const course = INITIAL_COURSES.find((c) => c.slug === currentSlug) as Course | undefined;
+  const [openModuleIndex, setOpenModuleIndex] = useState<number | null>(0);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const [previewPlayback, setPreviewPlayback] = useState<PreviewPlaybackData | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   if (!course) {
     return (
@@ -27,8 +41,9 @@ export default function MasterclassDetailPage({ slugProp }: { slugProp?: string 
   }
 
   const isShopifyConnected = !!course.shopifyProductGid;
-  const [openModuleIndex, setOpenModuleIndex] = useState<number | null>(0);
-  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const previewLesson = (course.modules || [])
+    .flatMap((module) => module.lessons)
+    .find((lesson) => lesson.isPreview && lesson.status === 'published');
 
   const toggleModule = (index: number) => {
     setOpenModuleIndex(openModuleIndex === index ? null : index);
@@ -36,6 +51,40 @@ export default function MasterclassDetailPage({ slugProp }: { slugProp?: string 
   
   const toggleFaq = (index: number) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
+  };
+
+  const handlePreview = async () => {
+    if (!previewLesson || previewLoading || authLoading) return;
+
+    if (!isAuthenticated) {
+      window.location.href = `/cuenta/iniciar-sesion?redirect=/academia/${course.slug}`;
+      return;
+    }
+
+    setPreviewLoading(true);
+    setPreviewError(null);
+
+    try {
+      const response = await fetchWithAuth(
+        `/api/academia/courses/${course.slug}/lessons/${previewLesson.slug}/token`,
+        { method: 'POST', credentials: 'include' },
+      );
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || 'No fue posible preparar el video en este momento.');
+      }
+
+      setPreviewPlayback(data as PreviewPlaybackData);
+    } catch (error) {
+      setPreviewError(
+        error instanceof Error
+          ? error.message
+          : 'No fue posible preparar el video en este momento.',
+      );
+    } finally {
+      setPreviewLoading(false);
+    }
   };
 
   const hasAccess = false;
@@ -97,7 +146,24 @@ export default function MasterclassDetailPage({ slugProp }: { slugProp?: string 
               <div className="rounded-2xl bg-white border border-[#B39A6A]/25 p-5 shadow-sm sticky top-28">
                 {/* Imagen del Curso */}
                 <div className="relative aspect-video rounded-xl overflow-hidden mb-6 bg-[#0A1624]">
-                  {course.coverImage ? (
+                  {previewPlayback?.type === 'cloudflare' && previewPlayback.playbackUrl ? (
+                    <iframe
+                      src={`${previewPlayback.playbackUrl}?autoplay=true`}
+                      title={`Avance de ${course.title}`}
+                      className="absolute inset-0 w-full h-full border-0"
+                      allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+                      allowFullScreen
+                      referrerPolicy="strict-origin-when-cross-origin"
+                    />
+                  ) : previewPlayback?.type === 'youtube' && (previewPlayback.embedUrl || previewPlayback.videoId) ? (
+                    <iframe
+                      src={previewPlayback.embedUrl || `https://www.youtube-nocookie.com/embed/${previewPlayback.videoId}?autoplay=1&rel=0`}
+                      title={`Avance de ${course.title}`}
+                      className="absolute inset-0 w-full h-full border-0"
+                      allow="accelerometer; autoplay; encrypted-media; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : course.coverImage ? (
                     <img src={course.coverImage} alt={course.coverAlt || course.title} className="w-full h-full object-cover object-center" />
                   ) : (
                     <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
@@ -107,11 +173,29 @@ export default function MasterclassDetailPage({ slugProp }: { slugProp?: string 
                       </span>
                     </div>
                   )}
-                  {course.previewEnabled && (
-                    <div className="absolute inset-0 bg-obsidian/20 flex items-center justify-center group-hover:bg-obsidian/30 transition-colors cursor-pointer pointer-events-none">
+                  {course.previewEnabled && !previewPlayback && (
+                    <button
+                      type="button"
+                      onClick={handlePreview}
+                      disabled={!previewLesson || previewLoading || authLoading}
+                      className="absolute inset-0 w-full bg-obsidian/20 flex flex-col items-center justify-center hover:bg-obsidian/30 transition-colors cursor-pointer disabled:cursor-wait"
+                      aria-label={`Reproducir avance de ${course.title}`}
+                    >
                       <div className="size-14 rounded-full bg-white/90 flex items-center justify-center backdrop-blur-md shadow-lg border border-white/40">
-                        <PlayCircle className="size-6 text-[#8A7347] ml-0.5" />
+                        {previewLoading ? (
+                          <span className="size-6 rounded-full border-2 border-[#8A7347] border-t-transparent animate-spin" />
+                        ) : (
+                          <PlayCircle className="size-6 text-[#8A7347] ml-0.5" />
+                        )}
                       </div>
+                      <span className="mt-3 px-3 py-1.5 rounded-full bg-black/55 text-white text-[11px] font-semibold uppercase tracking-[0.12em] backdrop-blur-sm">
+                        {previewLoading ? 'Preparando video…' : 'Ver presentación'}
+                      </span>
+                    </button>
+                  )}
+                  {previewError && !previewPlayback && (
+                    <div className="absolute inset-x-3 bottom-3 rounded-lg bg-[#07131F]/95 border border-white/15 px-3 py-2 text-center">
+                      <p className="text-[11px] leading-relaxed text-white/90">{previewError}</p>
                     </div>
                   )}
                 </div>
