@@ -3,6 +3,8 @@
 
 BEGIN;
 
+GRANT SELECT ON public.lesson_attachments TO authenticated;
+
 DROP POLICY IF EXISTS "Public can view preview or enrolled lessons" ON public.lessons;
 CREATE POLICY "Public can view preview or enrolled lessons"
   ON public.lessons
