@@ -1085,6 +1085,189 @@ async function startServer() {
     return true;
   };
 
+  const getRequestSupabase = (req: Request) => {
+    const token = getBearerToken(req);
+    if (!token) throw new Error('Falta el token de acceso.');
+    return createSupabaseServerUserClient(token);
+  };
+
+  const getCloudflareStreamConfig = () => ({
+    accountId: (process.env.CLOUDFLARE_ACCOUNT_ID || '').trim(),
+    apiToken: (process.env.CLOUDFLARE_STREAM_API_TOKEN || '').trim(),
+  });
+
+  async function cloudflareStreamRequest(endpoint: string, init: RequestInit = {}) {
+    const { accountId, apiToken } = getCloudflareStreamConfig();
+    if (!accountId || !apiToken) {
+      throw new Error('Cloudflare Stream no está configurado en el servidor.');
+    }
+
+    const response = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}/stream${endpoint}`,
+      {
+        ...init,
+        headers: {
+          Authorization: `Bearer ${apiToken}`,
+          'Content-Type': 'application/json',
+          ...(init.headers || {}),
+        },
+      },
+    );
+    const payload = await response.json().catch(() => null) as any;
+    if (!response.ok || !payload?.success) {
+      const message = payload?.errors?.[0]?.message || `Cloudflare respondió con estado ${response.status}.`;
+      throw new Error(message);
+    }
+    return payload;
+  }
+
+  // Real Supabase academy catalog used by the video-assignment panel.
+  app.get('/api/admin/academy/catalog', async (req: Request, res: Response) => {
+    if (!await requireAdmin(req, res)) return;
+
+    try {
+      const requestSupabase = getRequestSupabase(req);
+      const [coursesResult, modulesResult, lessonsResult] = await Promise.all([
+        requestSupabase
+          .from('masterclasses')
+          .select('id, slug, title, subtitle, category, duration_minutes, lesson_count, status')
+          .order('created_at', { ascending: true }),
+        requestSupabase
+          .from('modules')
+          .select('id, masterclass_id, title, description, position, status')
+          .order('position', { ascending: true }),
+        requestSupabase
+          .from('lessons')
+          .select('id, masterclass_id, module_id, slug, title, summary, duration_seconds, is_preview, video_provider, video_asset_id, video_external_id, status')
+          .order('position', { ascending: true }),
+      ]);
+
+      const databaseError = coursesResult.error || modulesResult.error || lessonsResult.error;
+      if (databaseError) throw databaseError;
+
+      const modules = modulesResult.data || [];
+      const lessons = lessonsResult.data || [];
+      const courses = (coursesResult.data || []).map((course: any) => ({
+        id: course.id,
+        slug: course.slug,
+        title: course.title,
+        subtitle: course.subtitle || '',
+        categoryLabel: course.category || 'Salud Médica',
+        durationMinutes: course.duration_minutes || 0,
+        lessonCount: course.lesson_count || 0,
+        status: course.status,
+        modules: modules
+          .filter((module: any) => module.masterclass_id === course.id)
+          .map((module: any) => ({
+            id: module.id,
+            title: module.title,
+            description: module.description || '',
+            position: module.position || 0,
+            status: module.status,
+            lessons: lessons
+              .filter((lesson: any) => lesson.module_id === module.id)
+              .map((lesson: any) => ({
+                id: lesson.id,
+                slug: lesson.slug,
+                title: lesson.title,
+                summary: lesson.summary || '',
+                durationSeconds: lesson.duration_seconds || 0,
+                isPreview: Boolean(lesson.is_preview),
+                videoProvider: lesson.video_provider || 'none',
+                videoAssetId: lesson.video_asset_id || '',
+                videoExternalId: lesson.video_external_id || '',
+                status: lesson.status,
+              })),
+          })),
+      }));
+
+      res.setHeader('Cache-Control', 'private, no-store');
+      return res.json({ courses });
+    } catch (error: any) {
+      console.error('Unable to load academy video catalog:', error);
+      return res.status(500).json({ error: error?.message || 'No fue posible cargar las lecciones.' });
+    }
+  });
+
+  // Safe Cloudflare Stream library: never exposes the API token.
+  app.get('/api/admin/cloudflare/videos', async (req: Request, res: Response) => {
+    if (!await requireAdmin(req, res)) return;
+
+    try {
+      const payload = await cloudflareStreamRequest('?limit=1000&asc=false');
+      const videos = (payload.result || []).map((video: any) => ({
+        uid: video.uid,
+        name: video.meta?.name || video.uid,
+        durationSeconds: Math.round(Number(video.duration) || 0),
+        createdAt: video.created || null,
+        readyToStream: Boolean(video.readyToStream),
+        status: video.status?.state || (video.readyToStream ? 'ready' : 'processing'),
+        thumbnail: video.thumbnail || null,
+      }));
+      res.setHeader('Cache-Control', 'private, no-store');
+      return res.json({ videos });
+    } catch (error: any) {
+      console.error('Unable to list Cloudflare Stream videos:', error);
+      return res.status(502).json({ error: error?.message || 'No fue posible consultar Cloudflare Stream.' });
+    }
+  });
+
+  // Assign or remove a video on an existing Supabase lesson.
+  app.patch('/api/admin/academy/lessons/:lessonId/video', async (req: Request, res: Response) => {
+    if (!await requireAdmin(req, res)) return;
+
+    const provider = String(req.body?.provider || '').trim().toLowerCase();
+    const assetId = String(req.body?.videoAssetId || '').trim();
+    if (!['cloudflare', 'youtube', 'none'].includes(provider)) {
+      return res.status(400).json({ error: 'Proveedor de video no válido.' });
+    }
+    if (provider !== 'none' && !assetId) {
+      return res.status(400).json({ error: 'Selecciona o escribe el identificador del video.' });
+    }
+    if (provider === 'cloudflare' && !/^[a-zA-Z0-9_-]{20,64}$/.test(assetId)) {
+      return res.status(400).json({ error: 'El ID de Cloudflare Stream no tiene un formato válido.' });
+    }
+
+    try {
+      if (provider === 'cloudflare') {
+        const requestHost = (req.get('host') || '').split(':')[0];
+        const allowedOrigins = Array.from(new Set([
+          'dr-lopez-salud-forte.ai.studio',
+          '*.ai.studio',
+          requestHost,
+        ].filter(Boolean)));
+
+        await cloudflareStreamRequest(`/${encodeURIComponent(assetId)}`, {
+          method: 'POST',
+          body: JSON.stringify({
+            allowedOrigins,
+            requireSignedURLs: true,
+          }),
+        });
+      }
+
+      const requestSupabase = getRequestSupabase(req);
+      const update = provider === 'none'
+        ? { video_provider: 'none', video_asset_id: null, video_external_id: null, updated_at: new Date().toISOString() }
+        : provider === 'youtube'
+          ? { video_provider: 'youtube', video_asset_id: null, video_external_id: assetId, updated_at: new Date().toISOString() }
+          : { video_provider: 'cloudflare', video_asset_id: assetId, video_external_id: null, updated_at: new Date().toISOString() };
+
+      const { data: lesson, error } = await requestSupabase
+        .from('lessons')
+        .update(update)
+        .eq('id', req.params.lessonId)
+        .select('id, slug, title, video_provider, video_asset_id, video_external_id')
+        .single();
+
+      if (error) throw error;
+      return res.json({ success: true, lesson });
+    } catch (error: any) {
+      console.error('Unable to assign lesson video:', error);
+      return res.status(502).json({ error: error?.message || 'No fue posible guardar el video en la lección.' });
+    }
+  });
+
   // 1. Get all courses with full details (Admin)
   app.get('/api/admin/courses', async (req: Request, res: Response) => {
     if (!await requireAdmin(req, res)) return;

@@ -50,11 +50,22 @@ interface Course {
       durationSeconds: number;
       isPreview?: boolean;
       videoProvider?: 'youtube' | 'cloudflare';
+      videoAssetId?: string;
       videoExternalId?: string;
       videoUrl?: string;
       summary?: string;
     }>;
   }>;
+}
+
+interface CloudflareVideo {
+  uid: string;
+  name: string;
+  durationSeconds: number;
+  createdAt: string | null;
+  readyToStream: boolean;
+  status: string;
+  thumbnail: string | null;
 }
 
 interface Student {
@@ -84,6 +95,20 @@ export default function AdminAcademiaPage() {
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [cloudflareVideos, setCloudflareVideos] = useState<CloudflareVideo[]>([]);
+  const [videoLibraryError, setVideoLibraryError] = useState('');
+  const [configuringLesson, setConfiguringLesson] = useState<{
+    courseSlug: string;
+    id: string;
+    slug: string;
+    title: string;
+    videoProvider?: 'youtube' | 'cloudflare';
+    videoAssetId?: string;
+    videoExternalId?: string;
+  } | null>(null);
+  const [selectedVideoProvider, setSelectedVideoProvider] = useState<'cloudflare' | 'youtube' | 'none'>('cloudflare');
+  const [selectedVideoId, setSelectedVideoId] = useState('');
+  const [savingVideo, setSavingVideo] = useState(false);
 
   // Search & Filter
   const [studentSearch, setStudentSearch] = useState('');
@@ -120,13 +145,23 @@ export default function AdminAcademiaPage() {
     setLoading(true);
     try {
       // 1. Fetch courses
-      const cRes = await fetchWithAuth('/api/admin/courses');
+      const cRes = await fetchWithAuth('/api/admin/academy/catalog');
       if (cRes.ok) {
         const cData = await cRes.json();
         setCourses(cData.courses || []);
         if (cData.courses?.length > 0 && !grantCourseId) {
           setGrantCourseId(cData.courses[0].id);
         }
+      }
+
+      const vRes = await fetchWithAuth('/api/admin/cloudflare/videos');
+      if (vRes.ok) {
+        const vData = await vRes.json();
+        setCloudflareVideos(vData.videos || []);
+        setVideoLibraryError('');
+      } else {
+        const vData = await vRes.json().catch(() => ({}));
+        setVideoLibraryError(vData.error || 'No fue posible consultar la biblioteca de Cloudflare Stream.');
       }
 
       // 2. Fetch students
@@ -146,6 +181,48 @@ export default function AdminAcademiaPage() {
       console.error('Error fetching admin data:', e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openVideoConfiguration = (courseSlug: string, lesson: NonNullable<Course['modules']>[number]['lessons'][number]) => {
+    setConfiguringLesson({ courseSlug, ...lesson });
+    const provider = lesson.videoProvider === 'youtube' ? 'youtube' : 'cloudflare';
+    setSelectedVideoProvider(provider);
+    setSelectedVideoId(provider === 'youtube' ? (lesson.videoExternalId || '') : (lesson.videoAssetId || ''));
+  };
+
+  const handleSaveLessonVideo = async () => {
+    if (!configuringLesson) return;
+    if (selectedVideoProvider !== 'none' && !selectedVideoId.trim()) {
+      setFeedback({ type: 'error', message: 'Selecciona un video antes de guardar.' });
+      return;
+    }
+
+    setSavingVideo(true);
+    try {
+      const res = await fetchWithAuth(`/api/admin/academy/lessons/${configuringLesson.id}/video`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          provider: selectedVideoProvider,
+          videoAssetId: selectedVideoProvider === 'none' ? '' : selectedVideoId.trim(),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'No fue posible guardar el video.');
+
+      setFeedback({
+        type: 'success',
+        message: selectedVideoProvider === 'none'
+          ? `Se quitó el video de “${configuringLesson.title}”.`
+          : `Video configurado correctamente en “${configuringLesson.title}”.`,
+      });
+      setConfiguringLesson(null);
+      await fetchData();
+    } catch (error: any) {
+      setFeedback({ type: 'error', message: error?.message || 'No fue posible guardar el video.' });
+    } finally {
+      setSavingVideo(false);
     }
   };
 
@@ -371,7 +448,7 @@ export default function AdminAcademiaPage() {
           {/* Navigation Tabs */}
           <div className="flex items-center gap-2 mt-8 overflow-x-auto border-b border-[#B39A6A]/20 pb-0">
             {[
-              { id: 'cursos', label: 'Cursos & Lecciones YouTube', icon: Video },
+              { id: 'cursos', label: 'Cursos & Videos', icon: Video },
               { id: 'alumnos', label: 'Directorio de Alumnos & Consentimiento', icon: Users },
               { id: 'metricas', label: 'Métricas & Auditoría', icon: BarChart3 },
               { id: 'agenda', label: 'Agenda Google & WhatsApp', icon: Calendar },
@@ -410,7 +487,7 @@ export default function AdminAcademiaPage() {
               <div>
                 <h2 className="text-lg font-serif font-bold text-obsidian">Catálogo de Masterclasses Publicadas</h2>
                 <p className="text-xs text-obsidian/65 mt-0.5">
-                  Gestiona los módulos y añade videos de YouTube (formato no listado) a cada clase.
+                  Asigna videos privados de Cloudflare Stream a las lecciones existentes y verifica su reproductor.
                 </p>
               </div>
               <button
@@ -482,8 +559,8 @@ export default function AdminAcademiaPage() {
                               className="bg-white p-3 rounded-lg border border-[#B39A6A]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
                             >
                               <div className="flex items-center gap-3">
-                                <div className="size-7 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0 border border-red-200">
-                                  <Play className="size-3.5 fill-red-600" />
+                                <div className={`size-7 rounded-lg flex items-center justify-center shrink-0 border ${les.videoAssetId || les.videoExternalId ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
+                                  <Play className="size-3.5" />
                                 </div>
                                 <div>
                                   <div className="font-semibold text-obsidian flex items-center gap-2">
@@ -496,16 +573,26 @@ export default function AdminAcademiaPage() {
                                   </div>
                                   <div className="text-[11px] text-obsidian/50 font-mono mt-0.5 flex items-center gap-2">
                                     <span>Duración: {Math.round(les.durationSeconds / 60)} min</span>
-                                    {les.videoExternalId && (
-                                      <span className="text-red-600 font-medium">
-                                        YouTube ID: {les.videoExternalId}
-                                      </span>
+                                    {les.videoAssetId ? (
+                                      <span className="text-emerald-700 font-medium">Cloudflare configurado</span>
+                                    ) : les.videoExternalId ? (
+                                      <span className="text-red-600 font-medium">YouTube configurado</span>
+                                    ) : (
+                                      <span className="text-amber-700 font-medium">Sin video</span>
                                     )}
                                   </div>
                                 </div>
                               </div>
 
                               <div className="flex items-center gap-2 self-end sm:self-auto">
+                                <button
+                                  type="button"
+                                  onClick={() => openVideoConfiguration(c.slug, les)}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#B39A6A]/40 bg-white text-obsidian text-[11px] font-semibold hover:bg-[#F4EFE5] transition-colors"
+                                >
+                                  <Video className="size-3 text-[#8A7347]" />
+                                  <span>{les.videoAssetId || les.videoExternalId ? 'Cambiar video' : 'Poner video'}</span>
+                                </button>
                                 <a
                                   href={`/academia/${c.slug}/leccion/${les.slug}`}
                                   target="_blank"
@@ -930,6 +1017,169 @@ export default function AdminAcademiaPage() {
           </div>
         )}
       </Container>
+
+      {/* ==================================================================== */}
+      {/* MODAL: ASIGNAR VIDEO A UNA LECCIÓN EXISTENTE                         */}
+      {/* ==================================================================== */}
+      {configuringLesson && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[#B39A6A]/30 shadow-2xl">
+            <div className="flex items-start justify-between gap-4 pb-4 border-b border-[#B39A6A]/20">
+              <div>
+                <div className="inline-flex items-center gap-2 text-[10px] uppercase tracking-wider font-bold text-[#8A7347]">
+                  <Video className="size-3.5" /> Video de la lección
+                </div>
+                <h3 className="font-serif text-xl font-bold text-obsidian mt-1">{configuringLesson.title}</h3>
+                <p className="text-[11px] text-obsidian/55 mt-0.5">El video quedará protegido y solo se reproducirá dentro de la academia.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setConfiguringLesson(null)}
+                className="text-obsidian/50 hover:text-obsidian text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mt-5 space-y-5">
+              <div>
+                <label className="block text-xs font-semibold text-obsidian mb-2">Origen del video</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { value: 'cloudflare', label: 'Cloudflare Stream' },
+                    { value: 'youtube', label: 'YouTube' },
+                    { value: 'none', label: 'Sin video' },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        setSelectedVideoProvider(option.value as 'cloudflare' | 'youtube' | 'none');
+                        setSelectedVideoId('');
+                      }}
+                      className={`px-3 py-2.5 rounded-xl border text-xs font-semibold transition-colors ${
+                        selectedVideoProvider === option.value
+                          ? 'bg-obsidian text-white border-obsidian'
+                          : 'bg-white text-obsidian border-obsidian/20 hover:bg-[#F9F7F2]'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {selectedVideoProvider === 'cloudflare' && (
+                <div>
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <label className="block text-xs font-semibold text-obsidian">Biblioteca de Cloudflare Stream</label>
+                    <a
+                      href="https://dash.cloudflare.com/?to=/:account/stream"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#80683D] hover:underline"
+                    >
+                      Subir un video nuevo <ExternalLink className="size-3" />
+                    </a>
+                  </div>
+
+                  {videoLibraryError ? (
+                    <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-800">
+                      {videoLibraryError}
+                    </div>
+                  ) : cloudflareVideos.length === 0 ? (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                      No hay videos en la biblioteca. Usa “Subir un video nuevo”, espera a que termine de procesarse y pulsa “Actualizar Datos”.
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                      {cloudflareVideos.map((video) => (
+                        <label
+                          key={video.uid}
+                          className={`flex items-center gap-3 rounded-xl border p-3 cursor-pointer transition-colors ${
+                            selectedVideoId === video.uid
+                              ? 'border-[#B39A6A] bg-[#F9F4E9]'
+                              : 'border-obsidian/15 bg-white hover:bg-[#F9F7F2]'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="cloudflare-video"
+                            value={video.uid}
+                            checked={selectedVideoId === video.uid}
+                            onChange={() => setSelectedVideoId(video.uid)}
+                            disabled={!video.readyToStream}
+                            className="accent-[#B39A6A]"
+                          />
+                          {video.thumbnail ? (
+                            <img src={video.thumbnail} alt="" className="w-24 h-14 rounded-lg object-cover bg-black" />
+                          ) : (
+                            <div className="w-24 h-14 rounded-lg bg-obsidian flex items-center justify-center"><Play className="size-5 text-white" /></div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="font-semibold text-xs text-obsidian truncate">{video.name}</div>
+                            <div className="text-[10px] text-obsidian/55 mt-0.5">
+                              {Math.max(1, Math.round(video.durationSeconds / 60))} min · {video.readyToStream ? 'Listo para usar' : `Procesando (${video.status})`}
+                            </div>
+                          </div>
+                          {video.readyToStream ? <CheckCircle2 className="size-4 text-emerald-600" /> : <Clock className="size-4 text-amber-600" />}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="mt-3">
+                    <label className="block text-[11px] font-semibold text-obsidian/70 mb-1">O pega directamente el ID del video</label>
+                    <input
+                      type="text"
+                      value={selectedVideoId}
+                      onChange={(event) => setSelectedVideoId(event.target.value)}
+                      placeholder="Ej. 4b6dfdadb3317265a9ae6ce4fdb32e9c"
+                      className="w-full p-2.5 rounded-xl border border-obsidian/20 text-xs font-mono focus:outline-hidden focus:border-champagne"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {selectedVideoProvider === 'youtube' && (
+                <div>
+                  <label className="block text-xs font-semibold text-obsidian mb-1">ID del video de YouTube</label>
+                  <input
+                    type="text"
+                    value={selectedVideoId}
+                    onChange={(event) => setSelectedVideoId(event.target.value)}
+                    placeholder="Ej. dQw4w9WgXcQ"
+                    className="w-full p-2.5 rounded-xl border border-obsidian/20 text-xs font-mono focus:outline-hidden focus:border-champagne"
+                  />
+                </div>
+              )}
+
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-[11px] leading-relaxed text-emerald-900">
+                Al guardar un video de Cloudflare, el sistema autoriza automáticamente el dominio público de Salud Forte y activa la reproducción mediante enlaces firmados.
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setConfiguringLesson(null)}
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-obsidian/70 hover:bg-black/5"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveLessonVideo}
+                  disabled={savingVideo || (selectedVideoProvider !== 'none' && !selectedVideoId.trim())}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-obsidian text-white font-semibold text-xs hover:bg-[#07182A] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {savingVideo && <RefreshCw className="size-3.5 animate-spin" />}
+                  {savingVideo ? 'Guardando…' : 'Guardar video en esta lección'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ==================================================================== */}
       {/* MODAL: NUEVA MASTERCLASS                                             */}

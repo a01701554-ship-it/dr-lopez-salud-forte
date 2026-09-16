@@ -1,129 +1,55 @@
-# Cloudflare Stream en lecciones reales
+# Videos de Cloudflare Stream en las masterclasses
 
-Esta integración protege cada reproducción con dos controles consecutivos:
+La aplicación reproduce videos privados de Cloudflare Stream mediante enlaces firmados que caducan. El token secreto de Cloudflare permanece únicamente en el servidor.
 
-1. Supabase Auth identifica al usuario mediante su JWT.
-2. Supabase confirma que existe un `entitlement` activo para la masterclass.
-3. El servidor solicita a Cloudflare una URL firmada de corta duración.
-4. El navegador recibe únicamente la URL temporal y la conserva en memoria.
+## Configuración del servidor
 
-La llave de Cloudflare nunca debe utilizarse en variables que empiecen con
-`VITE_`, porque esas variables pueden terminar incluidas en el navegador.
+La publicación necesita estas variables:
 
-## 1. Variables privadas del servidor
+- `CLOUDFLARE_ACCOUNT_ID`
+- `CLOUDFLARE_STREAM_API_TOKEN`
+- `CLOUDFLARE_STREAM_CUSTOMER_SUBDOMAIN`
 
-Configurar estas cuatro variables en el entorno de publicación:
+El token de Cloudflare debe tener permisos **Stream Read** y **Stream Write**. Nunca debe guardarse en GitHub ni exponerse en el navegador.
 
-```text
-CLOUDFLARE_ACCOUNT_ID
-CLOUDFLARE_STREAM_API_TOKEN
-CLOUDFLARE_STREAM_CUSTOMER_SUBDOMAIN
-SUPABASE_URL o VITE_SUPABASE_URL
-SUPABASE_PUBLISHABLE_KEY, SUPABASE_ANON_KEY,
-VITE_SUPABASE_PUBLISHABLE_KEY o VITE_SUPABASE_ANON_KEY
-```
+## Flujo recomendado para cada video
 
-`CLOUDFLARE_STREAM_CUSTOMER_SUBDOMAIN` debe tener este formato, sin `https://`
-y sin diagonal al final:
+1. Subir el archivo desde **Cloudflare Dashboard → Stream**.
+2. Esperar a que Cloudflare muestre el video como listo.
+3. Iniciar sesión en Salud Forte con la cuenta administradora.
+4. Abrir `/admin/academia`.
+5. En **Cursos & Videos**, localizar la lección correcta.
+6. Pulsar **Poner video** o **Cambiar video**.
+7. Elegir el video de la biblioteca de Cloudflare y guardar.
+8. Pulsar **Probar reproductor** para comprobar la lección.
 
-```text
-customer-xxxxxxxx.cloudflarestream.com
-```
+Al guardar, la aplicación realiza dos acciones coordinadas:
 
-## 2. Migraciones de Supabase
+- autoriza automáticamente `dr-lopez-salud-forte.ai.studio` en ese video;
+- guarda el ID de Cloudflare Stream en la lección de Supabase.
 
-Aplicar en orden:
+Esto evita el error `This video has not been configured to be allowed on this domain`.
 
-1. `20260914_add_academy_tables.sql`
-2. `20260914_secure_academy_entitlements.sql`
+## Alternativa con YouTube
 
-La segunda migración hace que un acceso revocado o vencido deje de autorizar
-la lectura de lecciones y el guardado de avance, aunque todavía tenga el texto
-`active` en otra parte del sistema.
+En la misma ventana se puede elegir **YouTube** e introducir el ID del video. Para contenido de pago o material médico exclusivo se recomienda Cloudflare Stream porque la reproducción usa un token firmado y no revela un enlace público permanente.
 
-## 3. Asociar un video con una lección
+## Datos guardados en Supabase
 
-En Cloudflare, abrir el video y copiar solamente `Video ID`. No copiar el HLS,
-el iframe ni un token firmado.
-
-En Supabase, abrir `Table Editor` → `lessons` y completar:
+Para Cloudflare:
 
 ```text
 video_provider = cloudflare
-video_asset_id = VIDEO_ID_COPIADO_DE_CLOUDFLARE
+video_asset_id = ID_DEL_VIDEO
 video_external_id = NULL
-status = published
 ```
 
-El `masterclass_id` de la lección debe corresponder a la masterclass que el
-alumno adquirió. El `module_id` debe pertenecer a esa misma masterclass.
-
-Para una lección de YouTube se usa:
+Para YouTube:
 
 ```text
 video_provider = youtube
 video_asset_id = NULL
-video_external_id = URL_O_ID_DE_YOUTUBE
+video_external_id = ID_DE_YOUTUBE
 ```
 
-## 4. Conceder acceso a un alumno
-
-Primero localizar el UUID del usuario y el UUID de la masterclass:
-
-```sql
-SELECT id, email
-FROM auth.users
-WHERE lower(email) = lower('correo-del-alumno@ejemplo.com');
-
-SELECT id, slug, title
-FROM public.masterclasses
-WHERE slug = 'slug-de-la-masterclass';
-```
-
-Después crear o reactivar el acceso:
-
-```sql
-INSERT INTO public.entitlements (
-  user_id,
-  masterclass_id,
-  source,
-  status,
-  granted_at,
-  expires_at,
-  revoked_at,
-  revocation_reason
-)
-VALUES (
-  'UUID_DEL_USUARIO',
-  'UUID_DE_LA_MASTERCLASS',
-  'admin',
-  'active',
-  NOW(),
-  NULL,
-  NULL,
-  NULL
-)
-ON CONFLICT (user_id, masterclass_id)
-DO UPDATE SET
-  status = 'active',
-  granted_at = NOW(),
-  expires_at = NULL,
-  revoked_at = NULL,
-  revocation_reason = NULL,
-  updated_at = NOW();
-```
-
-Para acceso limitado, sustituir `expires_at = NULL` por una fecha futura.
-
-## 5. Pruebas obligatorias
-
-1. Con sesión y acceso activo: la lección y el video deben abrir.
-2. Con sesión y sin acceso: debe mostrarse `Masterclass no adquirida`.
-3. Con acceso vencido o revocado: debe bloquearse igual que un usuario sin acceso.
-4. Sin sesión: debe solicitar inicio de sesión.
-5. Al marcar la clase como terminada: debe actualizarse `lesson_progress`.
-6. En las herramientas del navegador: nunca debe aparecer el API token de Cloudflare.
-
-La antigua ruta `/mi-cuenta/prueba-video` y su endpoint temporal ya no forman
-parte de la aplicación. El video de prueba puede conservarse en Cloudflare o
-eliminarse desde el panel cuando deje de ser necesario.
+No es necesario editar estos campos manualmente cuando se usa el panel `/admin/academia`.
