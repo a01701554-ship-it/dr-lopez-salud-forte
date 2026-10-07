@@ -1,8 +1,9 @@
 import React from 'react';
 import { siteConfig } from '@/config/site';
 import { AppointmentRecord } from '@/lib/calendar/types';
-import { CheckCircle2, Calendar, Download, Clock, Shield } from 'lucide-react';
+import { CheckCircle2, Calendar, Download, Clock, Shield, MapPin, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
+import { getClinicLocation } from '@/config/locations';
 
 interface BookingConfirmationProps {
   appointment: AppointmentRecord;
@@ -56,6 +57,8 @@ export function BookingConfirmation({ appointment, onNewBooking }: BookingConfir
   const isWaDelivered = appointment.confirmationWhatsAppStatus === 'SENT' || appointment.confirmationWhatsAppStatus === 'DELIVERED';
   const isWaFailed = appointment.confirmationWhatsAppStatus === 'FAILED';
   const isWaPending = !appointment.confirmationWhatsAppStatus || appointment.confirmationWhatsAppStatus === 'NOT_CONFIGURED';
+
+  const location = getClinicLocation(appointment.locationId);
 
   return (
     <div className="space-y-6">
@@ -117,8 +120,8 @@ export function BookingConfirmation({ appointment, onNewBooking }: BookingConfir
           </div>
         </div>
 
-        {/* 3 Core Blocks: Fecha/Hora, Modalidad/Motivo, Honorarios */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+        {/* 4 Core Blocks: Fecha/Hora, Modalidad/Motivo, Ubicación, Honorarios */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
           <div className="rounded-lg bg-stone/[0.12] p-4">
             <span className="font-semibold uppercase tracking-wider text-obsidian/50 block text-[10px] flex items-center gap-1">
               <Calendar className="size-3 text-sage" /> Fecha y Horario
@@ -147,6 +150,28 @@ export function BookingConfirmation({ appointment, onNewBooking }: BookingConfir
             <span className="text-[11px] text-obsidian/50 block mt-1">
               Duración: {appointment.durationLabel}
             </span>
+          </div>
+
+          <div className="rounded-lg bg-stone/[0.12] p-4">
+            <span className="font-semibold uppercase tracking-wider text-obsidian/50 block text-[10px] flex items-center gap-1">
+              <MapPin className="size-3 text-sage" /> Ubicación
+            </span>
+            <span className="font-serif text-lg text-obsidian block mt-1">
+              {location.name}
+            </span>
+            <span className="text-xs text-obsidian/75 block mt-0.5">
+              {location.isOnline ? location.onlineInstructions : location.address}
+            </span>
+            {!location.isOnline && location.googleMapsUrl && (
+              <a
+                href={location.googleMapsUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-[11px] text-[#B39A6A] hover:underline font-medium inline-flex items-center gap-0.5 mt-1"
+              >
+                Abrir en Google Maps <ExternalLink className="size-3" />
+              </a>
+            )}
           </div>
 
           <div className="rounded-lg bg-stone/[0.12] p-4">

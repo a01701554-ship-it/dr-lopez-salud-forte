@@ -32,6 +32,7 @@ export type AppointmentStatus =
   | 'COMPLETED';
 
 export type AppointmentModality = 'presencial' | 'en-linea';
+export type AppointmentLocationId = 'jilotepec' | 'queretaro' | 'telemedicina';
 
 export interface TimeSlot {
   id: string;
@@ -40,6 +41,9 @@ export interface TimeSlot {
   formattedDate: string;
   formattedTime: string;
   modality?: AppointmentModality;
+  locationId?: AppointmentLocationId;
+  locationName?: string;
+  addressSnapshot?: string | null;
 }
 
 export interface PatientInfo {
@@ -54,6 +58,10 @@ export interface AppointmentRecord {
   idempotencyKey: string;
   patient: PatientInfo;
   slot: TimeSlot;
+  locationId?: AppointmentLocationId;
+  locationName?: string;
+  addressSnapshot?: string | null;
+  consultationMode?: 'in_person' | 'online';
   calendarEventId?: string;
   status: AppointmentStatus;
   createdAt: string;

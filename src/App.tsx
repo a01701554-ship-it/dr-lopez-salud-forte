@@ -1,37 +1,40 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Header } from '@/components/site/header';
 import { Footer } from '@/components/site/footer';
 import { ContactTrigger } from '@/components/site/contact-trigger';
-import Home from '@/app/page';
-import AboutPage from '@/app/sobre-mi/page';
-import PodcastPage from '@/app/podcast/page';
-import BookingPage from '@/app/agendar/page';
-import ConsultationPage from '@/app/consulta/page';
-import PreguntasPage from '@/app/preguntas/page';
-import AdminPreciosPage from '@/app/admin/precios/page';
-import AcademiaPage from '@/app/academia/page';
-import MasterclassDetailPage from '@/app/academia/[slug]/page';
-import MisMasterclassesPage from '@/app/academia/mis-masterclasses/page';
-import LessonPlayerPage from '@/app/academia/[slug]/leccion/[lessonSlug]/page';
-import AdminAcademiaPage from '@/app/admin/academia/page';
-import TiendaPage from '@/app/tienda/page';
-import ProductDetailPage from '@/app/tienda/[slug]/page';
-import AdminProductosPage from '@/app/admin/productos/page';
 import FoundationRoute, { resolveConfig } from '@/app/[...slug]/page';
 import { CartProvider } from '@/lib/shopify/cart-context';
 import { AuthProvider } from '@/lib/auth/auth-context';
 import { CartDrawer } from '@/components/shopify/cart-drawer';
+import { STORE_ENABLED } from '@/config/site';
 
-import LoginPage from '@/app/cuenta/iniciar-sesion/page';
-import RegisterPage from '@/app/cuenta/registro/page';
-import RecoverPasswordPage from '@/app/cuenta/recuperar-contrasena/page';
-import ResetPasswordPage from '@/app/cuenta/reset-password/page';
-import VerifyEmailPage from '@/app/cuenta/verificar-correo/page';
-import MyAccountPage from '@/app/mi-cuenta/page';
-import MisPedidosPage from '@/app/mi-cuenta/pedidos/page';
-import MiPerfilPage from '@/app/mi-cuenta/perfil/page';
-import StudentMasterclassesPage from '@/app/mi-cuenta/masterclasses/page';
-import AuthCallbackPage from '@/app/auth/callback/page';
+const Home = lazy(() => import('@/app/page'));
+const AboutPage = lazy(() => import('@/app/sobre-mi/page'));
+const PodcastPage = lazy(() => import('@/app/podcast/page'));
+const BookingPage = lazy(() => import('@/app/agendar/page'));
+const ConsultationPage = lazy(() => import('@/app/consulta/page'));
+const PreguntasPage = lazy(() => import('@/app/preguntas/page'));
+const AdminPreciosPage = lazy(() => import('@/app/admin/precios/page'));
+const AcademiaPage = lazy(() => import('@/app/academia/page'));
+const MasterclassDetailPage = lazy(() => import('@/app/academia/[slug]/page'));
+const MisMasterclassesPage = lazy(() => import('@/app/academia/mis-masterclasses/page'));
+const LessonPlayerPage = lazy(() => import('@/app/academia/[slug]/leccion/[lessonSlug]/page'));
+const AdminAcademiaPage = lazy(() => import('@/app/admin/academia/page'));
+const AdminAppointmentsPage = lazy(() => import('@/app/admin/citas/page'));
+const TiendaPage = lazy(() => import('@/app/tienda/page'));
+const ProductDetailPage = lazy(() => import('@/app/tienda/[slug]/page'));
+const AdminProductosPage = lazy(() => import('@/app/admin/productos/page'));
+const LoginPage = lazy(() => import('@/app/cuenta/iniciar-sesion/page'));
+const RegisterPage = lazy(() => import('@/app/cuenta/registro/page'));
+const RecoverPasswordPage = lazy(() => import('@/app/cuenta/recuperar-contrasena/page'));
+const ResetPasswordPage = lazy(() => import('@/app/cuenta/reset-password/page'));
+const VerifyEmailPage = lazy(() => import('@/app/cuenta/verificar-correo/page'));
+const MyAccountPage = lazy(() => import('@/app/mi-cuenta/page'));
+const MisPedidosPage = lazy(() => import('@/app/mi-cuenta/pedidos/page'));
+const MiPerfilPage = lazy(() => import('@/app/mi-cuenta/perfil/page'));
+const StudentMasterclassesPage = lazy(() => import('@/app/mi-cuenta/masterclasses/page'));
+const InstructorAccountPage = lazy(() => import('@/app/mi-cuenta/instructor/page'));
+const AuthCallbackPage = lazy(() => import('@/app/auth/callback/page'));
 
 function getInitialPath(): string {
   if (typeof window !== 'undefined') {
@@ -54,6 +57,18 @@ export default function App() {
     };
   }, []);
 
+  // Controlled redirection when store is disabled
+  useEffect(() => {
+    if (!STORE_ENABLED) {
+      const rawPath = pathname === '' ? '/' : pathname;
+      const normalized = rawPath.length > 1 ? rawPath.replace(/\/+$/, '') : rawPath;
+      if (normalized === '/tienda' || normalized.startsWith('/tienda/')) {
+        window.history.replaceState({}, '', '/');
+        setPathname('/');
+      }
+    }
+  }, [pathname]);
+
   // Update document title dynamically
   useEffect(() => {
     let pageTitle = `Dr. Mauricio Galindo | Médico Cirujano · Salud Forte`;
@@ -73,12 +88,12 @@ export default function App() {
       pageTitle = `Mis Masterclasses | Academia Salud Forte`;
     } else if (pathname.startsWith('/academia/')) {
       pageTitle = `Masterclass | Academia Salud Forte`;
-    } else if (pathname === '/tienda') {
+    } else if (STORE_ENABLED && pathname === '/tienda') {
       pageTitle = `Tienda de Bienestar | Dr. Mauricio Galindo`;
-    } else if (pathname.startsWith('/tienda/')) {
+    } else if (STORE_ENABLED && pathname.startsWith('/tienda/')) {
       pageTitle = `Suplemento | Dr. Mauricio Galindo`;
-    } else if (pathname === '/admin/academia') {
-      pageTitle = `Panel Academia & Shopify | Salud Forte`;
+    } else if (pathname === '/admin/academia' || pathname === '/mi-cuenta/instructor') {
+      pageTitle = `Panel del Instructor · Dr. Mauricio Galindo | Salud Forte`;
     } else if (pathname === '/admin/productos') {
       pageTitle = `Puerta de Publicación de Suplementos | Panel Administrativo`;
     } else if (pathname !== '/') {
@@ -128,6 +143,10 @@ export default function App() {
       return <AdminAcademiaPage />;
     }
 
+    if (normalized === '/admin/citas') {
+      return <AdminAppointmentsPage />;
+    }
+
     if (normalized === '/admin/productos') {
       return <AdminProductosPage />;
     }
@@ -167,14 +186,21 @@ export default function App() {
     if (normalized === '/mi-cuenta/perfil') {
       return <MiPerfilPage />;
     }
-    // Official Tienda Routes
-    if (normalized === '/tienda') {
-      return <TiendaPage />;
+    if (normalized === '/mi-cuenta/instructor') {
+      return <InstructorAccountPage />;
     }
-
-    const productDetailMatch = normalized.match(/^\/tienda\/([^/]+)$/);
-    if (productDetailMatch) {
-      return <ProductDetailPage params={{ slug: productDetailMatch[1] }} />;
+    // Official Tienda Routes (Controlled by STORE_ENABLED)
+    if (normalized === '/tienda' || normalized.startsWith('/tienda/')) {
+      if (!STORE_ENABLED) {
+        return <Home />;
+      }
+      if (normalized === '/tienda') {
+        return <TiendaPage />;
+      }
+      const productDetailMatch = normalized.match(/^\/tienda\/([^/]+)$/);
+      if (productDetailMatch) {
+        return <ProductDetailPage params={{ slug: productDetailMatch[1] }} />;
+      }
     }
 
     // Official Academy Routes
@@ -224,10 +250,22 @@ export default function App() {
             Saltar al contenido
           </a>
           <Header />
-          <div className="flex-1 w-full">{renderContent()}</div>
+          <div className="flex-1 w-full">
+            <Suspense
+              fallback={
+                <main id="contenido-principal" className="grid min-h-[60svh] place-items-center bg-ivory px-6">
+                  <p className="text-sm font-semibold uppercase tracking-[0.16em] text-obsidian/55">
+                    Cargando experiencia…
+                  </p>
+                </main>
+              }
+            >
+              {renderContent()}
+            </Suspense>
+          </div>
           <ContactTrigger />
           <Footer />
-          <CartDrawer />
+          {STORE_ENABLED && <CartDrawer />}
         </div>
       </CartProvider>
     </AuthProvider>

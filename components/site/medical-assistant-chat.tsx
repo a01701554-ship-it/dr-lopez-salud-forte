@@ -366,6 +366,7 @@ export function MedicalAssistantChat({
         new Date(),
         4,
         type.durationMinutes,
+        type.id,
       );
 
       // Collect first 3 available slots

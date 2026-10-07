@@ -26,6 +26,10 @@ export interface UserProfile {
   reset_token_expires_at?: number;
   marketing_consent?: boolean;
   marketing_consent_at?: string;
+  marketing_opted_out_at?: string;
+  marketing_consent_source?: string;
+  marketing_consent_version?: string;
+  privacy_policy_version?: string;
   terms_accepted?: boolean;
   terms_accepted_at?: string;
   privacy_accepted?: boolean;
@@ -160,9 +164,9 @@ export interface Entitlement {
   customerEmail: string;
   customerName?: string;
   courseId: string;
-  orderGid: string;
+  orderGid?: string;
   orderNumber: string;
-  lineItemGid: string;
+  lineItemGid?: string;
   status: EntitlementStatus;
   grantedAt: string;
   startsAt: string;
@@ -210,6 +214,11 @@ export interface AccessAudit {
     | 'lesson_access'
     | 'video_token_request'
     | 'attachment_download'
+    | 'attachment_uploaded'
+    | 'attachment_renamed'
+    | 'attachment_reordered'
+    | 'attachment_replaced'
+    | 'attachment_deleted'
     | 'entitlement_granted'
     | 'entitlement_revoked'
     | 'user_login'
@@ -236,4 +245,28 @@ export interface StreamTokenResponse {
   expiresAt: number;
   durationSeconds: number;
   watermarkText?: string;
+}
+
+export type TestimonialStatus = 'draft' | 'pending_consent' | 'published' | 'hidden' | 'inactive' | 'consent_withdrawn';
+export type TestimonialNameFormat = 'full' | 'initials' | 'anonymous';
+
+export interface VideoTestimonial {
+  id: string;
+  videoProvider: 'cloudflare' | 'youtube' | 'url' | 'video';
+  videoId: string;
+  videoUrl?: string;
+  posterUrl: string;
+  displayName: string;
+  internalName?: string;
+  nameFormat: TestimonialNameFormat;
+  publicLabel?: string;
+  shortDescription?: string;
+  sortOrder: number;
+  status: TestimonialStatus;
+  consentConfirmed: boolean;
+  consentDate: string;
+  consentExpiration?: string | null;
+  consentWithdrawnAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
 }

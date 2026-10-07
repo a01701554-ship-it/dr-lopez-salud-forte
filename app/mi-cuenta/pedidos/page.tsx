@@ -11,6 +11,7 @@ import {
 } from '@/lib/academy/student-dashboard-service';
 import Link from 'next/link';
 import { Package, ShoppingBag, ShieldCheck, AlertCircle, RefreshCw } from 'lucide-react';
+import { STORE_ENABLED } from '@/config/site';
 
 export default function MisPedidosPage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -110,16 +111,22 @@ export default function MisPedidosPage() {
               Tus compras de suplementos o programas se mostrarán aquí con su estado de pago y envío.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-sm mx-auto">
-              <Link
-                href="/tienda"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-[46px] px-7 rounded-full bg-obsidian text-white text-xs font-semibold uppercase tracking-wider hover:bg-[#07182A] transition-colors shadow-xs"
-              >
-                <ShoppingBag className="size-4" />
-                <span>Explorar Tienda</span>
-              </Link>
+              {STORE_ENABLED && (
+                <Link
+                  href="/tienda"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-[46px] px-7 rounded-full bg-obsidian text-white text-xs font-semibold uppercase tracking-wider hover:bg-[#07182A] transition-colors shadow-xs"
+                >
+                  <ShoppingBag className="size-4" />
+                  <span>Explorar Tienda</span>
+                </Link>
+              )}
               <Link
                 href="/academia"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-[46px] px-6 rounded-full border border-obsidian/30 text-obsidian text-xs font-semibold uppercase tracking-wider hover:bg-obsidian/5 transition-colors"
+                className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 h-[46px] px-7 rounded-full text-xs font-semibold uppercase tracking-wider transition-colors ${
+                  STORE_ENABLED
+                    ? 'border border-obsidian/30 text-obsidian hover:bg-obsidian/5'
+                    : 'bg-obsidian text-white hover:bg-[#07182A] shadow-xs'
+                }`}
               >
                 <span>Ver Masterclasses</span>
               </Link>

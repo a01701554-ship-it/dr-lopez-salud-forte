@@ -7,6 +7,7 @@ interface AvailabilityCalendarProps {
   loading?: boolean;
   selectedSlotIso?: string;
   onSelectSlot: (slot: TimeSlot) => void;
+  onUnavailableSlot?: (slot: TimeSlot) => void;
   onPrevRange: () => void;
   onNextRange: () => void;
   canGoBack: boolean;
@@ -17,6 +18,7 @@ export function AvailabilityCalendar({
   loading = false,
   selectedSlotIso,
   onSelectSlot,
+  onUnavailableSlot,
   onPrevRange,
   onNextRange,
   canGoBack,
@@ -76,10 +78,16 @@ export function AvailabilityCalendar({
         </div>
       </div>
 
+      <div className="mb-5 flex flex-wrap gap-3 text-[11px] font-semibold uppercase tracking-wider">
+        <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-emerald-700"><span className="size-2 rounded-full bg-emerald-500" />Disponible</span>
+        <span className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-red-700"><span className="size-2 rounded-full bg-red-500" />Reservado</span>
+      </div>
+
       {/* Days Columns */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {days.map((day) => {
           const availableSlots = day.slots.filter((s) => s.available);
+          const reservedSlots = day.slots.filter((s) => !s.available);
 
           return (
             <div
@@ -98,27 +106,31 @@ export function AvailabilityCalendar({
 
               {/* Slots List */}
               <div className="py-3 flex-1">
-                {availableSlots.length === 0 ? (
+                {day.slots.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center py-8 text-center">
                     <Clock className="size-4 text-obsidian/30 mb-1.5" />
                     <span className="text-xs text-obsidian/45 font-medium">Sin disponibilidad</span>
                   </div>
                 ) : (
                   <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-                    {availableSlots.map((slot) => {
+                    {day.slots.map((slot) => {
                       const isSelected = selectedSlotIso === slot.isoString;
                       return (
                         <button
                           key={slot.isoString}
                           type="button"
-                          onClick={() => onSelectSlot(slot)}
+                          onClick={() => slot.available ? onSelectSlot(slot) : onUnavailableSlot?.(slot)}
+                          aria-label={`${slot.time} ${slot.available ? 'disponible' : 'reservado'}`}
                           className={`w-full py-2.5 px-3 rounded-lg text-xs font-semibold tracking-wider transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer ${
                             isSelected
                               ? 'bg-[#0D2235] text-white shadow-sm ring-1 ring-[#0D2235]'
-                              : 'border border-stone/80 bg-stone/[0.12] text-obsidian hover:border-[#0D2235] hover:bg-white'
+                              : slot.available
+                                ? 'border border-emerald-200 bg-emerald-50/70 text-emerald-900 hover:border-emerald-500 hover:bg-emerald-50'
+                                : 'border border-red-200 bg-red-50/80 text-red-800 hover:border-red-400 hover:bg-red-50'
                           }`}
                         >
                           <span>{slot.time} h</span>
+                          <span className="text-[9px] uppercase tracking-wider">{slot.available ? 'Disponible' : 'Reservado'}</span>
                         </button>
                       );
                     })}
@@ -128,8 +140,7 @@ export function AvailabilityCalendar({
 
               <div className="pt-2 border-t border-stone/40 text-center">
                 <span className="text-[10px] uppercase tracking-wider text-obsidian/40">
-                  {availableSlots.length}{' '}
-                  {availableSlots.length === 1 ? 'horario disponible' : 'horarios disponibles'}
+                  {availableSlots.length} disponibles · {reservedSlots.length} reservados
                 </span>
               </div>
             </div>

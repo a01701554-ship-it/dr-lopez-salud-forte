@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { DEFAULT_PRICING_CONFIG, PricingConfig } from '@/config/pricing';
 
-const STORAGE_KEY = 'dr_mauricio_pricing_config_v1';
+const STORAGE_KEY = 'dr_mauricio_pricing_config_v2';
 const PRICING_CHANGE_EVENT = 'dr_mauricio_pricing_updated';
 
 export function getPricingConfig(): PricingConfig {

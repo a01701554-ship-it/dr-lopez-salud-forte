@@ -15,16 +15,16 @@ export default function AboutPage() {
                 Medicina que comienza escuchando.
               </h1>
               <p className="mt-8 text-base leading-[1.8] text-obsidian/75 sm:text-lg">
-                Soy Mauricio Benjamín Galindo López, Médico Cirujano egresado del Tecnológico de Monterrey.
+                Soy Mauricio Benjamín Galindo López, médico cirujano egresado del Tecnológico de Monterrey. Mi formación se ha enriquecido con experiencias internacionales: una rotación de tres meses en cirugía cardiaca en Dortmund, Alemania, y una estancia de dos meses en Bogotá, Colombia, con rotaciones en cirugía plástica y neurocirugía.
               </p>
               <p className="mt-5 text-base leading-[1.8] text-obsidian/70 sm:text-lg">
-                Creo en una medicina que comienza escuchando, continúa explicando y permite que cada persona comprenda mejor las decisiones relacionadas con su salud.
+                Estas experiencias ampliaron mi perspectiva clínica y reafirmaron una convicción: la medicina comienza escuchando, continúa explicando y permite que cada persona comprenda mejor las decisiones relacionadas con su salud.
               </p>
               <p className="mt-5 text-base leading-[1.8] text-obsidian/70 sm:text-lg">
-                A través de la consulta, el contenido educativo y Salud Forte, busco acercar información médica de manera clara, responsable y basada en evidencia.
+                A través de la consulta, el contenido educativo y Salud Forte, busco acercar información médica clara, responsable y basada en evidencia, con una atención humana y una perspectiva internacional.
               </p>
-              <ActionLink href="/consulta" variant="secondary" className="mt-9">
-                Conoce la consulta
+              <ActionLink href="/agendar" variant="premium-schedule" className="mt-9 w-full sm:w-auto">
+                VER DISPONIBILIDAD Y AGENDAR
               </ActionLink>
             </div>
           </div>

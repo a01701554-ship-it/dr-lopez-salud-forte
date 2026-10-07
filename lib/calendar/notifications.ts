@@ -18,6 +18,7 @@
  */
 
 import { siteConfig } from '@/config/site';
+import { getClinicLocation, getLocationLabel } from '@/config/locations';
 import { AppointmentRecord } from './types';
 import {
   CalendarProvider,
@@ -57,17 +58,22 @@ export class BookingNotificationService {
         : '';
       const privacyTitle = `Consulta médica — ${appointment.patient.firstName.trim()} ${lastInitial}`.trim();
 
+      const loc = getClinicLocation(appointment.locationId);
+      const locationText = loc.isOnline
+        ? 'En línea (Telemedicina)'
+        : `${loc.name} - ${loc.address}`;
+
       const eventInput: CalendarEventInput = {
         summary: privacyTitle,
         description: [
           `Consulta médica: ${appointment.consultationTypeTitle}`,
+          `Ubicación / Modalidad: ${locationText}`,
           `Motivo: ${appointment.reasonLabel}`,
           `Código de cita: ${appointment.publicId}`,
           `Paciente: ${appointment.patient.fullName}`,
           `Teléfono: ${appointment.patient.phone}`,
           `Honorarios: ${appointment.feeFormatted}`,
           `Tolerancia: ${siteConfig.bookingSettings.gracePeriodMinutes || 15} minutos`,
-          `Ubicación: ${siteConfig.city}`,
         ].join('\n'),
         start: startTime,
         end: endTime,
@@ -96,6 +102,9 @@ export class BookingNotificationService {
         : '';
       const patientDisplay = `${appointment.patient.firstName.trim()} ${lastInitial}`;
 
+      const loc = getClinicLocation(appointment.locationId);
+      const locationLabel = loc.isOnline ? 'En línea (Telemedicina)' : `${loc.name} (${loc.shortName})`;
+
       const messageText = [
         `*NUEVA CITA MÉDICA RESERVADA*`,
         ``,
@@ -103,7 +112,8 @@ export class BookingNotificationService {
         `*Teléfono:* ${appointment.patient.phone}`,
         `*Fecha:* ${appointment.dateFormatted}`,
         `*Hora:* ${appointment.timeFormatted} h (GMT-6)`,
-        `*Modalidad:* ${appointment.consultationTypeTitle}`,
+        `*Ubicación:* ${locationLabel}`,
+        `*Tipo:* ${appointment.consultationTypeTitle}`,
         `*Motivo:* ${appointment.reasonLabel}`,
         `*Honorarios:* ${appointment.feeFormatted}`,
         `*Código:* ${appointment.publicId}`,
@@ -139,16 +149,13 @@ export class BookingNotificationService {
     try {
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
       const manageUrl = `${origin}/cita/${appointment.publicId}?token=${appointment.token}`;
-      const isOnline = appointment.consultationTypeId === 'online' || appointment.consultationTypeTitle.toLowerCase().includes('línea') || appointment.consultationTypeTitle.toLowerCase().includes('linea');
-      const isHome = appointment.consultationTypeId === 'home-visit';
+      const loc = getClinicLocation(appointment.locationId);
 
       let locationText = '';
-      if (isOnline) {
+      if (loc.isOnline) {
         locationText = `MODALIDAD\nConsulta médica en línea (Telemedicina)`;
-      } else if (isHome) {
-        locationText = `LUGAR\nDomicilio particular en Querétaro\n\nMODALIDAD\nConsulta médica a domicilio`;
       } else {
-        locationText = `LUGAR\nConsultorio Médico · Santiago de Querétaro, Qro., México\n\nMODALIDAD\nPresencial en consultorio`;
+        locationText = `LUGAR\n${loc.name}\n${loc.address}\n\nMODALIDAD\nPresencial`;
       }
 
       const messageText = [

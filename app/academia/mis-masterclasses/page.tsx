@@ -55,8 +55,29 @@ export default function MisMasterclassesPage() {
       }
     }
 
+    const handleFocus = () => {
+      if (user?.id) {
+        loadData(user.id);
+      }
+    };
+
+    const handleCustomProgress = () => {
+      if (user?.id) {
+        loadData(user.id);
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('visibilitychange', handleFocus);
+    window.addEventListener('storage', handleFocus);
+    window.addEventListener('salud_forte_progress_updated', handleCustomProgress);
+
     return () => {
       isMounted = false;
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('visibilitychange', handleFocus);
+      window.removeEventListener('storage', handleFocus);
+      window.removeEventListener('salud_forte_progress_updated', handleCustomProgress);
     };
   }, [user, authLoading, loadData]);
 
@@ -206,16 +227,25 @@ export default function MisMasterclassesPage() {
                   const course = ent.masterclass;
                   if (!course) return null;
 
-                  const mcLessons = lessons.filter((l) => l.masterclass_id === course.id);
-                  const mcProgress = progress.filter((p) =>
-                    mcLessons.some((l) => l.id === p.lesson_id)
+                  const mcLessons = lessons.filter(
+                    (l) =>
+                      l.masterclass_id === course.id ||
+                      l.masterclass_id === ent.masterclass_id ||
+                      (course.slug && (l.masterclass_id === course.slug || l.slug?.startsWith(course.slug)))
                   );
 
+                  const isLessonCompleted = (l: (typeof mcLessons)[0]) => {
+                    const p = progress.find(
+                      (prog) =>
+                        prog.lesson_id === l.id ||
+                        prog.lesson_id === l.slug ||
+                        (l.slug && prog.lesson_id?.includes(l.slug))
+                    );
+                    return p?.completed === true || p?.progress_percent === 100;
+                  };
+
                   const totalLessonsCount = mcLessons.length;
-                  const completedCount = mcLessons.filter((l) => {
-                    const p = mcProgress.find((prog) => prog.lesson_id === l.id);
-                    return p?.completed || p?.progress_percent === 100;
-                  }).length;
+                  const completedCount = mcLessons.filter(isLessonCompleted).length;
 
                   const progressPercent =
                     totalLessonsCount > 0
@@ -224,13 +254,15 @@ export default function MisMasterclassesPage() {
 
                   const isComplete = totalLessonsCount > 0 && completedCount === totalLessonsCount;
 
-                  const inProgressLesson = mcProgress
-                    .filter((p) => p.progress_percent > 0)
+                  const inProgressLesson = progress
+                    .filter((p) => p.progress_percent > 0 && mcLessons.some((l) => l.id === p.lesson_id || l.slug === p.lesson_id))
                     .sort((a, b) => new Date(b.last_watched_at).getTime() - new Date(a.last_watched_at).getTime())[0];
 
                   const targetLesson =
-                    mcLessons.find((item) => item.id === inProgressLesson?.lesson_id) || mcLessons[0];
-                  const targetLessonSlug = targetLesson?.slug || targetLesson?.id || 'inicio';
+                    mcLessons.find((item) => item.id === inProgressLesson?.lesson_id || item.slug === inProgressLesson?.lesson_id) || mcLessons[0];
+                  const playUrl = targetLesson?.slug
+                    ? `/academia/${course.slug}/leccion/${targetLesson.slug}`
+                    : `/academia/${course.slug}`;
 
                   return (
                     <div
@@ -239,25 +271,27 @@ export default function MisMasterclassesPage() {
                     >
                       <div>
                         {/* Course Image */}
-                        <div className="aspect-16/10 rounded-xl overflow-hidden mb-4 bg-[#0D2235] relative">
+                        <Link href={playUrl} className="block aspect-16/10 rounded-xl overflow-hidden mb-4 bg-[#0D2235] relative group/img">
                           <img
                             src={course.cover_image || '/images/course-default.jpg'}
                             alt={course.title}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300"
                             referrerPolicy="no-referrer"
                           />
                           <div className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-md bg-[#0D2235]/85 backdrop-blur-md text-white text-[10px] font-semibold uppercase tracking-wider">
                             {course.category || 'Educación Médica'}
                           </div>
-                          <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md bg-emerald-600/90 text-white text-[10px] font-semibold flex items-center gap-1 shadow-xs">
+                          <div className="absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-md bg-emerald-600/90 text-white text-[10px] font-semibold flex items-center gap-1 shadow-xs">
                             <ShieldCheck className="size-3" />
                             <span>Acceso Activo</span>
                           </div>
-                        </div>
+                        </Link>
 
                         {/* Title & Subtitle */}
                         <h3 className="font-serif text-lg text-obsidian font-bold leading-snug mb-1.5 line-clamp-2">
-                          {course.title}
+                          <Link href={playUrl} className="hover:text-champagne transition-colors">
+                            {course.title}
+                          </Link>
                         </h3>
                         <p className="text-xs text-obsidian/65 line-clamp-2 mb-4 leading-relaxed">
                           {course.subtitle || course.short_description || 'Impartido por el Dr. Mauricio Benjamín Galindo López.'}
@@ -292,7 +326,7 @@ export default function MisMasterclassesPage() {
 
                       {/* Action CTA */}
                       <Link
-                        href={`/aprender/${course.slug}/${targetLessonSlug}`}
+                        href={playUrl}
                         className="w-full py-2.5 px-4 rounded-xl bg-obsidian text-white text-xs font-semibold flex items-center justify-center gap-2 hover:bg-[#07182A] transition-all shadow-xs"
                       >
                         <Play className="size-3.5 fill-white text-white" />

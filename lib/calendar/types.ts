@@ -96,6 +96,10 @@ export interface AppointmentRecord {
   status: 'confirmed' | 'rescheduled' | 'cancelled';
   consultationTypeId: ConsultationTypeId;
   consultationTypeTitle: string;
+  locationId?: 'jilotepec' | 'queretaro' | 'telemedicina';
+  locationName?: string;
+  addressSnapshot?: string | null;
+  consultationMode?: 'in_person' | 'online';
   reasonId: string;
   reasonLabel: string;
   durationMinutes: number;

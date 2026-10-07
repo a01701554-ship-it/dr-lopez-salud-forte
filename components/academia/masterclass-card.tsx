@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Course } from '@/lib/academy/types';
-import { Clock, BookOpen, User, CheckCircle2, ArrowRight, ShoppingBag, ShieldAlert, GraduationCap } from 'lucide-react';
-import { useCart } from '@/lib/shopify/cart-context';
+import { Clock, BookOpen, User, CheckCircle2, ArrowRight, ShoppingBag, GraduationCap, Loader2 } from 'lucide-react';
+import { useAuth } from '@/lib/auth/auth-context';
+import { getMasterclassCartUrl } from '@/lib/academy/commerce';
 
 interface MasterclassCardProps {
   key?: string;
@@ -11,12 +12,51 @@ interface MasterclassCardProps {
   hasAccess?: boolean;
 }
 
-export function MasterclassCard({ course, hasAccess = false }: MasterclassCardProps) {
-  const { addItem } = useCart();
+export function MasterclassCard({ course, hasAccess: initialHasAccess = false }: MasterclassCardProps) {
+  const { isAuthenticated, isLoading: authLoading, fetchWithAuth } = useAuth();
   const [imageError, setImageError] = useState(false);
+  const [enrolling, setEnrolling] = useState(false);
+  const [hasAccess, setHasAccess] = useState(initialHasAccess);
+
+  useEffect(() => {
+    setHasAccess(initialHasAccess);
+  }, [initialHasAccess]);
 
   const isComingSoon = course.launchStatus === 'coming_soon';
   const isFree = course.accessType === 'free' || course.price === 0;
+  const purchaseUrl = getMasterclassCartUrl(course.slug);
+
+  const handleEnrollClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (enrolling) return;
+
+    if (!isAuthenticated) {
+      window.location.href = `/cuenta/iniciar-sesion?redirect=${encodeURIComponent(`/academia/${course.slug}?autoEnroll=true`)}`;
+      return;
+    }
+
+    try {
+      setEnrolling(true);
+      const res = await fetchWithAuth(`/api/academia/courses/${course.slug}/enroll`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setHasAccess(true);
+        if (data.firstLessonUrl) {
+          window.location.href = data.firstLessonUrl;
+        } else {
+          window.location.href = `/academia/${course.slug}`;
+        }
+      } else {
+        alert(data.error || 'No fue posible completar la inscripción.');
+      }
+    } catch {
+      alert('Error de conexión al inscribirte. Por favor, intenta de nuevo.');
+    } finally {
+      setEnrolling(false);
+    }
+  };
 
   return (
     <article className="group flex flex-col justify-between h-full bg-white rounded-[20px] border border-[#B39A6A]/25 overflow-hidden shadow-xs hover:border-[#B39A6A]/55 hover:shadow-[0_16px_36px_rgba(17,24,32,0.08)] hover:-translate-y-1 transition-all duration-300 w-full max-w-[390px] md:max-w-none mx-auto">
@@ -109,7 +149,7 @@ export function MasterclassCard({ course, hasAccess = false }: MasterclassCardPr
         <div className="flex items-baseline justify-between mb-4">
           <div>
             <div className="text-[11px] uppercase tracking-wider text-obsidian/50 font-semibold">
-              {isFree ? 'Acceso educativo' : 'Inversión única'}
+              {isFree ? 'ACCESO EDUCATIVO' : 'INVERSIÓN ÚNICA'}
             </div>
             <div className="flex items-baseline gap-2 mt-0.5">
               {isFree ? (
@@ -131,14 +171,14 @@ export function MasterclassCard({ course, hasAccess = false }: MasterclassCardPr
             </div>
           </div>
           <div className="text-right">
-            <span className="text-[11px] text-emerald-800 font-medium bg-emerald-50 px-2 py-0.5 rounded-full">
-              {isFree ? 'Inscripción abierta' : course.accessType === 'lifetime' ? 'Acceso vitalicio' : 'Acceso limitado'}
+            <span className="text-[11px] text-emerald-800 font-medium bg-emerald-50 px-2.5 py-1 rounded-full">
+              {isFree ? 'Inscripción abierta' : 'Acceso vitalicio'}
             </span>
           </div>
         </div>
 
-        {/* CTA Buttons - min height 46px */}
-        <div className="flex gap-2.5">
+        {/* CTA Buttons - exact match to user specifications */}
+        <div className="flex items-center gap-2 sm:gap-2.5">
           {hasAccess ? (
             <a
               href={`/academia/${course.slug}/leccion/${course.modules?.[0]?.lessons?.[0]?.slug || 'inicio'}`}
@@ -150,52 +190,50 @@ export function MasterclassCard({ course, hasAccess = false }: MasterclassCardPr
           ) : isFree ? (
             <>
               <a
-                href={`/academia/${course.slug}`}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 h-[46px] rounded-full border border-obsidian text-obsidian text-xs font-semibold uppercase tracking-wider hover:bg-obsidian hover:text-white transition-colors"
-              >
-                <span>Temario</span>
-              </a>
-              <a
-                href={`/cuenta/registro?redirect=/academia/${course.slug}`}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 h-[46px] rounded-full bg-emerald-800 text-white text-xs font-semibold uppercase tracking-wider hover:bg-emerald-900 transition-colors shadow-xs"
-              >
-                <GraduationCap className="size-4" />
-                <span>Inscribirme Gratis</span>
-              </a>
-            </>
-          ) : isComingSoon ? (
-            <>
-              <a
-                href={`/academia/${course.slug}`}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 h-[46px] rounded-full bg-obsidian text-white text-xs font-semibold uppercase tracking-wider hover:bg-[#07182A] transition-colors shadow-xs"
+                href={`/academia/${course.slug}#temario`}
+                className="flex-1 inline-flex items-center justify-center h-[46px] rounded-full border border-obsidian/20 bg-white text-obsidian text-xs font-semibold uppercase tracking-wider hover:bg-obsidian/5 transition-colors text-center px-2"
               >
                 <span>Ver temario</span>
-                <ArrowRight className="size-3.5" />
               </a>
               <button
-                onClick={() => addItem(course)}
-                className="px-4 h-[46px] rounded-full border border-obsidian/30 text-obsidian hover:bg-obsidian/5 transition-colors flex items-center justify-center"
-                title="Añadir a la bolsa"
-                aria-label={`Añadir ${course.title} a la bolsa`}
+                type="button"
+                onClick={handleEnrollClick}
+                disabled={enrolling}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 h-[46px] rounded-full bg-emerald-800 text-white text-xs font-semibold uppercase tracking-wider hover:bg-emerald-900 disabled:opacity-75 transition-colors shadow-xs cursor-pointer text-center px-2"
               >
-                <ShoppingBag className="size-4" />
+                {enrolling ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    <span>Inscribiendo...</span>
+                  </>
+                ) : (
+                  <>
+                    <GraduationCap className="size-4 shrink-0" />
+                    <span>Inscribirme gratis</span>
+                  </>
+                )}
               </button>
             </>
           ) : (
             <>
               <a
-                href={`/academia/${course.slug}`}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 h-[46px] rounded-full border border-obsidian text-obsidian text-xs font-semibold uppercase tracking-wider hover:bg-obsidian hover:text-white transition-colors"
+                href={`/academia/${course.slug}#temario`}
+                className="flex-1 inline-flex items-center justify-center h-[46px] rounded-full border border-obsidian/20 bg-white text-obsidian text-xs font-semibold uppercase tracking-wider hover:bg-obsidian/5 transition-colors text-center px-2"
               >
-                <span>Temario</span>
+                <span>Ver temario</span>
               </a>
-              <button
-                onClick={() => addItem(course)}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 h-[46px] rounded-full bg-obsidian text-white text-xs font-semibold uppercase tracking-wider hover:bg-[#07182A] transition-colors shadow-xs"
+              <a
+                href={purchaseUrl || `/academia/${course.slug}`}
+                onClick={(event) => {
+                  if (!purchaseUrl) return;
+                  event.preventDefault();
+                  window.location.assign(purchaseUrl);
+                }}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 h-[46px] rounded-full bg-obsidian text-white text-xs font-semibold uppercase tracking-wider hover:bg-[#07182A] transition-colors shadow-xs cursor-pointer text-center px-2"
               >
-                <ShoppingBag className="size-3.5" />
-                <span>Comprar</span>
-              </button>
+                <ShoppingBag className="size-4 shrink-0" />
+                <span>Comprar ahora</span>
+              </a>
             </>
           )}
         </div>

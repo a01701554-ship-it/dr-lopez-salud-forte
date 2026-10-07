@@ -14,7 +14,14 @@ import {
   ArrowRight,
   MessageCircle,
   Bot,
+  MapPin,
+  ExternalLink,
 } from 'lucide-react';
+import {
+  ClinicLocationId,
+  CLINIC_LOCATION_OPTIONS,
+  getClinicLocation,
+} from '@/config/locations';
 import {
   appointmentService,
   notificationService,
@@ -67,8 +74,10 @@ export function MedicalContactModal({ id = 'medical-contact-modal', isOpen, onCl
   const [selectedTime, setSelectedTime] = useState<string>('10:00');
   const [patientName, setPatientName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [modality, setModality] = useState<'Presencial en consultorio' | 'En línea (Telemedicina)'>('Presencial en consultorio');
+  const [selectedLocationId, setSelectedLocationId] = useState<ClinicLocationId>('queretaro');
   const [notes, setNotes] = useState('');
+
+  const selectedLocation = getClinicLocation(selectedLocationId);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
@@ -79,9 +88,13 @@ export function MedicalContactModal({ id = 'medical-contact-modal', isOpen, onCl
     setMounted(true);
     if (isOpen && typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      const tipo = params.get('tipo') || params.get('type') || params.get('modalidad');
+      const tipo = params.get('tipo') || params.get('type') || params.get('modalidad') || params.get('ubicacion');
       if (tipo === 'online' || tipo === 'linea' || tipo === 'telemedicina' || tipo === 'consulta-linea') {
-        setModality('En línea (Telemedicina)');
+        setSelectedLocationId('telemedicina');
+      } else if (tipo === 'jilotepec') {
+        setSelectedLocationId('jilotepec');
+      } else if (tipo === 'queretaro') {
+        setSelectedLocationId('queretaro');
       }
     }
   }, [isOpen]);
@@ -237,13 +250,17 @@ export function MedicalContactModal({ id = 'medical-contact-modal', isOpen, onCl
       end.setMinutes(end.getMinutes() + 50);
 
       const slotId = `slot-${selectedDate.getFullYear()}-${selectedDate.getMonth() + 1}-${selectedDate.getDate()}-${selectedTime.replace(':', '')}`;
+      const loc = getClinicLocation(selectedLocationId);
       const slot: TimeSlot = {
         id: slotId,
         start: start.toISOString(),
         end: end.toISOString(),
         formattedDate: formattedSelectedDate,
         formattedTime: `${selectedTime} hrs`,
-        modality: modality.includes('En línea') ? 'en-linea' : 'presencial',
+        modality: loc.isOnline ? 'en-linea' : 'presencial',
+        locationId: selectedLocationId,
+        locationName: loc.name,
+        addressSnapshot: loc.address,
       };
 
       const idempotencyKey = `booking-${Date.now()}-${phoneNumber.replace(/[^0-9]/g, '')}`;
@@ -258,7 +275,7 @@ export function MedicalContactModal({ id = 'medical-contact-modal', isOpen, onCl
         idempotencyKey,
       });
 
-      // Notify Dr. Mauricio Galindo via WhatsApp at +524421275952
+      // Notify Dr. Mauricio Galindo via WhatsApp
       await notificationService.notifyDoctorNewAppointment(record);
 
       setConfirmedAppointment(record);
@@ -281,14 +298,16 @@ export function MedicalContactModal({ id = 'medical-contact-modal', isOpen, onCl
     const startIso = `${startYear}${startMonth}${startDay}T${hour}${min}00`;
     const endIso = `${startYear}${startMonth}${startDay}T${endHour}${min}00`;
 
+    const loc = getClinicLocation(selectedLocationId);
+
     const title = encodeURIComponent(
       `Consulta Médica: Dr. Mauricio Benjamín Galindo López - ${patientName}`,
     );
     const details = encodeURIComponent(
-      `Consulta médica con el Dr. Mauricio Benjamín Galindo López (Cédula 15851723).\nPaciente: ${patientName}\nCódigo: ${confirmedAppointment.id}\nModalidad: ${modality}`,
+      `Consulta médica con el Dr. Mauricio Benjamín Galindo López (Cédula 15851723).\nPaciente: ${patientName}\nCódigo: ${confirmedAppointment.id}\nUbicación: ${loc.name}\nDirección: ${loc.address}`,
     );
     const location = encodeURIComponent(
-      modality.includes('En línea') ? 'Videoconsulta confidencial' : 'Consultorio Médico',
+      loc.isOnline ? 'Videoconsulta confidencial' : `${loc.name} - ${loc.address}`,
     );
 
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startIso}/${endIso}&details=${details}&location=${location}`;
@@ -296,6 +315,7 @@ export function MedicalContactModal({ id = 'medical-contact-modal', isOpen, onCl
 
   const downloadIcs = () => {
     if (!confirmedAppointment) return;
+    const loc = getClinicLocation(selectedLocationId);
     const icsContent = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
@@ -303,7 +323,7 @@ export function MedicalContactModal({ id = 'medical-contact-modal', isOpen, onCl
       'BEGIN:VEVENT',
       `SUMMARY:Consulta médica con Dr. Mauricio Galindo`,
       `DESCRIPTION:Dr. Mauricio Benjamín Galindo López (Cédula 15851723) - Paciente: ${patientName} - Código: ${confirmedAppointment.id}`,
-      `LOCATION:${modality}`,
+      `LOCATION:${loc.name} - ${loc.address}`,
       'STATUS:CONFIRMED',
       'END:VEVENT',
       'END:VCALENDAR',
@@ -652,18 +672,48 @@ export function MedicalContactModal({ id = 'medical-contact-modal', isOpen, onCl
 
                         <div>
                           <label className="block text-[11px] font-semibold uppercase tracking-wider text-obsidian/80">
-                            Modalidad de consulta
+                            Ubicación o Modalidad *
                           </label>
                           <select
-                            value={modality}
-                            onChange={(e) => setModality(e.target.value as any)}
+                            value={selectedLocationId}
+                            onChange={(e) => setSelectedLocationId(e.target.value as ClinicLocationId)}
                             className="mt-1.5 w-full rounded-lg border border-stone bg-white px-3.5 py-2.5 text-xs text-obsidian focus:border-champagne focus:outline-none focus:ring-1 focus:ring-champagne cursor-pointer"
                           >
-                            <option value="Presencial en consultorio">Presencial (Querétaro)</option>
-                            <option value="En línea (Telemedicina)">En línea (Telemedicina)</option>
+                            {CLINIC_LOCATION_OPTIONS.map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))}
                           </select>
                         </div>
                       </div>
+
+                      {/* Location Address & Details Preview Card */}
+                      {selectedLocation && (
+                        <div className="rounded-lg border border-stone/80 bg-stone/20 p-3 text-xs space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-obsidian flex items-center gap-1.5 text-xs">
+                              <MapPin className="size-3.5 text-[#B39A6A]" />
+                              {selectedLocation.name}
+                            </span>
+                            {!selectedLocation.isOnline && selectedLocation.googleMapsUrl && (
+                              <a
+                                href={selectedLocation.googleMapsUrl}
+                                target="_blank"
+                                rel="noreferrer noopener"
+                                className="text-[11px] font-medium text-[#B39A6A] hover:underline inline-flex items-center gap-0.5"
+                              >
+                                Ver mapa <ExternalLink className="size-3" />
+                              </a>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-obsidian/75 leading-relaxed">
+                            {selectedLocation.isOnline
+                              ? selectedLocation.onlineInstructions
+                              : selectedLocation.address}
+                          </p>
+                        </div>
+                      )}
 
                       <div>
                         <label className="block text-[11px] font-semibold uppercase tracking-wider text-obsidian/80">
@@ -726,8 +776,8 @@ export function MedicalContactModal({ id = 'medical-contact-modal', isOpen, onCl
                       <span className="font-semibold text-obsidian">{selectedTime} hrs</span>
                     </div>
                     <div className="flex justify-between border-b border-stone/30 pb-2">
-                      <span className="text-obsidian/60">Modalidad:</span>
-                      <span className="font-semibold text-obsidian">{modality}</span>
+                      <span className="text-obsidian/60">Ubicación:</span>
+                      <span className="font-semibold text-obsidian">{selectedLocation ? selectedLocation.name : 'Consultorio'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-obsidian/60">Código:</span>

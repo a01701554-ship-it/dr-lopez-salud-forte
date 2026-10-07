@@ -147,7 +147,7 @@ export function BookingPatientForm({
             >
               Aviso de Privacidad
             </a>
-            . Confirmo que esta valoración es de medicina general y preventiva (no urgencias vitales).
+            . Consiento expresamente el tratamiento de los datos de salud que proporcione para gestionar y atender esta consulta. Confirmo que esta valoración es de medicina general y preventiva (no urgencias vitales).
           </span>
         </label>
         {errors.privacyConsent && (

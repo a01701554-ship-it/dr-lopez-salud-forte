@@ -59,7 +59,10 @@ export const siteConfig = {
   },
 } as const;
 
-export const navigation = [
+export { STORE_ENABLED } from './store';
+import { STORE_ENABLED } from './store';
+
+export const allNavigation = [
   { label: 'Sobre mí', href: '/sobre-mi' },
   { label: 'Consulta', href: '/consulta' },
   { label: 'Salud Forte', href: '/podcast' },
@@ -67,5 +70,9 @@ export const navigation = [
   { label: 'Academia', href: '/academia' },
   { label: 'Tienda', href: '/tienda' },
 ] as const;
+
+export const navigation = STORE_ENABLED
+  ? (allNavigation as unknown as { label: string; href: string }[])
+  : (allNavigation.filter((item) => item.href !== '/tienda') as unknown as { label: string; href: string }[]);
 
 export type SiteConfig = typeof siteConfig;

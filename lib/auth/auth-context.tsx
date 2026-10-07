@@ -14,7 +14,14 @@ export type Profile = {
   phone?: string;
   email_verified: boolean;
   marketing_consent?: boolean;
+  marketing_consent_at?: string;
+  marketing_opted_out_at?: string;
+  marketing_consent_source?: string;
+  marketing_consent_version?: string;
+  privacy_policy_version?: string;
   terms_accepted_at?: string;
+  created_at?: string;
+  last_login_at?: string;
 };
 
 export type RegisterData = {
@@ -38,6 +45,7 @@ type AuthContextType = {
   sessionToken: string | null;
   signIn: (email: string, password: string) => Promise<{ success: boolean; user?: Profile; error?: string; isUnconfirmed?: boolean }>;
   signUp: (data: RegisterData) => Promise<{ success: boolean; message?: string; error?: string }>;
+  updateMarketingPreferences: (consent: boolean) => Promise<{ success: boolean; message?: string; error?: string }>;
   verifyEmail: (token?: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   resendVerification: (email: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   requestPasswordReset: (email: string) => Promise<{ success: boolean; message?: string; error?: string }>;
@@ -59,6 +67,7 @@ const AuthContext = createContext<AuthContextType>({
   sessionToken: null,
   signIn: async () => ({ success: false, error: 'No inicializado' }),
   signUp: async () => ({ success: false, error: 'No inicializado' }),
+  updateMarketingPreferences: async () => ({ success: false, error: 'No inicializado' }),
   verifyEmail: async () => ({ success: false, error: 'No inicializado' }),
   resendVerification: async () => ({ success: false, error: 'No inicializado' }),
   requestPasswordReset: async () => ({ success: false, error: 'No inicializado' }),
@@ -119,7 +128,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             phone: dbProfile.phone || meta.phone,
             email_verified: !!authUser.email_confirmed_at,
             marketing_consent: dbProfile.marketing_consent ?? meta.marketing_consent ?? false,
+            marketing_consent_at: dbProfile.marketing_consent_at || meta.marketing_consent_at,
+            marketing_opted_out_at: dbProfile.marketing_opted_out_at || meta.marketing_opted_out_at,
+            marketing_consent_source: dbProfile.marketing_consent_source || meta.marketing_consent_source,
+            marketing_consent_version: dbProfile.marketing_consent_version || meta.marketing_consent_version,
+            privacy_policy_version: dbProfile.privacy_policy_version || meta.privacy_policy_version,
             terms_accepted_at: dbProfile.terms_accepted_at || meta.terms_accepted_at,
+            created_at: dbProfile.created_at || authUser.created_at,
+            last_login_at: authUser.last_sign_in_at || dbProfile.updated_at,
           };
         }
       } catch (err) {
@@ -137,18 +153,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       role: 'CUSTOMER',
       email_verified: !!authUser.email_confirmed_at,
       marketing_consent: !!meta.marketing_consent,
+      marketing_consent_at: meta.marketing_consent_at,
+      marketing_opted_out_at: meta.marketing_opted_out_at,
+      marketing_consent_source: meta.marketing_consent_source,
+      marketing_consent_version: meta.marketing_consent_version,
+      privacy_policy_version: meta.privacy_policy_version,
       terms_accepted_at: meta.terms_accepted_at,
+      created_at: authUser.created_at,
+      last_login_at: authUser.last_sign_in_at,
     };
   }, []);
 
   const syncSession = useCallback(async (session: Session | null) => {
     if (session?.user) {
-      setSessionToken(session.access_token);
+      setSessionToken((prev) => (prev === session.access_token ? prev : session.access_token));
       const userProfile = await fetchProfile(session.user);
-      setProfile(userProfile);
+      setProfile((prev) => {
+        if (!prev) return userProfile;
+        if (
+          prev.id === userProfile.id &&
+          prev.email === userProfile.email &&
+          prev.role === userProfile.role &&
+          prev.first_name === userProfile.first_name &&
+          prev.last_name === userProfile.last_name &&
+          prev.email_verified === userProfile.email_verified &&
+          prev.marketing_consent === userProfile.marketing_consent
+        ) {
+          return prev;
+        }
+        return userProfile;
+      });
+
+      // Synchronize with server-side store to guarantee student directory is always comprehensive
+      if (session.access_token) {
+        fetch('/api/auth/sync', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            profile: userProfile,
+            email_confirmed_at: session.user.email_confirmed_at,
+            last_sign_in_at: session.user.last_sign_in_at,
+          }),
+        }).catch(() => {});
+      }
     } else {
-      setSessionToken(null);
-      setProfile(null);
+      setSessionToken((prev) => (prev === null ? null : null));
+      setProfile((prev) => (prev === null ? null : null));
     }
     setIsLoading(false);
   }, [fetchProfile]);
@@ -243,7 +296,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const normalizedEmail = data.email.toLowerCase().trim();
       const fullName = `${data.first_name.trim()} ${data.last_name.trim()}`;
-      const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/cuenta/verificar-correo` : undefined;
+      const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback?type=signup` : undefined;
 
       const { data: authData, error } = await supabase.auth.signUp({
         email: normalizedEmail,
@@ -257,6 +310,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             phone: data.phone?.trim() || '',
             terms_accepted_at: new Date().toISOString(),
             marketing_consent: !!data.marketing_consent,
+            marketing_consent_at: data.marketing_consent ? new Date().toISOString() : null,
+            marketing_consent_source: 'registration_form',
+            marketing_consent_version: 'v1.0',
+            privacy_policy_version: 'v1.0',
           },
         },
       });
@@ -268,6 +325,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!authData.user) {
         return { success: false, error: 'No se pudo crear el registro de usuario.' };
       }
+
+      // Sync registered user to backend store
+      fetch('/api/auth/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profile: {
+            id: authData.user.id,
+            full_name: fullName,
+            first_name: data.first_name.trim(),
+            last_name: data.last_name.trim(),
+            email: normalizedEmail,
+            phone: data.phone?.trim() || '',
+            role: 'CUSTOMER',
+            email_verified: false,
+            marketing_consent: !!data.marketing_consent,
+            marketing_consent_at: data.marketing_consent ? new Date().toISOString() : undefined,
+            marketing_consent_source: 'registration_form',
+            marketing_consent_version: 'v1.0',
+            privacy_policy_version: 'v1.0',
+            terms_accepted_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+          },
+          email_confirmed_at: null,
+        }),
+      }).catch(() => {});
 
       return {
         success: true,
@@ -323,7 +406,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const normalizedEmail = email.toLowerCase().trim();
-      const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/cuenta/verificar-correo` : undefined;
+      const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback?type=signup` : undefined;
 
       const { error } = await supabase.auth.resend({
         type: 'signup',
@@ -353,7 +436,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const normalizedEmail = email.toLowerCase().trim();
-      const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/cuenta/reset-password` : undefined;
+      const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback?type=recovery` : undefined;
 
       const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
         redirectTo,
@@ -416,6 +499,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateMarketingPreferences = async (consent: boolean): Promise<{ success: boolean; message?: string; error?: string }> => {
+    if (!profile) return { success: false, error: 'Usuario no autenticado' };
+    const now = new Date().toISOString();
+    try {
+      if (isSupabaseConfigured && supabase) {
+        const updatePayload: Record<string, any> = {
+          marketing_consent: consent,
+          updated_at: now,
+        };
+        if (consent) {
+          updatePayload.marketing_consent_at = now;
+          updatePayload.marketing_opted_out_at = null;
+          updatePayload.marketing_consent_source = 'user_profile_preferences';
+          updatePayload.marketing_consent_version = 'v1.0';
+          updatePayload.privacy_policy_version = 'v1.0';
+        } else {
+          updatePayload.marketing_opted_out_at = now;
+        }
+
+        await supabase.from('profiles').update(updatePayload).eq('id', profile.id);
+      }
+
+      // Notify backend server
+      if (sessionToken) {
+        await fetch('/api/account/marketing-preferences', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionToken}`,
+          },
+          body: JSON.stringify({
+            marketing_consent: consent,
+            source: 'user_profile_preferences',
+          }),
+        }).catch(() => {});
+      }
+
+      setProfile((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          marketing_consent: consent,
+          marketing_consent_at: consent ? now : prev.marketing_consent_at,
+          marketing_opted_out_at: !consent ? now : prev.marketing_opted_out_at,
+          marketing_consent_source: consent ? 'user_profile_preferences' : prev.marketing_consent_source,
+        };
+      });
+
+      return {
+        success: true,
+        message: consent
+          ? 'Has activado voluntariamente la recepción de novedades médicas y promociones de Salud Forte.'
+          : 'Has dejado de recibir correos informativos y promociones. Continuarás recibiendo comunicaciones necesarias relacionadas con tu cuenta, compras y cursos.',
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        error: err.message || 'Error al actualizar las preferencias de comunicación.',
+      };
+    }
+  };
+
   const refreshSession = async () => {
     if (isSupabaseConfigured) {
       const { data: { session } } = await supabase.auth.getSession();
@@ -447,6 +592,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         sessionToken,
         signIn,
         signUp,
+        updateMarketingPreferences,
         verifyEmail,
         resendVerification,
         requestPasswordReset,

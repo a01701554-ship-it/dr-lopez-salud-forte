@@ -103,6 +103,15 @@ export default function LoginPage() {
     }
   };
 
+  if (isLoading || isAuthenticated) {
+    return (
+      <div className="bg-ivory min-h-[calc(100dvh-5rem)] flex flex-col items-center justify-center p-6 text-center">
+        <div className="size-9 border-3 border-champagne border-t-transparent rounded-full animate-spin mb-3" />
+        <p className="font-serif text-base text-obsidian font-medium">Verificando sesión...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-ivory min-h-[calc(100dvh-5rem)] flex items-center justify-center p-4 sm:p-6 md:p-8 py-12">
       <div className="max-w-md w-full bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-[#B39A6A]/20">

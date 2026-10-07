@@ -62,34 +62,40 @@ export function InstructorAvatar({ size = 'compact', className = '' }: Instructo
   // Variant "featured" para la sección grande "Instructor Oficial"
   return (
     <div
-      className={`relative shrink-0 w-[180px] sm:w-[210px] md:w-[260px] aspect-[4/5] sm:aspect-square rounded-2xl overflow-hidden border border-[#B39A6A]/30 bg-[#0D2235] shadow-xs select-none ${className}`}
+      className={`relative shrink-0 w-[180px] sm:w-[210px] md:w-[250px] flex items-end justify-center select-none bg-transparent border-0 outline-0 shadow-none ${className}`}
     >
       {!hasError ? (
-        <picture className="w-full h-full">
-          <source srcSet={OFFICIAL_INSTRUCTOR.profileImage} type="image/webp" />
-          <source srcSet={OFFICIAL_INSTRUCTOR.profileImageOriginal} type="image/png" />
+        <picture className="w-full h-auto block">
+          <source srcSet="/images/doctor-trayectoria-cutout.webp" type="image/webp" />
+          <source srcSet="/images/doctor-trayectoria-cutout.png" type="image/png" />
           <img
             data-image-id="IMG-304-DR-MAURICIO-GALINDO-INSTRUCTOR"
-            src={OFFICIAL_INSTRUCTOR.profileImageOriginal}
+            src="/images/doctor-trayectoria-cutout.png"
             alt={OFFICIAL_INSTRUCTOR.profileImageAlt}
-            width={OFFICIAL_INSTRUCTOR.profileImageWidth}
-            height={OFFICIAL_INSTRUCTOR.profileImageHeight}
+            width={1086}
+            height={1448}
             loading="lazy"
             referrerPolicy="no-referrer"
             onError={handleError}
-            className="w-full h-full object-cover object-[center_20%] transition-transform duration-500 hover:scale-102"
+            className="block w-full h-auto aspect-[1086/1448] object-contain object-bottom mx-auto border-0 outline-0 shadow-none"
+            style={{
+              WebkitMaskImage:
+                'linear-gradient(to bottom, #000 0%, #000 82%, rgba(0, 0, 0, 0.95) 88%, rgba(0, 0, 0, 0.6) 94%, transparent 100%)',
+              maskImage:
+                'linear-gradient(to bottom, #000 0%, #000 82%, rgba(0, 0, 0, 0.95) 88%, rgba(0, 0, 0, 0.6) 94%, transparent 100%)',
+            }}
           />
         </picture>
       ) : (
         <div
-          className="w-full h-full flex flex-col items-center justify-center p-6 bg-[#0D2235] text-center border border-[#B39A6A]/30"
+          className="w-full h-full min-h-[220px] flex flex-col items-center justify-center p-6 bg-[#FAF8F5] text-center rounded-2xl border border-[#B39A6A]/20"
           aria-label={OFFICIAL_INSTRUCTOR.profileImageAlt}
         >
           <div className="size-2.5 rounded-full bg-[#B39A6A] mb-3" />
-          <span className="font-serif text-2xl font-medium tracking-widest text-[#F5F3EE]">
+          <span className="font-serif text-2xl font-medium tracking-widest text-obsidian">
             {OFFICIAL_INSTRUCTOR.initials}
           </span>
-          <span className="mt-2 text-[10px] uppercase font-semibold tracking-[0.18em] text-[#B39A6A]/90">
+          <span className="mt-2 text-[10px] uppercase font-semibold tracking-[0.18em] text-[#8A7347]">
             Dr. Mauricio Galindo
           </span>
         </div>
@@ -128,10 +134,10 @@ export function InstructorOfficialSection() {
   return (
     <section className="py-16 sm:py-20 border-b border-[#B39A6A]/15 bg-[#FAF8F5]/60">
       <div className="max-w-[880px] mx-auto px-5 sm:px-8">
-        <div className="p-7 sm:p-10 rounded-2xl bg-white border border-[#B39A6A]/25 shadow-xs flex flex-col md:flex-row gap-7 sm:gap-9 items-center md:items-center">
+        <div className="p-7 sm:p-10 rounded-2xl bg-white border border-[#B39A6A]/25 shadow-xs flex flex-col md:flex-row gap-7 sm:gap-9 items-center md:items-end">
           <InstructorAvatar size="featured" />
 
-          <div className="flex-1 text-center md:text-left">
+          <div className="flex-1 text-center md:text-left pb-2">
             <span className="inline-block text-[10px] uppercase tracking-[0.22em] text-[#8A7347] font-semibold">
               Instructor Oficial
             </span>

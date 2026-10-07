@@ -12,7 +12,7 @@ import {
 } from '@/lib/calendar/types';
 import { AvailabilityService } from '@/lib/calendar/availability';
 import { AppointmentsRepository } from '@/lib/calendar/appointments-repo';
-import { BookingNotificationService } from '@/lib/calendar/notifications';
+import { createAppointment, AppointmentApiError } from '@/lib/calendar/appointments-api';
 import { DoctorBookingPhoto } from './doctor-booking-photo';
 import { ConsultationTypeSelect } from './consultation-type-select';
 import { VisitReasonSelect } from './visit-reason-select';
@@ -22,7 +22,8 @@ import { AppointmentSummary } from './appointment-summary';
 import { BookingPatientForm, BookingFormData } from './booking-patient-form';
 import { BookingReview } from './booking-review';
 import { BookingConfirmation } from './booking-confirmation';
-import { Shield, Sparkles, MapPin, Calendar, Clock, AlertCircle, Video } from 'lucide-react';
+import { Shield, Sparkles, MapPin, Calendar, Clock, AlertCircle, Video, ChevronDown, ExternalLink, RefreshCw } from 'lucide-react';
+import { ClinicLocationId, CLINIC_LOCATION_OPTIONS, getClinicLocation } from '@/config/locations';
 
 type BookingStep =
   | 'type-and-slots'
@@ -74,7 +75,7 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
         label: 'Consulta médica a domicilio',
         durationLabel: pricing.homeVisit.duration,
         durationMinutes: 60,
-        priceFormatted: formatProfessionalFee(pricing.homeVisit.price),
+        priceFormatted: formatProfessionalFee(pricing.homeVisit.price, pricing.homeVisit.currency, pricing.homeVisit.isStartingPrice),
         price: pricing.homeVisit.price,
         available: pricing.homeVisitEnabled,
         isHomeVisit: true,
@@ -115,7 +116,19 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
     return 'first-visit';
   });
 
-  // Sync state if URL query params change or popstate occurs
+  const [selectedLocationId, setSelectedLocationId] = useState<ClinicLocationId>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const loc = params.get('ubicacion') || params.get('location') || params.get('tipo');
+      if (loc === 'jilotepec') return 'jilotepec';
+      if (loc === 'queretaro') return 'queretaro';
+      if (loc === 'telemedicina' || loc === 'online') return 'telemedicina';
+    }
+    if (initialTypeId === 'online') return 'telemedicina';
+    return 'queretaro';
+  });
+
+  const selectedLocation = getClinicLocation(selectedLocationId);
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -186,6 +199,9 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
   const [calendarDays, setCalendarDays] = useState<DayAvailability[]>([]);
   const [quickSlots, setQuickSlots] = useState<TimeSlot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState<boolean>(true);
+  const [availabilityRefreshKey, setAvailabilityRefreshKey] = useState(0);
+  const [unavailableNotice, setUnavailableNotice] = useState<string | null>(null);
+  const [availabilityUpdatedAt, setAvailabilityUpdatedAt] = useState<Date | null>(null);
 
   // Patient Form State
   const [patientData, setPatientData] = useState<BookingFormData>({
@@ -203,7 +219,6 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
 
   // Availability service singleton
   const availabilityService = useMemo(() => new AvailabilityService(), []);
-  const notificationService = useMemo(() => new BookingNotificationService(), []);
 
   // Fetch slots whenever type or start date changes
   useEffect(() => {
@@ -213,13 +228,25 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
     async function loadAvailability() {
       try {
         const [nextSlots, days] = await Promise.all([
-          availabilityService.getNextAvailableSlots(new Date(), 3, selectedType.durationMinutes),
-          availabilityService.getAvailability(calendarStartDate, 3, selectedType.durationMinutes),
+          availabilityService.getNextAvailableSlots(new Date(), 3, selectedType.durationMinutes, selectedType.id),
+          availabilityService.getAvailability(calendarStartDate, 3, selectedType.durationMinutes, selectedType.id),
         ]);
 
         if (isMounted) {
           setQuickSlots(nextSlots);
           setCalendarDays(days);
+          setAvailabilityUpdatedAt(new Date());
+          if (selectedSlot) {
+            const refreshedSlots = [...nextSlots, ...days.flatMap((day) => day.slots)];
+            const refreshedSelection = refreshedSlots.find((slot) => slot.isoString === selectedSlot.isoString);
+            if (refreshedSelection && !refreshedSelection.available) {
+              if (activeHoldId) AppointmentsRepository.releaseHold(activeHoldId);
+              setActiveHoldId(undefined);
+              setSelectedSlot(null);
+              setStep('type-and-slots');
+              setUnavailableNotice('El horario que habías elegido acaba de ser reservado o modificado. La agenda ya se actualizó; selecciona otro espacio disponible en color verde.');
+            }
+          }
           setSlotsLoading(false);
         }
       } catch (err) {
@@ -234,10 +261,29 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
     return () => {
       isMounted = false;
     };
-  }, [availabilityService, calendarStartDate, selectedType.durationMinutes]);
+  }, [availabilityService, calendarStartDate, selectedType.durationMinutes, selectedType.id, availabilityRefreshKey, selectedSlot?.isoString]);
+
+  // Mantiene la agenda pública sincronizada aunque la página permanezca abierta
+  // mientras un paciente o el administrador cancela o reprograma una cita.
+  useEffect(() => {
+    const refresh = () => setAvailabilityRefreshKey((key) => key + 1);
+    const handleVisibility = () => { if (document.visibilityState === 'visible') refresh(); };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', handleVisibility);
+    const interval = window.setInterval(refresh, 30000);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.clearInterval(interval);
+    };
+  }, []);
 
   // Handle slot selection (with 5-minute temporary hold)
   const handleSelectSlot = (slot: TimeSlot) => {
+    if (!slot.available) {
+      setUnavailableNotice(`El horario de ${slot.time} h ya está ocupado y reservado. Por favor selecciona otro horario disponible en color verde.`);
+      return;
+    }
     // Release previous hold if any
     if (activeHoldId) {
       AppointmentsRepository.releaseHold(activeHoldId);
@@ -252,8 +298,13 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
     setActiveHoldId(holdResult.holdId);
     setSelectedSlot(slot);
     setErrorMessage(null);
+    setUnavailableNotice(null);
     setStep('patient-data');
     if (onStepChange) onStepChange('patient-data');
+  };
+
+  const handleUnavailableSlot = (slot: TimeSlot) => {
+    setUnavailableNotice(`El horario de ${slot.time} h ya está ocupado y reservado. Por favor selecciona otro horario disponible en color verde.`);
   };
 
   // Calendar Pagination
@@ -310,7 +361,8 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
     }
   };
 
-  // Final Confirmation: Save in repo + Google Calendar + WhatsApp
+  // Final confirmation: the secure Worker is the single source of truth and
+  // dispatches Google Calendar and WhatsApp notifications server-side.
   const handleConfirmAppointment = async () => {
     if (!selectedSlot) return;
 
@@ -318,17 +370,12 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
     setErrorMessage(null);
 
     try {
-      const publicId = `CIT-${Date.now().toString(36).toUpperCase().slice(-5)}`;
-      const token = `tok_${Math.random().toString(36).substring(2, 10)}`;
-
-      const newRecord: AppointmentRecord = {
-        id: `appt-${Date.now()}`,
-        publicId,
-        token,
-        createdAt: new Date().toISOString(),
-        status: 'confirmed',
+      const newRecord = await createAppointment({
         consultationTypeId: selectedType.id,
         consultationTypeTitle: selectedType.label,
+        locationId: selectedLocationId,
+        locationName: selectedLocation.name,
+        locationAddress: selectedLocation.address,
         reasonId: selectedReason.id,
         reasonLabel: selectedReason.label,
         durationMinutes: selectedType.durationMinutes,
@@ -341,7 +388,6 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
         patient: {
           firstName: patientData.firstName.trim(),
           lastName: patientData.lastName.trim(),
-          fullName: `${patientData.firstName.trim()} ${patientData.lastName.trim()}`,
           email: patientData.email.trim().toLowerCase(),
           phone: patientData.phone.trim(),
         },
@@ -349,25 +395,10 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
           privacy: patientData.privacyConsent,
           whatsappNotifications: patientData.whatsappConsent,
         },
-      };
+      });
 
-      // 1. Persistent Repository Save
-      AppointmentsRepository.save(newRecord);
-
-      // 2. Google Calendar Sync
-      const gcalEventId = await notificationService.syncGoogleCalendar(newRecord);
-      if (gcalEventId) {
-        newRecord.googleCalendarEventId = gcalEventId;
-        AppointmentsRepository.save(newRecord);
-      }
-
-      // 3. WhatsApp Dispatch (Doctor + Patient)
-      await Promise.allSettled([
-        notificationService.notifyDoctor(newRecord),
-        notificationService.notifyPatient(newRecord),
-      ]);
-
-      // 4. Save updated WhatsApp delivery and reminder states in persistent repository
+      // Compatibility cache for the existing same-device management view.
+      // The authoritative record lives in Supabase through the Worker.
       AppointmentsRepository.save(newRecord);
 
       // Release hold
@@ -378,9 +409,21 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
       setConfirmedAppointment(newRecord);
       setStep('confirmed');
       if (onStepChange) onStepChange('confirmed');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error confirming appointment:', err);
-      setErrorMessage('Ocurrió un inconveniente al confirmar su cita. Por favor intente nuevamente.');
+      if (err instanceof AppointmentApiError && err.status === 409) {
+        if (activeHoldId) AppointmentsRepository.releaseHold(activeHoldId);
+        setActiveHoldId(undefined);
+        setSelectedSlot(null);
+        setStep('type-and-slots');
+        setAvailabilityRefreshKey((value) => value + 1);
+        if (onStepChange) onStepChange('type-and-slots');
+      }
+      setErrorMessage(
+        err instanceof AppointmentApiError
+          ? err.message
+          : 'Ocurrió un inconveniente al confirmar su cita. Por favor intente nuevamente.',
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -391,6 +434,7 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
     setActiveHoldId(undefined);
     setConfirmedAppointment(null);
     setStep('type-and-slots');
+    setAvailabilityRefreshKey((value) => value + 1);
     if (onStepChange) onStepChange('type-and-slots');
   };
 
@@ -415,19 +459,65 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
           {/* STEP 1: Type selection & Next Available Slots / Calendar View */}
           {step === 'type-and-slots' && (
             <div className="space-y-6">
-              {/* Type and Reason Row */}
-              <div className="space-y-2.5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Location, Type, and Reason Section */}
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Location Selector */}
+                  <div>
+                    <label
+                      htmlFor="select-ubicacion-consulta"
+                      className="block text-xs font-semibold uppercase tracking-[0.14em] text-obsidian/70 mb-2"
+                    >
+                      Ubicación / Modalidad
+                    </label>
+                    <div className="relative">
+                      <select
+                        id="select-ubicacion-consulta"
+                        value={selectedLocationId}
+                        onChange={(e) => {
+                          const newLocId = e.target.value as ClinicLocationId;
+                          setSelectedLocationId(newLocId);
+                          if (newLocId === 'telemedicina') {
+                            setSelectedTypeId('online');
+                            setFilterMode('online');
+                          } else {
+                            if (selectedTypeId === 'online') {
+                              setSelectedTypeId('first-visit');
+                            }
+                            setFilterMode('presencial');
+                          }
+                        }}
+                        className="w-full appearance-none rounded-lg border border-stone bg-white px-4 py-3.5 pr-10 text-sm font-medium text-obsidian transition-colors hover:border-[#B39A6A]/60 focus:border-[#0D2235] focus:outline-none focus:ring-1 focus:ring-[#0D2235] cursor-pointer"
+                      >
+                        {CLINIC_LOCATION_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-obsidian/60">
+                        <ChevronDown className="size-4" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Consultation Type Selector */}
                   <ConsultationTypeSelect
                     types={displayedConsultationTypes}
                     selectedId={selectedTypeId}
                     onChange={(newId) => {
                       setSelectedTypeId(newId);
                       if (newId === 'online') {
+                        setSelectedLocationId('telemedicina');
                         setFilterMode('online');
+                      } else if (selectedLocationId === 'telemedicina') {
+                        setSelectedLocationId('queretaro');
+                        setFilterMode('presencial');
                       }
                     }}
                   />
+
+                  {/* Reason Selector */}
                   <VisitReasonSelect
                     reasons={availableReasons}
                     selectedId={selectedReasonId}
@@ -435,37 +525,30 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
                   />
                 </div>
 
-                {(filterMode === 'online' || selectedTypeId === 'online') && (
-                  <div className="flex items-center justify-between rounded-lg bg-[#0D2235]/5 border border-[#B39A6A]/20 px-3.5 py-2 text-xs">
-                    <span className="text-[#8A7347] font-semibold flex items-center gap-1.5">
-                      <Video className="size-3.5 text-[#8A7347]" /> Modalidad exclusiva: Consulta médica en línea (Telemedicina)
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFilterMode('all');
-                      }}
-                      className="text-xs text-obsidian/70 hover:text-obsidian font-medium underline cursor-pointer"
-                    >
-                      Ver todas las opciones
-                    </button>
-                  </div>
-                )}
-
-                {filterMode === 'presencial' && (
-                  <div className="flex items-center justify-between rounded-lg bg-[#0D2235]/5 border border-[#B39A6A]/20 px-3.5 py-2 text-xs">
-                    <span className="text-obsidian/75 font-semibold flex items-center gap-1.5">
-                      <Calendar className="size-3.5 text-[#8A7347]" /> Modalidad: Consulta presencial
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFilterMode('all');
-                      }}
-                      className="text-xs text-obsidian/70 hover:text-obsidian font-medium underline cursor-pointer"
-                    >
-                      Ver todas las opciones
-                    </button>
+                {/* Location Info & Address Banner */}
+                {selectedLocation && (
+                  <div className="rounded-xl border border-[#B39A6A]/30 bg-white p-4 shadow-2xs space-y-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-serif text-sm font-semibold text-obsidian flex items-center gap-1.5">
+                        <MapPin className="size-4 text-[#B39A6A]" />
+                        {selectedLocation.name}
+                      </span>
+                      {!selectedLocation.isOnline && selectedLocation.googleMapsUrl && (
+                        <a
+                          href={selectedLocation.googleMapsUrl}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className="text-xs font-medium text-[#B39A6A] hover:underline inline-flex items-center gap-1"
+                        >
+                          Ver ubicación en Google Maps <ExternalLink className="size-3" />
+                        </a>
+                      )}
+                    </div>
+                    <p className="text-xs text-obsidian/70 leading-relaxed">
+                      {selectedLocation.isOnline
+                        ? selectedLocation.onlineInstructions
+                        : `Dirección: ${selectedLocation.address}`}
+                    </p>
                   </div>
                 )}
               </div>
@@ -481,9 +564,9 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
                       Próximos horarios disponibles
                     </h3>
                   </div>
-                  <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-obsidian/50">
-                    <Clock className="size-3 text-[#B39A6A]" /> Sincronización en tiempo real
-                  </span>
+                  <button type="button" onClick={() => setAvailabilityRefreshKey((key) => key + 1)} disabled={slotsLoading} className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-stone/70 bg-[#FBFAF7] px-3 py-1.5 text-[11px] font-semibold text-obsidian/60 transition hover:border-[#B39A6A] hover:text-obsidian disabled:opacity-60" title={availabilityUpdatedAt ? `Actualizado ${availabilityUpdatedAt.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}` : 'Actualizar disponibilidad'}>
+                    <RefreshCw className={`size-3 text-[#B39A6A] ${slotsLoading ? 'animate-spin' : ''}`} /> Agenda en tiempo real
+                  </button>
                 </div>
 
                 <div className="mt-3">
@@ -491,8 +574,10 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
                     slots={quickSlots}
                     loading={slotsLoading}
                     onSelectSlot={handleSelectSlot}
+                    onUnavailableSlot={handleUnavailableSlot}
                     onMoreSlots={() => setStep('calendar-view')}
                   />
+                  {unavailableNotice && <div role="alert" className="mt-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"><AlertCircle className="mt-0.5 size-4 shrink-0" /><div><strong className="block">Este horario ya no está disponible</strong><span>{unavailableNotice}</span></div></div>}
                 </div>
               </div>
 
@@ -555,10 +640,12 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
                 loading={slotsLoading}
                 selectedSlotIso={selectedSlot?.isoString}
                 onSelectSlot={handleSelectSlot}
+                onUnavailableSlot={handleUnavailableSlot}
                 onPrevRange={handlePrevDays}
                 onNextRange={handleNextDays}
                 canGoBack={canGoBack}
               />
+              {unavailableNotice && <div role="alert" className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"><AlertCircle className="mt-0.5 size-4 shrink-0" /><div><strong className="block">Horario ocupado</strong><span>{unavailableNotice}</span></div></div>}
             </div>
           )}
 
@@ -573,6 +660,8 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
                 reasonLabel={selectedReason.label}
                 durationLabel={selectedType.durationLabel}
                 feeFormatted={selectedType.priceFormatted}
+                locationId={selectedLocationId}
+                onLocationChange={setSelectedLocationId}
               />
 
               {/* Form Card */}
@@ -620,6 +709,7 @@ export function BookingEngine({ initialTypeId, onStepChange }: BookingEngineProp
               durationLabel={selectedType.durationLabel}
               feeFormatted={selectedType.priceFormatted}
               patient={patientData}
+              locationId={selectedLocationId}
               confirming={isSubmitting}
               onConfirm={handleConfirmAppointment}
               onModify={() => setStep('patient-data')}

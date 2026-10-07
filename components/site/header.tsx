@@ -6,6 +6,7 @@ import { MobileNav } from './mobile-nav';
 import { useCart } from '@/lib/shopify/cart-context';
 import { ShoppingBag, UserRound } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
+import { STORE_ENABLED } from '@/config/site';
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -81,18 +82,20 @@ export function Header() {
             )}
           </Link>
 
-          <button
-            onClick={openCart}
-            aria-label={`Abrir bolsa de compra (${itemCount} productos)`}
-            className="relative p-2 sm:p-2.5 rounded-full text-obsidian/75 hover:text-obsidian hover:bg-[#B39A6A]/15 transition-all duration-200 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-champagne"
-          >
-            <ShoppingBag className="size-4.5 sm:size-5 stroke-[1.4]" />
-            {itemCount > 0 && (
-              <span className="absolute top-0.5 right-0.5 size-4.5 rounded-full bg-obsidian text-white text-[10px] font-bold flex items-center justify-center border border-white">
-                {itemCount}
-              </span>
-            )}
-          </button>
+          {STORE_ENABLED && (
+            <button
+              onClick={openCart}
+              aria-label={`Abrir bolsa de compra (${itemCount} productos)`}
+              className="relative p-2 sm:p-2.5 rounded-full text-obsidian/75 hover:text-obsidian hover:bg-[#B39A6A]/15 transition-all duration-200 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-champagne"
+            >
+              <ShoppingBag className="size-4.5 sm:size-5 stroke-[1.4]" />
+              {itemCount > 0 && (
+                <span className="absolute top-0.5 right-0.5 size-4.5 rounded-full bg-obsidian text-white text-[10px] font-bold flex items-center justify-center border border-white">
+                  {itemCount}
+                </span>
+              )}
+            </button>
+          )}
 
           {/* Disparador de navegación móvil alineado a la derecha en pantallas pequeñas */}
           <div className="lg:hidden">

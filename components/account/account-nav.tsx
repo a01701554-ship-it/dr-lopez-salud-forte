@@ -3,23 +3,44 @@
 import React from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
-import { LayoutDashboard, BookOpen, Package, User, LogOut, GraduationCap } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Package, User, LogOut, GraduationCap, ShieldCheck, CalendarDays } from 'lucide-react';
 
 interface AccountNavProps {
-  currentTab: 'resumen' | 'masterclasses' | 'pedidos' | 'perfil';
+  currentTab: 'resumen' | 'citas' | 'masterclasses' | 'pedidos' | 'perfil' | 'instructor';
 }
 
 export function AccountHeader({ currentTab }: AccountNavProps) {
-  const { user, profile, signOut } = useAuth();
+  const { profile, signOut, isInstructor, isAdmin } = useAuth();
 
   const firstName = profile?.full_name?.split(' ')[0] || 'Alumno';
 
+  const isAuthorized = Boolean(
+    isInstructor ||
+    isAdmin ||
+    profile?.role === 'INSTRUCTOR' ||
+    profile?.role === 'ADMIN'
+  );
+
+  const canViewAppointments = Boolean(isAdmin || profile?.role === 'ADMIN');
+
   const navItems = [
     { id: 'resumen', label: 'Resumen', href: '/mi-cuenta', icon: LayoutDashboard },
+    ...(canViewAppointments
+      ? [{ id: 'citas', label: 'Citas', href: '/admin/citas', icon: CalendarDays }]
+      : []),
     { id: 'masterclasses', label: 'Mis Masterclasses', href: '/mi-cuenta/masterclasses', icon: BookOpen },
     { id: 'pedidos', label: 'Mis Pedidos', href: '/mi-cuenta/pedidos', icon: Package },
     { id: 'perfil', label: 'Mi Perfil', href: '/mi-cuenta/perfil', icon: User },
   ];
+
+  if (isAuthorized) {
+    navItems.push({
+      id: 'instructor',
+      label: 'Panel del Instructor',
+      href: '/mi-cuenta/instructor',
+      icon: ShieldCheck,
+    });
+  }
 
   return (
     <div className="border-b border-[#B39A6A]/20 bg-[#F9F7F2]">
@@ -31,7 +52,7 @@ export function AccountHeader({ currentTab }: AccountNavProps) {
               <span>Área Privada de Pacientes & Alumnos</span>
             </div>
             <h1 className="mt-3 font-serif text-3xl sm:text-4xl lg:text-5xl text-obsidian font-medium tracking-tight">
-              Bienvenido, {firstName}
+              Hola, {firstName}
             </h1>
             <p className="mt-2 text-sm sm:text-base text-obsidian/70">
               Gestiona tus contenidos educativos, historial de compras y preferencias de cuenta.

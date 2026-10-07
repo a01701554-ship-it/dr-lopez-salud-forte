@@ -1,17 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-
+import { useState, useEffect } from 'react';
 
 import { 
   PlayCircle, Lock, ArrowRight, ShieldCheck, FileText, ChevronDown, CheckCircle2, 
-  GraduationCap, Clock, AlertCircle, Info, XCircle, Users, Check, BrainCircuit
+  GraduationCap, Clock, AlertCircle, Info, XCircle, Users, Check, BrainCircuit, Loader2, ShoppingBag
 } from 'lucide-react';
 import { Container } from '@/components/site/container';
 
 import { InstructorOfficialSection } from '@/components/academia/instructor-portrait';
 import { INITIAL_COURSES } from '@/lib/academy/db';
 import { Course } from '@/lib/academy/types';
+import { getMasterclassCartUrl } from '@/lib/academy/commerce';
 import { useAuth } from '@/lib/auth/auth-context';
 
 interface PreviewPlaybackData {
@@ -32,6 +32,83 @@ export default function MasterclassDetailPage({ slugProp }: { slugProp?: string 
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
 
+  const [hasAccess, setHasAccess] = useState(false);
+  const [enrolling, setEnrolling] = useState(false);
+  const [enrollSuccess, setEnrollSuccess] = useState(false);
+  const [enrollError, setEnrollError] = useState<string | null>(null);
+
+  const firstLessonSlug =
+    course?.modules?.[0]?.lessons?.[0]?.slug || 'bienvenida-introduccion';
+
+  useEffect(() => {
+    if (!isAuthenticated || !course) return;
+
+    let isMounted = true;
+    fetchWithAuth('/api/academia/my-library')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!isMounted || !data?.courses) return;
+        const enrolled = data.courses.some(
+          (item: any) =>
+            item.course?.slug === course.slug || item.course?.id === course.id
+        );
+        if (enrolled) {
+          setHasAccess(true);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, course, fetchWithAuth]);
+
+  // Handle automatic enrollment if user was redirected back after logging in
+  useEffect(() => {
+    if (typeof window === 'undefined' || !course) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const autoEnroll = urlParams.get('autoEnroll') === 'true';
+
+    if (autoEnroll && isAuthenticated && !hasAccess && !enrolling && course.accessType === 'free') {
+      handleEnroll();
+    }
+  }, [isAuthenticated, hasAccess, course]);
+
+  const handleEnroll = async () => {
+    if (!course || enrolling) return;
+
+    if (!isAuthenticated) {
+      const redirectUrl = `/academia/${course.slug}?autoEnroll=true`;
+      window.location.href = `/cuenta/iniciar-sesion?redirect=${encodeURIComponent(redirectUrl)}`;
+      return;
+    }
+
+    setEnrolling(true);
+    setEnrollError(null);
+
+    try {
+      const res = await fetchWithAuth(`/api/academia/courses/${course.slug}/enroll`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+
+      if (res.ok && data.ok) {
+        setHasAccess(true);
+        setEnrollSuccess(true);
+        const destination = data.firstLessonUrl || `/academia/${course.slug}/leccion/${firstLessonSlug}`;
+        setTimeout(() => {
+          window.location.href = destination;
+        }, 600);
+      } else {
+        setEnrollError(data.error || 'No fue posible completar la inscripción.');
+      }
+    } catch {
+      setEnrollError('Error de red al procesar tu inscripción. Por favor, intenta de nuevo.');
+    } finally {
+      setEnrolling(false);
+    }
+  };
+
   if (!course) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -40,7 +117,7 @@ export default function MasterclassDetailPage({ slugProp }: { slugProp?: string 
     );
   }
 
-  const isShopifyConnected = !!course.shopifyProductGid;
+  const purchaseUrl = getMasterclassCartUrl(course.slug);
   const previewLesson = (course.modules || [])
     .flatMap((module) => module.lessons)
     .find((lesson) => lesson.isPreview && lesson.status === 'published');
@@ -87,7 +164,6 @@ export default function MasterclassDetailPage({ slugProp }: { slugProp?: string 
     }
   };
 
-  const hasAccess = false;
   const isFree = course.accessType === 'free';
   const isComingSoon = course.launchStatus === 'coming_soon';
 
@@ -218,8 +294,30 @@ export default function MasterclassDetailPage({ slugProp }: { slugProp?: string 
                   )}
                 </div>
 
+                {/* Banners de estado de inscripción */}
+                {enrollSuccess && (
+                  <div className="mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center gap-2">
+                    <CheckCircle2 className="size-4 text-emerald-700 shrink-0" />
+                    <span>¡Inscripción exitosa! Abriendo tu primera lección...</span>
+                  </div>
+                )}
+                {enrollError && (
+                  <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-center gap-2">
+                    <AlertCircle className="size-4 text-rose-700 shrink-0" />
+                    <span>{enrollError}</span>
+                  </div>
+                )}
+
                 {/* Botones de acción principales */}
-                {isComingSoon ? (
+                {hasAccess ? (
+                  <a
+                    href={`/academia/${course.slug}/leccion/${firstLessonSlug}`}
+                    className="flex items-center justify-center gap-2 w-full h-[52px] rounded-full bg-emerald-800 text-white text-xs sm:text-sm font-semibold uppercase tracking-[0.12em] hover:bg-emerald-900 transition-colors shadow-xs"
+                  >
+                    <CheckCircle2 className="size-4" />
+                    <span>Continuar aprendiendo</span>
+                  </a>
+                ) : isComingSoon ? (
                   <button
                     disabled
                     className="flex items-center justify-center gap-2 w-full h-[52px] rounded-full bg-obsidian/15 text-obsidian/55 text-xs sm:text-sm font-semibold uppercase tracking-[0.12em] cursor-not-allowed select-none border border-obsidian/10"
@@ -227,30 +325,44 @@ export default function MasterclassDetailPage({ slugProp }: { slugProp?: string 
                     <Clock className="size-4 text-obsidian/40" />
                     <span>Próximamente</span>
                   </button>
-                ) : isShopifyConnected || isFree ? (
-                  <a
-                    href={isFree ? `/cuenta/registro?redirect=/academia/${course.slug}` : `/api/checkout?course=${course.id}`}
-                    className="flex items-center justify-center gap-2 w-full h-[52px] rounded-full bg-emerald-800 text-white text-xs sm:text-sm font-semibold uppercase tracking-[0.12em] hover:bg-emerald-900 transition-colors shadow-xs"
-                  >
-                    <GraduationCap className="size-4" />
-                    <span>{course.ctaLabel || (isFree ? 'Inscribirme Gratis' : 'Comprar ahora')}</span>
-                  </a>
-                ) : (
+                ) : isFree ? (
                   <button
-                    disabled
-                    className="flex items-center justify-center gap-2 w-full h-[52px] rounded-full bg-obsidian/15 text-obsidian/55 text-xs sm:text-sm font-semibold uppercase tracking-[0.12em] cursor-not-allowed select-none border border-obsidian/10"
-                    title="La pasarela de pago oficial se habilitará próximamente"
+                    type="button"
+                    onClick={handleEnroll}
+                    disabled={enrolling || authLoading}
+                    className="flex items-center justify-center gap-2 w-full h-[52px] rounded-full bg-emerald-800 text-white text-xs sm:text-sm font-semibold uppercase tracking-[0.12em] hover:bg-emerald-900 disabled:opacity-75 transition-colors shadow-xs cursor-pointer"
                   >
-                    <Clock className="size-4 text-obsidian/40" />
-                    <span>Compra disponible próximamente</span>
+                    {enrolling ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin" />
+                        <span>Inscribiendo...</span>
+                      </>
+                    ) : (
+                      <>
+                        <GraduationCap className="size-4" />
+                        <span>Inscribirme gratis</span>
+                      </>
+                    )}
                   </button>
-                )}
+                ) : purchaseUrl ? (
+                  <a
+                    href={purchaseUrl}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      window.location.assign(purchaseUrl);
+                    }}
+                    className="flex items-center justify-center gap-2 w-full h-[52px] rounded-full bg-obsidian text-white text-xs sm:text-sm font-semibold uppercase tracking-[0.12em] hover:bg-[#07182A] transition-colors shadow-xs cursor-pointer"
+                  >
+                    <ShoppingBag className="size-4" />
+                    <span>Comprar ahora</span>
+                  </a>
+                ) : null}
                 
                 {/* Garantías */}
                 <div className="mt-6 pt-5 border-t border-[#B39A6A]/15 space-y-2 text-xs text-obsidian/70">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="size-4 text-champagne shrink-0" />
-                    <span>{isShopifyConnected || isFree ? 'Acceso seguro' : 'Próximamente'}</span>
+                    <span>{purchaseUrl || isFree ? 'Acceso seguro' : 'Próximamente'}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <FileText className="size-4 text-champagne shrink-0" />
@@ -383,7 +495,7 @@ export default function MasterclassDetailPage({ slugProp }: { slugProp?: string 
       )}
 
       {/* 8. TEMARIO COMPLETO */}
-      <section className="py-16 sm:py-24 border-b border-[#B39A6A]/15 bg-[#FAF8F5]">
+      <section id="temario" className="py-16 sm:py-24 border-b border-[#B39A6A]/15 bg-[#FAF8F5] scroll-mt-20">
         <Container className="max-w-[1000px] mx-auto px-5 sm:px-8">
           <div className="max-w-2xl mb-10">
             <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl text-obsidian font-medium tracking-tight">
@@ -544,18 +656,52 @@ export default function MasterclassDetailPage({ slugProp }: { slugProp?: string 
             {course.salesPromise || course.shortDescription}
           </p>
           <div className="flex flex-col items-center gap-4">
-            {isComingSoon ? (
-               <button disabled className="inline-flex items-center justify-center h-[52px] px-8 rounded-full bg-white/10 text-white/50 text-sm font-semibold uppercase tracking-wider cursor-not-allowed">
-                 Próximamente
-               </button>
-            ) : isShopifyConnected || isFree ? (
-              <a href={isFree ? `/cuenta/registro?redirect=/academia/${course.slug}` : `/api/checkout?course=${course.id}`} className="inline-flex items-center justify-center gap-2 h-[52px] px-8 rounded-full bg-emerald-700 text-white text-sm font-semibold uppercase tracking-wider hover:bg-emerald-600 transition-colors shadow-lg">
+            {hasAccess ? (
+              <a
+                href={`/academia/${course.slug}/leccion/${firstLessonSlug}`}
+                className="inline-flex items-center justify-center gap-2 h-[52px] px-8 rounded-full bg-emerald-700 text-white text-sm font-semibold uppercase tracking-wider hover:bg-emerald-600 transition-colors shadow-lg"
+              >
+                <CheckCircle2 className="size-4" />
+                <span>Continuar aprendiendo</span>
+              </a>
+            ) : isComingSoon ? (
+              <button disabled className="inline-flex items-center justify-center h-[52px] px-8 rounded-full bg-white/10 text-white/50 text-sm font-semibold uppercase tracking-wider cursor-not-allowed">
+                Próximamente
+              </button>
+            ) : isFree ? (
+              <button
+                type="button"
+                onClick={handleEnroll}
+                disabled={enrolling || authLoading}
+                className="inline-flex items-center justify-center gap-2 h-[52px] px-8 rounded-full bg-emerald-700 text-white text-sm font-semibold uppercase tracking-wider hover:bg-emerald-600 disabled:opacity-75 transition-colors shadow-lg cursor-pointer"
+              >
+                {enrolling ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    <span>Inscribiendo...</span>
+                  </>
+                ) : (
+                  <>
+                    <GraduationCap className="size-4" />
+                    <span>Inscribirme</span>
+                  </>
+                )}
+              </button>
+            ) : purchaseUrl ? (
+              <a
+                href={purchaseUrl}
+                onClick={(event) => {
+                  event.preventDefault();
+                  window.location.assign(purchaseUrl);
+                }}
+                className="inline-flex items-center justify-center gap-2 h-[52px] px-8 rounded-full bg-emerald-700 text-white text-sm font-semibold uppercase tracking-wider hover:bg-emerald-600 transition-colors shadow-lg"
+              >
                 <GraduationCap className="size-4" />
-                <span>{course.ctaLabel || (isFree ? 'Inscribirme Gratis' : 'Comprar ahora')}</span>
+                <span>Comprar ahora</span>
               </a>
             ) : null}
             {!isFree && (
-               <span className="text-xs text-white/50">${course.price.toLocaleString('es-MX')} {course.currency} • Pago único</span>
+              <span className="text-xs text-white/50">${course.price.toLocaleString('es-MX')} {course.currency} • Pago único</span>
             )}
           </div>
         </Container>

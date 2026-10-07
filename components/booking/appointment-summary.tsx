@@ -1,6 +1,7 @@
 import React from 'react';
 import { siteConfig } from '@/config/site';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, MapPin, Video, ChevronDown, ExternalLink } from 'lucide-react';
+import { ClinicLocationId, CLINIC_LOCATION_OPTIONS, getClinicLocation } from '@/config/locations';
 
 interface AppointmentSummaryProps {
   dateLabel: string;
@@ -9,6 +10,8 @@ interface AppointmentSummaryProps {
   reasonLabel: string;
   durationLabel: string;
   feeFormatted: string;
+  locationId: ClinicLocationId;
+  onLocationChange: (locationId: ClinicLocationId) => void;
 }
 
 export function AppointmentSummary({
@@ -18,7 +21,10 @@ export function AppointmentSummary({
   reasonLabel,
   durationLabel,
   feeFormatted,
+  locationId,
+  onLocationChange,
 }: AppointmentSummaryProps) {
+  const location = getClinicLocation(locationId);
   return (
     <div className="rounded-xl border border-stone bg-white p-5 sm:p-6 shadow-xs space-y-4">
       <div className="flex items-start justify-between border-b border-stone/60 pb-4">
@@ -78,6 +84,38 @@ export function AppointmentSummary({
           <span className="text-obsidian/85 text-xs block mt-0.5">
             {durationLabel}
           </span>
+        </div>
+      </div>
+
+      <div className={`rounded-xl border p-4 ${location.isOnline ? 'border-sky-200 bg-sky-50/70' : 'border-[#d9c8a6] bg-[#fbf8f1]'}`}>
+        <div className="flex items-start gap-3">
+          <div className={`flex size-9 shrink-0 items-center justify-center rounded-full ${location.isOnline ? 'bg-sky-100 text-sky-700' : 'bg-[#eee4cf] text-[#9b7b42]'}`}>
+            {location.isOnline ? <Video className="size-4" /> : <MapPin className="size-4" />}
+          </div>
+          <div className="min-w-0 flex-1">
+            <span className="block text-[10px] font-bold uppercase tracking-[.18em] text-obsidian/55">Lugar de la consulta</span>
+            {location.isOnline ? (
+              <>
+                <p className="mt-1 font-serif text-lg text-[#0D2235]">Consulta en línea · Telemedicina</p>
+                <p className="mt-1 text-xs leading-relaxed text-sky-900/75">La ubicación no puede modificarse para esta modalidad. Recibirás por correo electrónico la liga segura de la videollamada para tu consulta.</p>
+              </>
+            ) : (
+              <>
+                <div className="relative mt-2 max-w-md">
+                  <select
+                    value={locationId}
+                    onChange={(event) => onLocationChange(event.target.value as ClinicLocationId)}
+                    className="w-full appearance-none rounded-lg border border-[#d7c7a7] bg-white px-3.5 py-2.5 pr-9 text-sm font-semibold text-[#0D2235] outline-none transition focus:border-[#9b7b42] focus:ring-2 focus:ring-[#9b7b42]/15"
+                  >
+                    {CLINIC_LOCATION_OPTIONS.filter((option) => !option.location.isOnline).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-[#9b7b42]" />
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-obsidian/65">{location.address}</p>
+                {location.googleMapsUrl && <a href={location.googleMapsUrl} target="_blank" rel="noreferrer noopener" className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-[#9b7b42] hover:underline">Ver ubicación en Google Maps <ExternalLink className="size-3" /></a>}
+              </>
+            )}
+          </div>
         </div>
       </div>
 

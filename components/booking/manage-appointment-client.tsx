@@ -17,8 +17,11 @@ import {
   ShieldCheck,
   ArrowLeft,
   CalendarCheck,
+  MapPin,
+  ExternalLink,
 } from 'lucide-react';
 import Link from 'next/link';
+import { getClinicLocation } from '@/config/locations';
 
 interface ManageAppointmentClientProps {
   publicId: string;
@@ -31,6 +34,8 @@ export function ManageAppointmentClient({ publicId }: ManageAppointmentClientPro
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [managementSessionToken, setManagementSessionToken] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Calendar for rescheduling
   const [calendarStartDate, setCalendarStartDate] = useState<Date>(() => new Date());
@@ -38,9 +43,65 @@ export function ManageAppointmentClient({ publicId }: ManageAppointmentClientPro
   const [slotsLoading, setSlotsLoading] = useState(false);
 
   useEffect(() => {
-    const found = AppointmentsRepository.getByPublicId(publicId);
-    setAppointment(found);
-    setLoading(false);
+    let active = true;
+    const loadAppointment = async () => {
+      if (publicId !== 'administrar') {
+        const found = AppointmentsRepository.getByPublicId(publicId);
+        if (active) { setAppointment(found); setLoading(false); }
+        return;
+      }
+      const rawToken = new URLSearchParams(window.location.search).get('token') || '';
+      if (rawToken === 'admin') {
+        window.location.replace('/admin/citas');
+        return;
+      }
+      if (!rawToken) {
+        if (active) { setLoadError('El enlace de acceso está incompleto.'); setLoading(false); }
+        return;
+      }
+      const storageKey = `appointment-session:${rawToken.slice(-18)}`;
+      try {
+        let sessionToken = sessionStorage.getItem(storageKey) || '';
+        const requestAppointment = async (session: string) => fetch('https://salud-forte-academy-api-preview.a01701554.workers.dev/api/appointments/manage', { headers: { Authorization: `AppointmentSession ${session}` }, cache: 'no-store' });
+        let response = sessionToken ? await requestAppointment(sessionToken) : null;
+        if (!response?.ok) {
+          const exchange = await fetch('https://salud-forte-academy-api-preview.a01701554.workers.dev/api/appointments/manage/exchange', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: rawToken }) });
+          const exchangeData = await exchange.json().catch(() => ({}));
+          if (exchangeData.code === 'ADMIN_LINK_REQUIRES_LOGIN') {
+            window.location.replace('/admin/citas');
+            return;
+          }
+          if (!exchange.ok || !exchangeData.sessionToken) throw new Error(exchangeData.message || exchangeData.error || 'El enlace venció o ya no es válido.');
+          sessionToken = exchangeData.sessionToken;
+          sessionStorage.setItem(storageKey, sessionToken);
+          response = await requestAppointment(sessionToken);
+        }
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.appointment) throw new Error(data.message || data.error || 'No fue posible consultar la cita.');
+        const item = data.appointment;
+        const start = new Date(item.startsAt);
+        const dateFormatted = new Intl.DateTimeFormat('es-MX', { timeZone: item.timezone || 'America/Mexico_City', weekday: 'long', day: 'numeric', month: 'long' }).format(start);
+        const timeFormatted = new Intl.DateTimeFormat('es-MX', { timeZone: item.timezone || 'America/Mexico_City', hour: '2-digit', minute: '2-digit', hour12: false }).format(start);
+        const remote: AppointmentRecord = {
+          id: item.id, publicId: item.publicId, token: rawToken, createdAt: new Date().toISOString(),
+          status: String(item.status).includes('cancel') ? 'cancelled' : String(item.status).includes('resched') ? 'rescheduled' : 'confirmed',
+          consultationTypeId: item.appointmentType?.slug || (item.modality === 'online' ? 'online' : 'first-visit'),
+          consultationTypeTitle: item.appointmentType?.name || 'Consulta médica', locationId: item.locationId,
+          locationName: getClinicLocation(item.locationId).name, addressSnapshot: getClinicLocation(item.locationId).address,
+          consultationMode: item.modality === 'online' ? 'online' : 'in_person', reasonId: 'consulta-general', reasonLabel: 'Consulta médica',
+          durationMinutes: item.appointmentType?.durationMinutes || 60, durationLabel: `${item.appointmentType?.durationMinutes || 60} minutos`,
+          feeAmount: item.appointmentType?.priceMxn || 650, feeFormatted: `$${item.appointmentType?.priceMxn || 650} MXN`,
+          slotIso: item.startsAt, dateFormatted, timeFormatted,
+          patient: { firstName: item.patientName, lastName: item.patientLastName || '', fullName: `${item.patientName} ${item.patientLastName || ''}`.trim(), email: item.email, phone: item.phoneE164 },
+          consents: { privacy: true, whatsappNotifications: true }, timezone: item.timezone || 'America/Mexico_City',
+        };
+        if (active) { setManagementSessionToken(sessionToken); setAppointment(remote); }
+      } catch (error) {
+        if (active) setLoadError(error instanceof Error ? error.message : 'No fue posible consultar la cita.');
+      } finally { if (active) setLoading(false); }
+    };
+    void loadAppointment();
+    return () => { active = false; };
   }, [publicId]);
 
   // Load calendar when rescheduling is triggered
@@ -50,7 +111,7 @@ export function ManageAppointmentClient({ publicId }: ManageAppointmentClientPro
     const availabilityService = new AvailabilityService();
 
     availabilityService
-      .getAvailability(calendarStartDate, 3, appointment.durationMinutes)
+      .getAvailability(calendarStartDate, 3, appointment.durationMinutes, appointment.consultationTypeId)
       .then((days) => {
         setCalendarDays(days);
         setSlotsLoading(false);
@@ -63,6 +124,11 @@ export function ManageAppointmentClient({ publicId }: ManageAppointmentClientPro
 
   const handleConfirmCancel = async () => {
     if (!appointment) return;
+    if (managementSessionToken) {
+      const response = await fetch('https://salud-forte-academy-api-preview.a01701554.workers.dev/api/appointments/manage/cancel', { method: 'POST', headers: { Authorization: `AppointmentSession ${managementSessionToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: cancelReason }) });
+      if (!response.ok) { setActionSuccess('No fue posible cancelar la cita. Inténtalo nuevamente.'); return; }
+      setAppointment({ ...appointment, status: 'cancelled' }); setIsCancelling(false); setActionSuccess('Tu cita ha sido cancelada con éxito. El horario ha sido liberado.'); return;
+    }
     const updated = AppointmentsRepository.cancel(appointment.publicId, cancelReason || 'Cancelado por el paciente');
     if (updated) {
       const notificationService = new BookingNotificationService();
@@ -75,6 +141,14 @@ export function ManageAppointmentClient({ publicId }: ManageAppointmentClientPro
 
   const handleSelectNewSlot = async (slot: TimeSlot) => {
     if (!appointment) return;
+    if (!slot.available) { setActionSuccess('Ese horario ya está reservado. Selecciona uno disponible en color verde.'); return; }
+    if (managementSessionToken) {
+      const response = await fetch('https://salud-forte-academy-api-preview.a01701554.workers.dev/api/appointments/manage/reschedule', { method: 'POST', headers: { Authorization: `AppointmentSession ${managementSessionToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ startsAt: slot.isoString }) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) { setActionSuccess(data.message || data.error || 'No fue posible reprogramar la cita.'); return; }
+      setAppointment({ ...appointment, status: 'rescheduled', slotIso: slot.isoString, dateFormatted: slot.fullDateLabel, timeFormatted: slot.time });
+      setIsRescheduling(false); setActionSuccess(`Tu cita ha sido reprogramada para el ${slot.fullDateLabel} a las ${slot.time} h.`); return;
+    }
     const prevDate = appointment.dateFormatted;
     const prevTime = appointment.timeFormatted;
 
@@ -112,7 +186,7 @@ export function ManageAppointmentClient({ publicId }: ManageAppointmentClientPro
             <AlertCircle className="size-8 text-amber-600 mx-auto" />
             <h1 className="font-serif text-2xl text-obsidian mt-3">Cita no encontrada</h1>
             <p className="mt-2 text-xs text-obsidian/60 leading-relaxed">
-              No encontramos una cita médica asociada con el código <strong>{publicId}</strong>.
+              {loadError || <>No encontramos una cita médica asociada con este enlace seguro.</>}
             </p>
             <div className="mt-6">
               <Link
@@ -224,6 +298,34 @@ export function ManageAppointmentClient({ publicId }: ManageAppointmentClientPro
                 {appointment.feeFormatted}
               </span>
             </div>
+
+            {(() => {
+              const loc = getClinicLocation(appointment.locationId);
+              return (
+                <div>
+                  <span className="font-semibold uppercase tracking-wider text-obsidian/50 block text-[10px]">
+                    Ubicación
+                  </span>
+                  <span className="font-medium text-obsidian text-sm block mt-0.5 flex items-center gap-1">
+                    <MapPin className="size-3.5 text-[#B39A6A]" />
+                    {loc.name}
+                  </span>
+                  <span className="text-xs text-obsidian/60 block mt-0.5 leading-tight">
+                    {loc.isOnline ? loc.onlineInstructions : loc.address}
+                  </span>
+                  {!loc.isOnline && loc.googleMapsUrl && (
+                    <a
+                      href={loc.googleMapsUrl}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="text-[11px] font-medium text-[#B39A6A] hover:underline inline-flex items-center gap-0.5 mt-1"
+                    >
+                      Ver en Google Maps <ExternalLink className="size-3" />
+                    </a>
+                  )}
+                </div>
+              );
+            })()}
           </div>
 
           {/* Action Buttons: Cancel / Reschedule */}

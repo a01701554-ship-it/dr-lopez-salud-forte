@@ -8,6 +8,7 @@ import {
   AccessAudit,
   CourseProductMapping,
   UserProfile,
+  VideoTestimonial,
 } from './types';
 import { OFFICIAL_INSTRUCTOR } from './instructor';
 
@@ -89,7 +90,7 @@ export const INITIAL_COURSES: Course[] = [
   "level": "Introductorio",
   "durationMinutes": 45,
   "lessonCount": 6,
-  "status": "draft",
+  "status": "published",
   "accessType": "free",
   "launchStatus": "available",
   "previewEnabled": true,
@@ -306,7 +307,7 @@ export const INITIAL_COURSES: Course[] = [
   "level": "Introductorio",
   "durationMinutes": 40,
   "lessonCount": 10,
-  "status": "draft",
+  "status": "published",
   "accessType": "free",
   "launchStatus": "available",
   "previewEnabled": true,
@@ -583,12 +584,15 @@ export const INITIAL_COURSES: Course[] = [
   "level": "Introductorio",
   "durationMinutes": 90,
   "lessonCount": 12,
-  "status": "coming_soon",
+  "shop": "1ei60c-jy.myshopify.com",
+  "shopifyProductGid": "gid://shopify/Product/15930319995166",
+  "shopifyVariantGid": "gid://shopify/ProductVariant/60089447121182",
+  "status": "published",
   "accessType": "lifetime",
-  "launchStatus": "coming_soon",
-  "previewEnabled": false,
-  "price": 0,
-  "compareAtPrice": 0,
+  "launchStatus": "available",
+  "previewEnabled": true,
+  "price": 990,
+  "compareAtPrice": 1350,
   "currency": "MXN",
   "image": "/images/masterclasses/official/dormir-mejor-2026.webp",
   "imageFallback": "/images/masterclasses/official/dormir-mejor-2026.png",
@@ -900,14 +904,14 @@ export const INITIAL_COURSES: Course[] = [
   "level": "Introductorio",
   "durationMinutes": 145,
   "lessonCount": 8,
-  "shop": "salud-forte.myshopify.com",
-  "shopifyProductGid": "gid://shopify/Product/9840128917801",
-  "shopifyVariantGid": "gid://shopify/ProductVariant/4981023910231",
+  "shop": "1ei60c-jy.myshopify.com",
+  "shopifyProductGid": "gid://shopify/Product/15930320126238",
+  "shopifyVariantGid": "gid://shopify/ProductVariant/60089447252254",
   "sku": "MC-MENOPAUSIA-001",
-  "status": "draft",
+  "status": "published",
   "accessType": "lifetime",
   "launchDate": "2026-10-15T00:00:00Z",
-  "launchStatus": "coming_soon",
+  "launchStatus": "available",
   "previewEnabled": true,
   "price": 990,
   "compareAtPrice": 1350,
@@ -1161,17 +1165,17 @@ export const INITIAL_COURSES: Course[] = [
   "level": "Introductorio",
   "durationMinutes": 120,
   "lessonCount": 6,
-  "shop": "salud-forte.myshopify.com",
-  "shopifyProductGid": "gid://shopify/Product/9840128917802",
-  "shopifyVariantGid": "gid://shopify/ProductVariant/4981023910232",
+  "shop": "1ei60c-jy.myshopify.com",
+  "shopifyProductGid": "gid://shopify/Product/15930320159006",
+  "shopifyVariantGid": "gid://shopify/ProductVariant/60089447285022",
   "sku": "MC-ESTRES-002",
-  "status": "draft",
+  "status": "published",
   "accessType": "lifetime",
   "launchDate": "2026-10-25T00:00:00Z",
-  "launchStatus": "coming_soon",
+  "launchStatus": "available",
   "previewEnabled": true,
-  "price": 850,
-  "compareAtPrice": 1100,
+  "price": 990,
+  "compareAtPrice": 1350,
   "currency": "MXN",
   "image": "/images/masterclasses/official/estres-tension-muscular-2026.webp",
   "imageFallback": "/images/masterclasses/official/estres-tension-muscular-2026.png",
@@ -1384,17 +1388,17 @@ export const INITIAL_COURSES: Course[] = [
   "level": "Introductorio",
   "durationMinutes": 135,
   "lessonCount": 7,
-  "shop": "salud-forte.myshopify.com",
-  "shopifyProductGid": "gid://shopify/Product/9840128917803",
-  "shopifyVariantGid": "gid://shopify/ProductVariant/4981023910233",
+  "shop": "1ei60c-jy.myshopify.com",
+  "shopifyProductGid": "gid://shopify/Product/15930320191774",
+  "shopifyVariantGid": "gid://shopify/ProductVariant/60089447317790",
   "sku": "MC-HORMONAL-003",
-  "status": "draft",
+  "status": "published",
   "accessType": "lifetime",
   "launchDate": "2026-11-05T00:00:00Z",
-  "launchStatus": "coming_soon",
+  "launchStatus": "available",
   "previewEnabled": true,
-  "price": 950,
-  "compareAtPrice": 1250,
+  "price": 990,
+  "compareAtPrice": 1350,
   "currency": "MXN",
   "image": "/images/masterclasses/official/salud-hormonal-masculina-2026.webp",
   "imageFallback": "/images/masterclasses/official/salud-hormonal-masculina-2026.png",
@@ -1637,17 +1641,17 @@ export const INITIAL_COURSES: Course[] = [
   "level": "Introductorio",
   "durationMinutes": 150,
   "lessonCount": 8,
-  "shop": "salud-forte.myshopify.com",
-  "shopifyProductGid": "gid://shopify/Product/9840128917804",
-  "shopifyVariantGid": "gid://shopify/ProductVariant/4981023910234",
+  "shop": "1ei60c-jy.myshopify.com",
+  "shopifyProductGid": "gid://shopify/Product/15930320224542",
+  "shopifyVariantGid": "gid://shopify/ProductVariant/60089447350558",
   "sku": "MC-SOP-004",
-  "status": "draft",
+  "status": "published",
   "accessType": "lifetime",
   "launchDate": "2026-11-15T00:00:00Z",
-  "launchStatus": "coming_soon",
+  "launchStatus": "available",
   "previewEnabled": true,
   "price": 990,
-  "compareAtPrice": 1300,
+  "compareAtPrice": 1350,
   "currency": "MXN",
   "image": "/images/masterclasses/official/sop-con-claridad-2026.webp",
   "imageFallback": "/images/masterclasses/official/sop-con-claridad-2026.png",
@@ -1843,6 +1847,7 @@ class AcademyDatabase {
   private users: Map<string, UserProfile> = new Map();
   private otpCodes: Map<string, { email: string; code: string; expiresAt: number; used: boolean }> = new Map();
   private serverSessions: Map<string, { sessionId: string; userId: string; email: string; full_name: string; role: string; shopifyCustomerGid?: string; mfaVerified?: boolean; createdAt: number; expiresAt: number }> = new Map();
+  private testimonials: Map<string, VideoTestimonial> = new Map();
   private isInitialized = false;
 
   constructor() {
@@ -1854,6 +1859,7 @@ class AcademyDatabase {
     this.seedDefaults();
     this.loadFromDisk();
     this.ensureDoctorAdminAccount();
+    this.purgeMockData();
     this.isInitialized = true;
   }
 
@@ -1945,11 +1951,19 @@ class AcademyDatabase {
           }
         }
 
+        if (Array.isArray(data.testimonials)) {
+          for (const t of data.testimonials) {
+            if (t && t.id) {
+              this.testimonials.set(t.id, t);
+            }
+          }
+        }
+
         if (Array.isArray(data.audits)) {
           this.audits = data.audits.slice(0, 500);
         }
 
-        console.log(`[AcademyDatabase] Loaded persistent data: ${this.users.size} users, ${this.serverSessions.size} sessions.`);
+        console.log(`[AcademyDatabase] Loaded persistent data: ${this.users.size} users, ${this.serverSessions.size} sessions, ${this.testimonials.size} testimonials.`);
       }
     } catch (err) {
       console.error('[AcademyDatabase] Notice: Disk load skipped or initial:', err);
@@ -1983,6 +1997,7 @@ class AcademyDatabase {
         entitlements: Array.from(this.entitlements.values()),
         progress: Array.from(this.progress.values()),
         customCourses,
+        testimonials: Array.from(this.testimonials.values()),
         audits: this.audits.slice(0, 200),
       };
 
@@ -2001,67 +2016,98 @@ class AcademyDatabase {
       this.courses.set(`variant:${course.shopifyVariantGid}`, course);
       this.courses.set(`product:${course.shopifyProductGid}`, course);
     });
-
-    const testEntitlement: Entitlement = {
-      id: 'ent_demo_test_001',
-      shop: 'salud-forte.myshopify.com',
-      customerGid: 'gid://shopify/Customer/123456789',
-      customerEmail: 'alumno.demo@saludforte.com',
-      customerName: 'Mariana Fuentes (Cuenta de Demostración)',
-      courseId: 'course_menopausia_001',
-      orderGid: 'gid://shopify/Order/987654321',
-      orderNumber: '#1001',
-      lineItemGid: 'gid://shopify/LineItem/555111',
-      status: 'active',
-      grantedAt: '2026-09-02T12:00:00Z',
-      startsAt: '2026-09-02T12:00:00Z',
-      expiresAt: null,
-      createdAt: '2026-09-02T12:00:00Z',
-      updatedAt: '2026-09-02T12:00:00Z',
-    };
-    this.entitlements.set(testEntitlement.id, testEntitlement);
-
-    const testProgress: LessonProgress = {
-      id: 'prog_demo_01',
-      customerGid: 'gid://shopify/Customer/123456789',
-      courseId: 'course_menopausia_001',
-      lessonId: 'les_meno_01_01',
-      status: 'completed',
-      lastPositionSeconds: 480,
-      startedAt: '2026-09-02T12:05:00Z',
-      completedAt: '2026-09-02T12:13:00Z',
-      updatedAt: '2026-09-02T12:13:00Z',
-    };
-    this.progress.set(`${testProgress.customerGid}:${testProgress.lessonId}`, testProgress);
   }
 
   private ensureDoctorAdminAccount() {
-    const doctorEmail = 'dr.mauricio.galindo@saludforte.com';
-    const existingDoctor = this.getUserByEmail(doctorEmail);
-    if (!existingDoctor) {
-      // Seed default admin account with verified Argon2id hash for "GalindoSaludForte2026!"
-      // $argon2id$v=19$m=65536,t=3,p=1$JqHhU6...
-      const doctorUser: UserProfile = {
-        id: 'usr_doc_mauricio_galindo',
-        email: doctorEmail,
-        normalized_email: doctorEmail,
-        full_name: 'Dr. Mauricio Benjamín Galindo López',
-        first_name: 'Mauricio Benjamín',
-        last_name: 'Galindo López',
-        role: 'ADMIN',
-        status: 'ACTIVE',
-        email_verified: true,
-        email_verified_at: '2026-09-01T00:00:00.000Z',
-        terms_accepted: true,
-        terms_accepted_at: '2026-09-01T00:00:00.000Z',
-        privacy_accepted: true,
-        privacy_accepted_at: '2026-09-01T00:00:00.000Z',
-        created_at: '2026-09-01T00:00:00.000Z',
-        updated_at: '2026-09-01T00:00:00.000Z',
-        // Pre-computed argon2id hash for "GalindoSaludForte2026!"
-        password_hash: '$argon2id$v=19$m=65536,t=3,p=1$F3F/K9L1yU3m5+H1A9b4eQ$8m8L6jL7Q8b5/q8K4y8b9L6jL7Q8b5/q8K4y8b9L6jM',
-      };
-      this.users.set(doctorUser.id, doctorUser);
+    const doctorAccounts = (process.env.ACADEMY_ADMIN_EMAILS || '')
+      .split(',')
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean)
+      .map((email) => ({
+        id: `usr_admin_${email.replace(/[^a-z0-9]/g, '_')}`,
+        email,
+        full_name: 'Administrador Salud Forte',
+        first_name: 'Administrador',
+        last_name: 'Salud Forte',
+      }));
+
+    let updatedAny = false;
+    for (const acc of doctorAccounts) {
+      const existing = this.getUserByEmail(acc.email);
+      if (!existing) {
+        const doctorUser: UserProfile = {
+          id: acc.id,
+          email: acc.email,
+          normalized_email: acc.email.toLowerCase().trim(),
+          full_name: acc.full_name,
+          first_name: acc.first_name,
+          last_name: acc.last_name,
+          role: 'ADMIN',
+          status: 'ACTIVE',
+          email_verified: true,
+          email_verified_at: '2026-09-01T00:00:00.000Z',
+          terms_accepted: true,
+          terms_accepted_at: '2026-09-01T00:00:00.000Z',
+          privacy_accepted: true,
+          privacy_accepted_at: '2026-09-01T00:00:00.000Z',
+          created_at: '2026-09-01T00:00:00.000Z',
+          updated_at: '2026-09-01T00:00:00.000Z',
+        };
+        this.users.set(doctorUser.id, doctorUser);
+        updatedAny = true;
+      } else if (existing.role !== 'ADMIN') {
+        existing.role = 'ADMIN';
+        this.users.set(existing.id, existing);
+        updatedAny = true;
+      }
+    }
+
+    if (updatedAny) {
+      this.saveToDisk();
+    }
+  }
+
+  private purgeMockData() {
+    const mockUserIds = new Set([
+      'usr_mariana_fuentes_001',
+      'usr_carlos_mendoza_002',
+      'usr_elena_ramos_003',
+      'usr_roberto_sanchez_004',
+      'usr_sofia_navarro_005',
+      'usr_alumno_demo_006',
+    ]);
+
+    const mockEntitlementIds = new Set([
+      'ent_demo_test_001',
+      'ent_mariana_meno_001',
+      'ent_carlos_resistencia_002',
+      'ent_sofia_meno_005',
+    ]);
+
+    let modified = false;
+
+    for (const [id, u] of Array.from(this.users.entries())) {
+      if (mockUserIds.has(id)) {
+        this.users.delete(id);
+        modified = true;
+      }
+    }
+
+    for (const [id, e] of Array.from(this.entitlements.entries())) {
+      if (mockEntitlementIds.has(id)) {
+        this.entitlements.delete(id);
+        modified = true;
+      }
+    }
+
+    for (const [id, p] of Array.from(this.progress.entries())) {
+      if (id.includes('prog_demo') || id.includes('prog_mariana') || id.includes('prog_carlos')) {
+        this.progress.delete(id);
+        modified = true;
+      }
+    }
+
+    if (modified) {
       this.saveToDisk();
     }
   }
@@ -2194,8 +2240,26 @@ class AcademyDatabase {
   }
 
   public getAllUsers(): UserProfile[] {
-    return Array.from(this.users.values()).sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    const map = new Map<string, UserProfile>();
+    for (const u of this.users.values()) {
+      if (!u || !u.email) continue;
+      const emailKey = (u.normalized_email || u.email).toLowerCase().trim();
+      if (!emailKey) continue;
+
+      const existing = map.get(emailKey);
+      if (!existing) {
+        map.set(emailKey, u);
+      } else {
+        const isBetterRole = u.role === 'ADMIN' && existing.role !== 'ADMIN';
+        const isUUID = u.id.length >= 30 && existing.id.length < 30;
+        if (isBetterRole || isUUID) {
+          map.set(emailKey, u);
+        }
+      }
+    }
+
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
     );
   }
 
@@ -2639,50 +2703,182 @@ class AcademyDatabase {
     };
   }
 
-  public getStudentsDirectory(filter?: { marketingOnly?: boolean; verifiedOnly?: boolean }) {
+  public getStudentsDirectory(filter?: {
+    search?: string;
+    userType?: string;
+    marketingStatus?: string;
+    emailVerified?: string;
+    courseId?: string;
+    marketingOnly?: boolean;
+    verifiedOnly?: boolean;
+  }) {
     const users = this.getAllUsers();
-    const list: Array<{
-      id: string;
-      full_name: string;
-      email: string;
-      role: string;
-      email_verified: boolean;
-      marketing_consent: boolean;
-      marketing_consent_at?: string;
-      terms_accepted_at?: string;
-      created_at: string;
-      last_login_at?: string;
-      activeEntitlementsCount: number;
-      enrolledCourses: string[];
-    }> = [];
+    const courses = this.getCourses();
 
-    for (const u of users) {
-      if (filter?.marketingOnly && !u.marketing_consent) continue;
-      if (filter?.verifiedOnly && !u.email_verified) continue;
-
+    // Map each user to full enriched directory item
+    const allEnriched = users.map((u) => {
       const userEnts = this.getEntitlementsForCustomer(u.id, u.email);
+      const activeEnts = userEnts.filter((e) => e.status === 'active');
+
+      let completedLessonsSum = 0;
+      let totalLessonsSum = 0;
+
       const enrolledCourses = userEnts.map((e) => {
-        const course = this.getCourseById(e.courseId);
-        return course ? course.title : e.courseId;
+        const course = courses.find((c) => c.id === e.courseId) || this.getCourseById(e.courseId);
+        const allCourseLessons = course?.modules?.flatMap((m) => m.lessons) || [];
+        const totalLessons = allCourseLessons.length || (course as any)?.lessonCount || 0;
+        const progressList = this.getStudentProgress(u.id, e.courseId, u.email);
+        const completedLessons = progressList.filter((p) => p.status === 'completed').length;
+
+        completedLessonsSum += completedLessons;
+        totalLessonsSum += totalLessons;
+
+        const progressPercent = totalLessons > 0 ? Math.min(100, Math.round((completedLessons / totalLessons) * 100)) : 0;
+
+        return {
+          entitlementId: e.id,
+          courseId: e.courseId,
+          courseTitle: course ? course.title : e.courseId,
+          status: e.status,
+          grantedAt: e.grantedAt,
+          completedLessons,
+          totalLessons,
+          progressPercent,
+        };
       });
 
-      list.push({
+      // User Type Classification
+      let userType: 'registered' | 'student' | 'active_student' = 'registered';
+      if (userEnts.length > 0) {
+        userType = activeEnts.length > 0 ? 'active_student' : 'student';
+      }
+
+      // Course Progress Status
+      let courseProgressStatus: 'not_started' | 'in_progress' | 'completed' = 'not_started';
+      if (userEnts.length > 0) {
+        const anyCompleted = enrolledCourses.some((c) => c.progressPercent === 100 && c.totalLessons > 0);
+        const anyStarted = enrolledCourses.some((c) => c.progressPercent > 0 || c.completedLessons > 0);
+        if (anyCompleted) {
+          courseProgressStatus = 'completed';
+        } else if (anyStarted) {
+          courseProgressStatus = 'in_progress';
+        }
+      }
+
+      // Overall progress percent across all enrolled courses
+      const overallProgressPercent = totalLessonsSum > 0
+        ? Math.min(100, Math.round((completedLessonsSum / totalLessonsSum) * 100))
+        : 0;
+
+      // Marketing Consent Status
+      let marketingStatus: 'accepted' | 'not_granted' | 'revoked' = 'not_granted';
+      if (u.marketing_consent) {
+        marketingStatus = 'accepted';
+      } else if (u.marketing_opted_out_at) {
+        marketingStatus = 'revoked';
+      }
+
+      return {
         id: u.id,
         full_name: u.full_name,
+        first_name: u.first_name,
+        last_name: u.last_name,
         email: u.email,
-        role: u.role,
-        email_verified: u.email_verified,
-        marketing_consent: u.marketing_consent,
+        phone: u.phone,
+        role: u.role || 'CUSTOMER',
+        status: u.status || 'ACTIVE',
+        email_verified: !!u.email_verified,
+        email_verified_at: u.email_verified_at,
+        marketing_consent: !!u.marketing_consent,
         marketing_consent_at: u.marketing_consent_at,
+        marketing_opted_out_at: u.marketing_opted_out_at,
+        marketing_consent_source: u.marketing_consent_source,
+        marketing_consent_version: u.marketing_consent_version,
+        privacy_policy_version: u.privacy_policy_version,
         terms_accepted_at: u.terms_accepted_at,
         created_at: u.created_at,
         last_login_at: u.last_login_at,
-        activeEntitlementsCount: userEnts.length,
+        userType,
+        courseProgressStatus,
+        overallProgressPercent,
+        completedLessonsCount: completedLessonsSum,
+        totalLessonsCount: totalLessonsSum,
+        marketingStatus,
+        activeEntitlementsCount: activeEnts.length,
+        enrolledCoursesCount: userEnts.length,
         enrolledCourses,
-      });
+      };
+    });
+
+    // Summary counters across all users
+    const totalCount = allEnriched.length;
+    const registeredOnlyCount = allEnriched.filter((s) => s.userType === 'registered').length;
+    const studentCount = allEnriched.filter((s) => s.enrolledCoursesCount > 0).length;
+    const activeStudentCount = allEnriched.filter((s) => s.userType === 'active_student').length;
+    const inProgressCount = allEnriched.filter((s) => s.courseProgressStatus === 'in_progress').length;
+    const completedCount = allEnriched.filter((s) => s.courseProgressStatus === 'completed').length;
+    const marketingAcceptedCount = allEnriched.filter((s) => s.marketingStatus === 'accepted').length;
+    const transactionalOnlyCount = allEnriched.filter((s) => s.marketingStatus !== 'accepted').length;
+    const revokedCount = allEnriched.filter((s) => s.marketingStatus === 'revoked').length;
+
+    // Filter results
+    let filtered = allEnriched;
+
+    if (filter?.search) {
+      const q = filter.search.toLowerCase().trim();
+      filtered = filtered.filter(
+        (s) =>
+          s.full_name?.toLowerCase().includes(q) ||
+          s.email?.toLowerCase().includes(q) ||
+          s.phone?.includes(q)
+      );
     }
 
-    return list;
+    if (filter?.userType && filter.userType !== 'all') {
+      if (filter.userType === 'registered') {
+        filtered = filtered.filter((s) => s.userType === 'registered');
+      } else if (filter.userType === 'student') {
+        filtered = filtered.filter((s) => s.enrolledCoursesCount > 0);
+      } else if (filter.userType === 'active_student') {
+        filtered = filtered.filter((s) => s.userType === 'active_student');
+      } else if (filter.userType === 'in_progress') {
+        filtered = filtered.filter((s) => s.courseProgressStatus === 'in_progress');
+      } else if (filter.userType === 'completed') {
+        filtered = filtered.filter((s) => s.courseProgressStatus === 'completed');
+      }
+    }
+
+    if (filter?.marketingStatus && filter.marketingStatus !== 'all') {
+      filtered = filtered.filter((s) => s.marketingStatus === filter.marketingStatus);
+    } else if (filter?.marketingOnly) {
+      filtered = filtered.filter((s) => s.marketing_consent);
+    }
+
+    if (filter?.emailVerified && filter.emailVerified !== 'all') {
+      const isVer = filter.emailVerified === 'true';
+      filtered = filtered.filter((s) => s.email_verified === isVer);
+    } else if (filter?.verifiedOnly) {
+      filtered = filtered.filter((s) => s.email_verified);
+    }
+
+    if (filter?.courseId && filter.courseId !== 'all') {
+      filtered = filtered.filter((s) =>
+        s.enrolledCourses.some((c) => c.courseId === filter.courseId)
+      );
+    }
+
+    return {
+      students: filtered,
+      totalCount,
+      registeredOnlyCount,
+      studentCount,
+      activeStudentCount,
+      inProgressCount,
+      completedCount,
+      marketingAcceptedCount,
+      transactionalOnlyCount,
+      revokedCount,
+    };
   }
 
   // --- Entitlements (Capa 3: Seguridad y Accesos) ---
@@ -2711,13 +2907,25 @@ class AcademyDatabase {
     customerEmail: string;
     customerName?: string;
     courseId: string;
-    orderGid: string;
-    orderNumber: string;
-    lineItemGid: string;
+    orderGid?: string;
+    orderNumber?: string;
+    lineItemGid?: string;
+    status?: 'active' | 'revoked' | 'expired';
+    source?: string;
   }): Entitlement {
-    // Idempotent: check if already exists for this order & lineItem
+    const orderGid = input.orderGid || `free_ord_${input.customerGid}_${input.courseId}`;
+    const orderNumber = input.orderNumber || 'FREE';
+    const lineItemGid = input.lineItemGid || `free_item_${input.customerGid}_${input.courseId}`;
+
+    // Idempotent: check if already exists for this customer & course, or order & lineItem
     for (const existing of this.entitlements.values()) {
-      if (existing.orderGid === input.orderGid && existing.lineItemGid === input.lineItemGid) {
+      const matchOrder = input.orderGid && existing.orderGid === input.orderGid && existing.lineItemGid === input.lineItemGid;
+      const matchCustomerCourse =
+        (existing.customerGid === input.customerGid ||
+          (input.customerEmail && existing.customerEmail.toLowerCase().trim() === input.customerEmail.toLowerCase().trim())) &&
+        existing.courseId === input.courseId;
+
+      if (matchOrder || matchCustomerCourse) {
         if (existing.status !== 'active') {
           existing.status = 'active';
           existing.revokedAt = null;
@@ -2737,10 +2945,10 @@ class AcademyDatabase {
       customerEmail: input.customerEmail,
       customerName: input.customerName,
       courseId: input.courseId,
-      orderGid: input.orderGid,
-      orderNumber: input.orderNumber,
-      lineItemGid: input.lineItemGid,
-      status: 'active',
+      orderGid,
+      orderNumber,
+      lineItemGid,
+      status: input.status || 'active',
       grantedAt: now,
       startsAt: now,
       expiresAt: null,
@@ -2914,6 +3122,80 @@ class AcademyDatabase {
 
   public getRecentAudits(limit: number = 20): AccessAudit[] {
     return this.audits.slice(0, limit);
+  }
+
+  // --- Video Testimonials ---
+  public getPublicTestimonials(): VideoTestimonial[] {
+    const now = Date.now();
+    return Array.from(this.testimonials.values())
+      .filter((t) => {
+        if (t.status !== 'published') return false;
+        if (!t.consentConfirmed) return false;
+        if (t.consentWithdrawnAt) return false;
+        if (t.consentExpiration && new Date(t.consentExpiration).getTime() <= now) return false;
+        return true;
+      })
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  }
+
+  public getAllTestimonials(): VideoTestimonial[] {
+    return Array.from(this.testimonials.values()).sort(
+      (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)
+    );
+  }
+
+  public getTestimonialById(id: string): VideoTestimonial | null {
+    return this.testimonials.get(id) || null;
+  }
+
+  public createTestimonial(data: Partial<VideoTestimonial>): VideoTestimonial {
+    const id = data.id || `testim_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const now = new Date().toISOString();
+    const newTestimonial: VideoTestimonial = {
+      id,
+      videoProvider: data.videoProvider || 'cloudflare',
+      videoId: data.videoId || '',
+      videoUrl: data.videoUrl,
+      posterUrl: data.posterUrl || '',
+      displayName: data.displayName || 'Paciente',
+      internalName: data.internalName || undefined,
+      nameFormat: data.nameFormat || 'anonymous',
+      publicLabel: data.publicLabel || 'Consulta Médica',
+      shortDescription: data.shortDescription || '',
+      sortOrder: typeof data.sortOrder === 'number' ? data.sortOrder : this.testimonials.size + 1,
+      status: data.status || 'draft',
+      consentConfirmed: Boolean(data.consentConfirmed),
+      consentDate: data.consentDate || now,
+      consentExpiration: data.consentExpiration || null,
+      consentWithdrawnAt: data.consentWithdrawnAt || null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.testimonials.set(id, newTestimonial);
+    this.saveToDisk();
+    return newTestimonial;
+  }
+
+  public updateTestimonial(id: string, data: Partial<VideoTestimonial>): VideoTestimonial | null {
+    const existing = this.testimonials.get(id);
+    if (!existing) return null;
+    const updated: VideoTestimonial = {
+      ...existing,
+      ...data,
+      id: existing.id,
+      updatedAt: new Date().toISOString(),
+    };
+    this.testimonials.set(id, updated);
+    this.saveToDisk();
+    return updated;
+  }
+
+  public deleteTestimonial(id: string): boolean {
+    const existed = this.testimonials.delete(id);
+    if (existed) {
+      this.saveToDisk();
+    }
+    return existed;
   }
 }
 

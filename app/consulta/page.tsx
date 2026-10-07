@@ -3,6 +3,7 @@ import { Container } from '@/components/site/container';
 import { ActionLink } from '@/components/site/action-link';
 import { Reveal, StaggerGroup, StaggerItem } from '@/components/site/motion-wrapper';
 import { ConsultationSteps } from '@/components/site/consultation-steps';
+import { TestimonialsCarousel } from '@/components/site/testimonials-carousel';
 import { InteractiveDoctorAvatar } from '@/components/site/interactive-doctor-avatar';
 import { MobileCarousel } from '@/components/site/mobile-carousel';
 import { usePricing } from '@/lib/pricing-store';
@@ -95,6 +96,8 @@ export default function ConsultationPage() {
           </div>
         </Container>
       </section>
+
+      <TestimonialsCarousel />
 
       <section className="bg-ivory py-24 sm:py-32 border-b border-[#B39A6A]/15">
         <Container>

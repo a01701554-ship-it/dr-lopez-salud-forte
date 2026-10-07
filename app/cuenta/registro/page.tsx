@@ -33,7 +33,9 @@ export default function RegisterPage() {
   // Auto redirect if already authenticated
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      window.location.href = '/mi-cuenta';
+      const searchParams = new URLSearchParams(window.location.search);
+      const target = searchParams.get('redirect') || searchParams.get('returnTo') || '/mi-cuenta';
+      window.location.href = target;
     }
   }, [isAuthenticated, isLoading]);
 
@@ -134,6 +136,15 @@ export default function RegisterPage() {
             Ir a Iniciar Sesión
           </a>
         </div>
+      </div>
+    );
+  }
+
+  if (isLoading || isAuthenticated) {
+    return (
+      <div className="bg-ivory min-h-[calc(100dvh-5rem)] flex flex-col items-center justify-center p-6 text-center">
+        <div className="size-9 border-3 border-champagne border-t-transparent rounded-full animate-spin mb-3" />
+        <p className="font-serif text-base text-obsidian font-medium">Verificando sesión...</p>
       </div>
     );
   }

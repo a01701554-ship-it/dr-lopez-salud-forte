@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import Link from 'next/link';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -13,10 +14,13 @@ import {
   Info,
   ChevronRight,
   ChevronLeft,
-  Mail,
   RefreshCw,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
+import {
+  LessonVideoPlayer,
+  VideoPlayerRef,
+} from '@/components/academia/lesson-video-player';
 
 interface LessonPlayerProps {
   params?: {
@@ -67,14 +71,24 @@ interface CourseData {
 }
 
 interface VideoPlaybackData {
-  type: 'youtube' | 'cloudflare';
+  type: 'youtube' | 'cloudflare' | 'video';
   videoId?: string;
   embedUrl?: string;
   token?: string;
   playbackUrl?: string;
+  videoUrl?: string;
   notice?: string;
   expiresIn?: number;
 }
+
+type PlayerMachineState =
+  | 'checking-session'
+  | 'checking-access'
+  | 'loading-lesson'
+  | 'loading-video-source'
+  | 'restoring-progress'
+  | 'ready'
+  | 'error';
 
 export default function LessonPlayerPage({
   params,
@@ -85,7 +99,11 @@ export default function LessonPlayerPage({
   const lessonSlug = lessonSlugProp || params?.lessonSlug || 'bienvenida-y-alcance-educativo';
 
   const { fetchWithAuth, user } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const fetchWithAuthRef = useRef(fetchWithAuth);
+  fetchWithAuthRef.current = fetchWithAuth;
+
+  // Strict state machine
+  const [playerState, setPlayerState] = useState<PlayerMachineState>('checking-session');
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -93,117 +111,108 @@ export default function LessonPlayerPage({
   const [moduleData, setModuleData] = useState<ModuleData | null>(null);
   const [lesson, setLesson] = useState<LessonData | null>(null);
   const [playbackData, setPlaybackData] = useState<VideoPlaybackData | null>(null);
-  const [playbackLoading, setPlaybackLoading] = useState(false);
-  const [playbackError, setPlaybackError] = useState<string | null>(null);
 
   const [isCompleted, setIsCompleted] = useState(false);
+  const [serverPositionSeconds, setServerPositionSeconds] = useState(0);
+  const [serverUpdatedAt, setServerUpdatedAt] = useState<string | undefined>(undefined);
   const [progressRecords, setProgressRecords] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'resumen' | 'transcripcion' | 'materiales'>('resumen');
-  const [savingProgress, setSavingProgress] = useState(false);
+
+  const [isSavingNextLesson, setIsSavingNextLesson] = useState(false);
+  const [navigationError, setNavigationError] = useState<string | null>(null);
   const [downloadingAttachmentId, setDownloadingAttachmentId] = useState<string | null>(null);
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
 
-  // Fetch lesson data and validate entitlement
-  const fetchLesson = async () => {
-    setLoading(true);
-    setErrorStatus(null);
-    setErrorMessage(null);
+  const videoPlayerRef = useRef<VideoPlayerRef | null>(null);
+  const requestIdRef = useRef(0);
 
-    try {
-      const res = await fetchWithAuth(`/api/academia/courses/${slug}/lessons/${lessonSlug}`, {
-        credentials: 'include',
-      });
+  // Fetch lesson data and validate access in a single atomic flow
+  const fetchLesson = useCallback(
+    async (signal?: AbortSignal) => {
+      const currentRequestId = ++requestIdRef.current;
+      setPlayerState('loading-lesson');
+      setErrorStatus(null);
+      setErrorMessage(null);
+      setNavigationError(null);
 
-      const data = await res.json();
+      try {
+        const res = await fetchWithAuthRef.current(`/api/academia/courses/${slug}/lessons/${lessonSlug}`, {
+          signal,
+          credentials: 'include',
+        });
 
-      if (!res.ok) {
-        setErrorStatus(data.code || (res.status === 401 ? 'UNAUTHENTICATED' : 'ERROR'));
-        setErrorMessage(data.error || 'No fue posible acceder a esta lección.');
-        setLoading(false);
-        return;
-      }
-
-      setCourse(data.course);
-      setModuleData(data.module);
-      setLesson(data.lesson);
-
-      // Check existing progress
-      if (data.progress && Array.isArray(data.progress)) {
-        setProgressRecords(data.progress);
-        const thisLessonProgress = data.progress.find((p: any) => p.lessonId === data.lesson.id);
-        if (thisLessonProgress && thisLessonProgress.status === 'completed') {
-          setIsCompleted(true);
+        if (signal?.aborted || currentRequestId !== requestIdRef.current) {
+          return;
         }
+
+        const data = await res.json();
+
+        if (signal?.aborted || currentRequestId !== requestIdRef.current) {
+          return;
+        }
+
+        if (!res.ok) {
+          const status = data.code || (res.status === 401 ? 'UNAUTHENTICATED' : res.status === 403 ? 'ENTITLEMENT_REQUIRED' : 'ERROR');
+          setErrorStatus(status);
+          setErrorMessage(data.error || 'No fue posible acceder a esta lección.');
+          setPlayerState('error');
+          return;
+        }
+
+        // Transition through video source and progress restoration
+        setPlayerState('loading-video-source');
+        setCourse(data.course);
+        setModuleData(data.module);
+        setLesson(data.lesson);
+        setPlaybackData(data.playback || null);
+
+        // Check existing progress
+        let foundCompleted = false;
+        let foundPosition = 0;
+        let foundUpdatedAt: string | undefined = undefined;
+
+        if (data.progress && Array.isArray(data.progress)) {
+          setProgressRecords(data.progress);
+          const thisLessonProgress = data.progress.find(
+            (p: any) => p.lessonId === data.lesson.id || p.lessonId === data.lesson.slug,
+          );
+          if (thisLessonProgress) {
+            foundCompleted =
+              thisLessonProgress.status === 'completed' || Boolean(thisLessonProgress.completed);
+            foundPosition = thisLessonProgress.positionSeconds || 0;
+            foundUpdatedAt = thisLessonProgress.updatedAt || thisLessonProgress.lastWatchedAt;
+          }
+        }
+
+        setIsCompleted(foundCompleted);
+        setServerPositionSeconds(foundPosition);
+        setServerUpdatedAt(foundUpdatedAt);
+
+        setPlayerState('restoring-progress');
+
+        // Transition to ready: Video mounts once and stays mounted
+        setPlayerState('ready');
+      } catch (err: any) {
+        if (signal?.aborted || currentRequestId !== requestIdRef.current) {
+          return;
+        }
+        setErrorStatus('NETWORK_ERROR');
+        setErrorMessage('Error de conexión al cargar la lección.');
+        setPlayerState('error');
       }
+    },
+    [slug, lessonSlug],
+  );
 
-      // Fetch video playback token / details
-      await fetchPlaybackDetails();
-    } catch (err: any) {
-      setErrorStatus('NETWORK_ERROR');
-      setErrorMessage('Error de conexión al cargar la clase.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchPlaybackDetails = async () => {
-    setPlaybackLoading(true);
-    setPlaybackError(null);
-    setPlaybackData(null);
-
-    try {
-      const res = await fetchWithAuth(`/api/academia/courses/${slug}/lessons/${lessonSlug}/token`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      const pData = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setPlaybackError(pData.error || 'No fue posible preparar la reproducción segura.');
-        return;
-      }
-
-      setPlaybackData(pData);
-    } catch (e) {
-      setPlaybackError('No fue posible conectar con el servicio de reproducción.');
-    } finally {
-      setPlaybackLoading(false);
-    }
-  };
-
+  // Trigger lesson load ONLY when lesson coordinates or authenticated user actually change
   useEffect(() => {
-    fetchLesson();
-  }, [slug, lessonSlug, user]);
+    const controller = new AbortController();
+    fetchLesson(controller.signal);
 
-  const handleToggleComplete = async () => {
-    if (!lesson) return;
-    setSavingProgress(true);
-    const nextState = !isCompleted;
-
-    try {
-      const res = await fetchWithAuth(`/api/academia/courses/${slug}/lessons/${lesson.slug}/progress`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          status: nextState ? 'completed' : 'in_progress',
-          positionSeconds: 0,
-        }),
-      });
-
-      if (res.ok) {
-        setIsCompleted(nextState);
-        const updatedProg = await res.json();
-        if (updatedProg.progress) {
-          setProgressRecords(updatedProg.progress);
-        }
-      }
-    } catch (e) {
-      console.error('Error saving progress:', e);
-    } finally {
-      setSavingProgress(false);
-    }
-  };
+    return () => {
+      controller.abort();
+    };
+  }, [fetchLesson, user?.id]);
 
   const handleAttachmentDownload = async (attachmentId: string) => {
     if (!lesson) return;
@@ -211,7 +220,7 @@ export default function LessonPlayerPage({
     setAttachmentError(null);
 
     try {
-      const res = await fetchWithAuth(
+      const res = await fetchWithAuthRef.current(
         `/api/academia/courses/${slug}/lessons/${lesson.slug}/attachment/${attachmentId}`,
         { credentials: 'include' },
       );
@@ -249,30 +258,147 @@ export default function LessonPlayerPage({
   const currentIndex = allLessons.findIndex((item) => item.lesson.slug === lessonSlug);
   const prevLesson = currentIndex > 0 ? allLessons[currentIndex - 1] : null;
   const nextLesson = currentIndex >= 0 && currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null;
+  const isLastLesson = currentIndex === allLessons.length - 1;
 
-  // Render Loading
-  if (loading) {
-    return (
-      <div className="bg-[#091420] min-h-screen text-white flex flex-col items-center justify-center p-6">
-        <div className="size-12 border-3 border-champagne border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-white/80 font-serif text-lg">Cargando lección médica...</p>
-        <p className="text-xs text-white/50 mt-1">Verificando credenciales de acceso</p>
-      </div>
-    );
-  }
+  // Handle "Siguiente lección" click with mandatory save -> confirm -> navigate flow
+  const handleNextLesson = async () => {
+    if (isSavingNextLesson) return;
+    setIsSavingNextLesson(true);
+    setNavigationError(null);
 
-  // Render Access Errors
-  if (errorStatus) {
+    try {
+      // 1. Guardar progreso actual y marcar como completada
+      let saveSuccess = false;
+      if (videoPlayerRef.current) {
+        saveSuccess = await videoPlayerRef.current.saveProgressNow(true);
+      }
+
+      // Fallback directo a la API en caso de que el ref del reproductor no estuviera disponible
+      if (!saveSuccess && (lesson || lessonSlug)) {
+        try {
+          const res = await fetchWithAuth(
+            `/api/academia/courses/${course?.slug || slug}/lessons/${lesson?.slug || lessonSlug}/progress`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                status: 'completed',
+                positionSeconds: lesson?.durationSeconds || 0,
+                durationSeconds: lesson?.durationSeconds || 0,
+              }),
+            },
+          );
+          if (res.ok) {
+            saveSuccess = true;
+          }
+        } catch (postErr) {
+          console.warn('[handleNextLesson] Direct fallback save note:', postErr);
+        }
+      }
+
+      if (!saveSuccess) {
+        setNavigationError('No fue posible guardar tu progreso. Inténtalo nuevamente.');
+        setIsSavingNextLesson(false);
+        return;
+      }
+
+      // 2. Confirmación y actualización inmediata de interfaz
+      setIsCompleted(true);
+
+      if (lesson) {
+        setProgressRecords((prev) => {
+          const filtered = prev.filter(
+            (p) =>
+              p.lessonId !== lesson.id &&
+              p.lessonId !== lesson.slug &&
+              p.lesson_id !== lesson.id &&
+              p.lesson_id !== lesson.slug,
+          );
+          return [
+            ...filtered,
+            {
+              lessonId: lesson.id,
+              lesson_id: lesson.id,
+              status: 'completed',
+              completed: true,
+              progressPercent: 100,
+              progress_percent: 100,
+              positionSeconds: videoPlayerRef.current?.getCurrentTime() || lesson.durationSeconds || 0,
+              lastWatchedAt: new Date().toISOString(),
+            },
+          ];
+        });
+      }
+
+      // Detener el estado de guardando para que la interfaz pase inmediatamente al ESTADO 3 (Verde "Lección completada")
+      setIsSavingNextLesson(false);
+
+      // 3. Pausa de confirmación visual (600ms) para que el alumno aprecie el indicador verde antes de la transición
+      await new Promise((resolve) => setTimeout(resolve, 600));
+
+      // 4. Navegar a la siguiente lección
+      if (nextLesson) {
+        const nextUrl = `/academia/${course?.slug || slug}/leccion/${nextLesson.lesson.slug}`;
+        window.history.pushState(null, '', nextUrl);
+        window.dispatchEvent(new PopStateEvent('popstate'));
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      } else {
+        // Última lección: llevar de vuelta a Mis Masterclasses con progreso completo
+        const finishUrl = '/academia/mis-masterclasses';
+        window.history.pushState(null, '', finishUrl);
+        window.dispatchEvent(new PopStateEvent('popstate'));
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }
+    } catch (err) {
+      console.error('[Navigation] Error in handleNextLesson:', err);
+      setNavigationError('No fue posible guardar tu progreso. Inténtalo nuevamente.');
+      setIsSavingNextLesson(false);
+    }
+  };
+
+  // Handle "Anterior" navigation with position preservation
+  const handlePrevLesson = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!prevLesson) return;
+
+    // Preservar la posición actual antes de retroceder
+    videoPlayerRef.current?.saveProgressNow(false).catch(() => {});
+
+    const prevUrl = `/academia/${slug}/leccion/${prevLesson.lesson.slug}`;
+    window.history.pushState(null, '', prevUrl);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
+  // Handle direct lesson selection from syllabus
+  const handleSelectLessonFromSyllabus = (targetSlug: string, e: React.MouseEvent) => {
+    if (targetSlug === lessonSlug) {
+      e.preventDefault();
+      return;
+    }
+    e.preventDefault();
+
+    // Guardar posición en segundo plano antes de cambiar
+    videoPlayerRef.current?.saveProgressNow(false).catch(() => {});
+
+    const targetUrl = `/academia/${course?.slug || slug}/leccion/${targetSlug}`;
+    window.history.pushState(null, '', targetUrl);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
+  // Render Access / Authentication Errors
+  if (errorStatus || playerState === 'error') {
     return (
       <div className="bg-[#091420] min-h-screen text-white flex flex-col">
         <header className="h-16 border-b border-white/10 bg-[#07101A] px-6 flex items-center justify-between">
-          <a
+          <Link
             href="/academia/mis-masterclasses"
             className="inline-flex items-center gap-2 text-xs font-medium text-white/70 hover:text-white transition-colors"
           >
             <ArrowLeft className="size-4" />
             <span>Volver a Mis Masterclasses</span>
-          </a>
+          </Link>
         </header>
 
         <div className="flex-1 flex items-center justify-center p-6">
@@ -284,127 +410,104 @@ export default function LessonPlayerPage({
                 </div>
                 <h2 className="font-serif text-2xl font-bold text-white mb-2">Acceso a Alumnos</h2>
                 <p className="text-sm text-white/70 mb-6 leading-relaxed">
-                  {errorMessage || 'Para acceder a esta lección médica debes iniciar sesión con tu cuenta de Salud Forte.'}
+                  {errorMessage ||
+                    'Para acceder a esta lección médica debes iniciar sesión con tu cuenta de Salud Forte.'}
                 </p>
                 <div className="space-y-3">
-                  <a
-                    href={`/cuenta/iniciar-sesion?returnTo=/academia/${slug}/leccion/${lessonSlug}`}
+                  <Link
+                    href={`/cuenta/iniciar-sesion?redirect=/academia/${slug}/leccion/${lessonSlug}`}
                     className="block w-full py-3 px-4 rounded-xl bg-champagne text-obsidian font-semibold text-sm hover:brightness-105 transition-all shadow-md"
                   >
-                    Entrar a mi cuenta
-                  </a>
-                  <a
-                    href="/cuenta/registro"
-                    className="block w-full py-3 px-4 rounded-xl bg-white/5 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors border border-white/10"
+                    Iniciar sesión
+                  </Link>
+                  <Link
+                    href={`/cuenta/registro?redirect=/academia/${slug}/leccion/${lessonSlug}`}
+                    className="block w-full py-3 px-4 rounded-xl bg-white/5 border border-white/15 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors"
                   >
-                    ¿Aún no tienes cuenta? Regístrate aquí
-                  </a>
+                    Crear cuenta
+                  </Link>
                 </div>
-              </>
-            )}
-
-            {errorStatus === 'EMAIL_VERIFICATION_REQUIRED' && (
-              <>
-                <div className="size-16 rounded-full bg-amber-500/10 text-amber-400 mx-auto flex items-center justify-center mb-5 border border-amber-500/20">
-                  <Mail className="size-8" />
-                </div>
-                <h2 className="font-serif text-2xl font-bold text-white mb-2">Verificación Requerida</h2>
-                <p className="text-sm text-white/70 mb-6 leading-relaxed">
-                  {errorMessage || 'Debes verificar tu correo electrónico para acceder al contenido clínico de esta masterclass.'}
-                </p>
-                <a
-                  href="/cuenta/verificar"
-                  className="block w-full py-3 px-4 rounded-xl bg-champagne text-obsidian font-semibold text-sm hover:brightness-105 transition-all shadow-md"
-                >
-                  Verificar mi correo ahora
-                </a>
               </>
             )}
 
             {errorStatus === 'ENTITLEMENT_REQUIRED' && (
               <>
-                <div className="size-16 rounded-full bg-red-500/10 text-red-400 mx-auto flex items-center justify-center mb-5 border border-red-500/20">
-                  <AlertCircle className="size-8" />
+                <div className="size-16 rounded-full bg-amber-500/10 text-amber-300 mx-auto flex items-center justify-center mb-5 border border-amber-500/20">
+                  <Lock className="size-8" />
                 </div>
                 <h2 className="font-serif text-2xl font-bold text-white mb-2">Masterclass no adquirida</h2>
                 <p className="text-sm text-white/70 mb-6 leading-relaxed">
-                  {errorMessage}
+                  {errorMessage ||
+                    'Esta lección médica requiere inscripción activa en la masterclass.'}
                 </p>
-                <div className="space-y-3">
-                  <a
-                    href={`/academia/${slug}`}
-                    className="block w-full py-3 px-4 rounded-xl bg-champagne text-obsidian font-semibold text-sm hover:brightness-105 transition-all"
-                  >
-                    Ver detalles y adquirir masterclass
-                  </a>
-                  <a
-                    href="/academia/mis-masterclasses"
-                    className="block w-full py-3 px-4 rounded-xl bg-white/5 text-white font-medium text-sm hover:bg-white/10 transition-colors border border-white/10"
-                  >
-                    Ir a mis masterclasses activas
-                  </a>
-                </div>
+                <Link
+                  href={`/academia/${slug}`}
+                  className="block w-full py-3 px-4 rounded-xl bg-champagne text-obsidian font-semibold text-sm hover:brightness-105 transition-all shadow-md"
+                >
+                  Ver detalles de la masterclass
+                </Link>
               </>
             )}
 
-            {errorStatus !== 'UNAUTHENTICATED' &&
-              errorStatus !== 'EMAIL_VERIFICATION_REQUIRED' &&
-              errorStatus !== 'ENTITLEMENT_REQUIRED' && (
-                <>
-                  <div className="size-16 rounded-full bg-white/5 text-white/70 mx-auto flex items-center justify-center mb-5">
-                    <AlertCircle className="size-8" />
-                  </div>
-                  <h2 className="font-serif text-xl font-bold text-white mb-2">Aviso de Reproducción</h2>
-                  <p className="text-sm text-white/70 mb-6 leading-relaxed">{errorMessage}</p>
+            {errorStatus !== 'UNAUTHENTICATED' && errorStatus !== 'ENTITLEMENT_REQUIRED' && (
+              <>
+                <div className="size-16 rounded-full bg-red-500/10 text-red-300 mx-auto flex items-center justify-center mb-5 border border-red-500/20">
+                  <AlertCircle className="size-8" />
+                </div>
+                <h2 className="font-serif text-2xl font-bold text-white mb-2">Lección no disponible</h2>
+                <p className="text-sm text-white/70 mb-6 leading-relaxed">
+                  {errorMessage ||
+                    'No fue posible cargar el contenido solicitado en este momento.'}
+                </p>
+                <div className="flex flex-col gap-2">
                   <button
-                    onClick={fetchLesson}
-                    className="inline-flex items-center gap-2 py-2.5 px-5 rounded-xl bg-champagne text-obsidian font-semibold text-sm"
+                    type="button"
+                    onClick={() => fetchLesson()}
+                    className="w-full py-3 px-4 rounded-xl bg-champagne text-obsidian font-semibold text-sm hover:brightness-105 transition-all shadow-md cursor-pointer"
                   >
-                    <RefreshCw className="size-4" />
-                    Reintentar
+                    Reintentar conexión
                   </button>
-                </>
-              )}
+                  <Link
+                    href="/academia/mis-masterclasses"
+                    className="block w-full py-3 px-4 rounded-xl bg-white/10 text-white font-medium text-sm hover:bg-white/20 transition-colors text-center"
+                  >
+                    Volver a mis masterclasses
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
     );
   }
 
-  // Fallback if course or lesson object wasn't loaded
-  if (!course || !lesson) {
-    return (
-      <div className="bg-[#091420] min-h-screen text-white flex flex-col items-center justify-center p-6 text-center">
-        <AlertCircle className="size-10 text-champagne mb-4" />
-        <h2 className="font-serif text-2xl font-bold text-white mb-2">Lección no disponible</h2>
-        <p className="text-sm text-white/70 max-w-md mb-6">
-          No fue posible encontrar la lección solicitada o no cuentas con los permisos necesarios.
-        </p>
-        <a
-          href="/mi-cuenta/masterclasses"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-champagne text-obsidian font-semibold text-xs uppercase tracking-wider"
-        >
-          Volver a Mis Masterclasses
-        </a>
-      </div>
-    );
-  }
+  const activeCourse = course || {
+    id: 'placeholder',
+    slug,
+    title: 'Masterclass Médica',
+    modules: [],
+  };
 
-  const activeCourse = course;
-  const activeLesson = lesson;
+  const activeLesson = lesson || {
+    id: 'placeholder',
+    slug: lessonSlug,
+    title: 'Lección Médica',
+    durationSeconds: 0,
+  };
 
   return (
-    <div className="bg-[#091420] min-h-screen text-white flex flex-col">
-      {/* Top Header */}
-      <header className="h-16 border-b border-white/10 bg-[#07101A] px-4 sm:px-8 flex items-center justify-between z-20">
+    <div className="bg-[#091420] min-h-screen text-white flex flex-col selection:bg-champagne selection:text-obsidian">
+      {/* Top Bar Navigation */}
+      <header className="h-16 border-b border-white/10 bg-[#07101A] px-4 sm:px-6 flex items-center justify-between z-10 shrink-0">
         <div className="flex items-center gap-4 min-w-0">
-          <a
+          <Link
             href="/academia/mis-masterclasses"
             className="inline-flex items-center gap-2 text-xs font-medium text-white/70 hover:text-white transition-colors shrink-0"
           >
             <ArrowLeft className="size-4" />
             <span className="hidden sm:inline">Mis Masterclasses</span>
-          </a>
+          </Link>
           <span className="text-white/20">|</span>
           <div className="truncate">
             <h1 className="font-serif text-sm sm:text-base font-medium text-white truncate max-w-xs sm:max-w-md">
@@ -418,18 +521,36 @@ export default function LessonPlayerPage({
             <ShieldCheck className="size-4 text-champagne" />
             Licencia Individual Activa
           </span>
-          <button
-            onClick={handleToggleComplete}
-            disabled={savingProgress}
-            className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
-              isCompleted
-                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30'
-                : 'bg-white/10 text-white/90 border border-white/20 hover:bg-white/20'
+
+          {/* Non-interactive Lesson Status Indicator */}
+          <div
+            role="status"
+            aria-live="polite"
+            className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold cursor-default select-none pointer-events-none transition-all duration-300 ${
+              isSavingNextLesson
+                ? 'bg-[#0D1F30] text-champagne border border-champagne/40 shadow-[0_0_12px_rgba(212,175,55,0.12)]'
+                : isCompleted
+                ? 'bg-[rgba(16,185,129,0.16)] text-[#D1FAE5] border border-[rgba(16,185,129,0.45)] shadow-[0_0_12px_rgba(16,185,129,0.15)]'
+                : 'bg-[#0D1F30] text-white/80 border border-white/15'
             }`}
           >
-            <CheckCircle2 className="size-3.5" />
-            <span>{isCompleted ? 'Completada' : 'Marcar completada'}</span>
-          </button>
+            {isSavingNextLesson ? (
+              <>
+                <RefreshCw className="size-3.5 animate-spin text-champagne" aria-hidden="true" />
+                <span>Guardando progreso…</span>
+              </>
+            ) : isCompleted ? (
+              <>
+                <CheckCircle2 className="size-3.5 text-[#10B981]" aria-hidden="true" />
+                <span>Lección completada</span>
+              </>
+            ) : (
+              <>
+                <span className="size-2 rounded-full bg-champagne animate-pulse" aria-hidden="true" />
+                <span>Lección en curso</span>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
@@ -437,58 +558,41 @@ export default function LessonPlayerPage({
       <div className="flex-1 flex flex-col lg:flex-row">
         {/* Main Video & Content Area */}
         <div className="flex-1 flex flex-col bg-black">
-          {/* Video Player Canvas */}
-          <div className="relative aspect-16/9 w-full bg-[#030910] flex items-center justify-center overflow-hidden">
-            {playbackLoading ? (
-              <div className="flex flex-col items-center justify-center text-center p-6 bg-[#07131F] w-full h-full">
-                <div className="size-10 border-2 border-champagne border-t-transparent rounded-full animate-spin mb-4" />
-                <p className="text-white/80 text-sm">Preparando reproducción segura…</p>
-                <p className="text-white/45 text-xs mt-1">Verificando tu acceso a esta lección</p>
-              </div>
-            ) : playbackData?.type === 'cloudflare' && playbackData.playbackUrl ? (
-              <iframe
-                id="lesson_cloudflare_iframe"
-                src={playbackData.playbackUrl}
-                title={activeLesson?.title || 'Video seguro de la lección'}
-                className="w-full h-full border-0"
-                allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
-                allowFullScreen
-                referrerPolicy="strict-origin-when-cross-origin"
-              />
-            ) : playbackData?.type === 'youtube' && (playbackData.embedUrl || playbackData.videoId) ? (
-              <iframe
-                id="lesson_youtube_iframe"
-                src={
-                  playbackData.embedUrl ||
-                  `https://www.youtube-nocookie.com/embed/${playbackData.videoId}?rel=0&modestbranding=1&autoplay=1&enablejsapi=1`
+          {/* Video Container Area:
+              Shows initial access verification screen ONLY until ready.
+              Once ready, mounts LessonVideoPlayer permanently. */}
+          {playerState === 'ready' && lesson ? (
+            <LessonVideoPlayer
+              ref={videoPlayerRef}
+              key={lesson.id}
+              playbackData={playbackData}
+              lessonTitle={activeLesson.title}
+              courseId={activeCourse.id}
+              lessonId={lesson.id}
+              userId={user?.id || 'anon'}
+              courseSlug={slug}
+              lessonSlug={activeLesson.slug}
+              serverPositionSeconds={serverPositionSeconds}
+              serverDurationSeconds={activeLesson.durationSeconds}
+              serverCompleted={isCompleted}
+              serverUpdatedAt={serverUpdatedAt}
+              fetchWithAuth={fetchWithAuth}
+              onProgressUpdate={(prog) => {
+                if (prog.completed && !isCompleted) {
+                  setIsCompleted(true);
                 }
-                title={activeLesson?.title || 'Video de la lección'}
-                className="w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
-            ) : (
-              <div className="relative w-full h-full flex items-center justify-center bg-[#07131F]">
-                <div className="text-center p-6">
-                  <div className="size-16 rounded-full bg-red-500/10 text-red-300 mx-auto flex items-center justify-center mb-3 border border-red-400/20">
-                    <AlertCircle className="size-8" />
-                  </div>
-                  <h3 className="text-white font-serif text-lg font-medium">Video no disponible</h3>
-                  <p className="text-white/60 text-xs mt-1 max-w-sm">
-                    {playbackError || playbackData?.notice || 'Esta lección todavía no tiene un video publicado.'}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={fetchPlaybackDetails}
-                    className="mt-4 inline-flex items-center gap-2 rounded-lg bg-champagne px-4 py-2 text-xs font-semibold text-obsidian hover:brightness-105"
-                  >
-                    <RefreshCw className="size-3.5" />
-                    Intentar nuevamente
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+              }}
+              onLessonAutoCompleted={() => {
+                setIsCompleted(true);
+              }}
+            />
+          ) : (
+            <div className="relative aspect-16/9 w-full bg-[#030910] flex flex-col items-center justify-center text-center p-6">
+              <div className="size-10 border-2 border-champagne border-t-transparent rounded-full animate-spin mb-4" />
+              <p className="text-white/80 text-sm">Preparando reproducción segura…</p>
+              <p className="text-white/45 text-xs mt-1">Verificando tu acceso a esta lección</p>
+            </div>
+          )}
 
           {/* Lesson Metadata Bar */}
           <div className="bg-[#0A1624] px-6 py-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-4">
@@ -497,30 +601,57 @@ export default function LessonPlayerPage({
                 {moduleData?.title || 'Módulo Principal'}
               </div>
               <h2 className="text-lg sm:text-xl font-serif font-bold text-white mt-0.5">
-                {activeLesson?.title}
+                {activeLesson.title}
               </h2>
             </div>
 
             {/* Prev / Next navigation */}
-            <div className="flex items-center gap-2">
-              {prevLesson && (
-                <a
-                  href={`/academia/${slug}/leccion/${prevLesson.lesson.slug}`}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 text-xs transition-colors border border-white/10"
-                >
-                  <ChevronLeft className="size-3.5" />
-                  <span className="hidden sm:inline">Anterior</span>
-                </a>
+            <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
+              {navigationError && (
+                <span className="text-xs text-amber-300 font-medium mr-2">
+                  {navigationError}
+                </span>
               )}
-              {nextLesson && (
-                <a
-                  href={`/academia/${slug}/leccion/${nextLesson.lesson.slug}`}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-champagne text-obsidian text-xs font-semibold hover:brightness-105 transition-all shadow-sm"
+
+              <div className="flex items-center gap-2">
+                {prevLesson && (
+                  <button
+                    type="button"
+                    onClick={handlePrevLesson}
+                    aria-label="Ir a la lección anterior"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 text-xs transition-colors border border-white/10 cursor-pointer"
+                  >
+                    <ChevronLeft className="size-3.5" />
+                    <span className="hidden sm:inline">Anterior</span>
+                  </button>
+                )}
+
+                {/* Siguiente lección / Finalizar curso button */}
+                <button
+                  type="button"
+                  onClick={handleNextLesson}
+                  disabled={isSavingNextLesson}
+                  aria-label={isLastLesson ? 'Finalizar curso' : 'Ir a la siguiente lección'}
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 min-w-[155px] justify-center rounded-lg bg-champagne text-obsidian text-xs font-semibold hover:brightness-105 transition-all shadow-sm disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  <span>Siguiente clase</span>
-                  <ChevronRight className="size-3.5" />
-                </a>
-              )}
+                  {isSavingNextLesson ? (
+                    <>
+                      <RefreshCw className="size-3.5 animate-spin" />
+                      <span>Guardando progreso…</span>
+                    </>
+                  ) : isLastLesson ? (
+                    <>
+                      <span>Finalizar curso</span>
+                      <CheckCircle2 className="size-3.5 text-obsidian" />
+                    </>
+                  ) : (
+                    <>
+                      <span>Siguiente lección</span>
+                      <ChevronRight className="size-3.5" />
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -529,7 +660,7 @@ export default function LessonPlayerPage({
             <div className="flex items-center gap-6 border-b border-[#B39A6A]/20 pb-3 text-xs sm:text-sm font-medium">
               <button
                 onClick={() => setActiveTab('resumen')}
-                className={`pb-3 border-b-2 transition-colors -mb-3 font-semibold ${
+                className={`pb-3 border-b-2 transition-colors -mb-3 font-semibold cursor-pointer ${
                   activeTab === 'resumen'
                     ? 'border-[#B39A6A] text-[#0B1724]'
                     : 'border-transparent text-[#0B1724]/60 hover:text-[#0B1724]'
@@ -539,7 +670,7 @@ export default function LessonPlayerPage({
               </button>
               <button
                 onClick={() => setActiveTab('transcripcion')}
-                className={`pb-3 border-b-2 transition-colors -mb-3 font-semibold ${
+                className={`pb-3 border-b-2 transition-colors -mb-3 font-semibold cursor-pointer ${
                   activeTab === 'transcripcion'
                     ? 'border-[#B39A6A] text-[#0B1724]'
                     : 'border-transparent text-[#0B1724]/60 hover:text-[#0B1724]'
@@ -549,13 +680,13 @@ export default function LessonPlayerPage({
               </button>
               <button
                 onClick={() => setActiveTab('materiales')}
-                className={`pb-3 border-b-2 transition-colors -mb-3 font-semibold ${
+                className={`pb-3 border-b-2 transition-colors -mb-3 font-semibold cursor-pointer ${
                   activeTab === 'materiales'
                     ? 'border-[#B39A6A] text-[#0B1724]'
                     : 'border-transparent text-[#0B1724]/60 hover:text-[#0B1724]'
                 }`}
               >
-                Materiales descargables ({activeLesson?.attachments?.length || 0})
+                Materiales descargables ({activeLesson.attachments?.length || 0})
               </button>
             </div>
 
@@ -563,11 +694,13 @@ export default function LessonPlayerPage({
               {activeTab === 'resumen' && (
                 <div className="space-y-4">
                   <p>
-                    {activeLesson?.summary ||
+                    {activeLesson.summary ||
                       'Esta lección aborda los fundamentos clínicos impartidos por el Dr. Mauricio Benjamín Galindo López, con base en evidencia médica rigurosa y aplicación práctica personalizada.'}
                   </p>
                   <div className="p-4 rounded-xl bg-white border border-[#B39A6A]/25 text-xs text-[#0B1724]/80 shadow-xs">
-                    <strong className="text-[#0B1724] font-semibold">Criterio clínico:</strong> Recuerda que el contenido de esta lección tiene carácter formativo y educativo. No reemplaza una consulta médica presencial ni justifica la auto-prescripción farmacológica.
+                    <strong className="text-[#0B1724] font-semibold">Criterio clínico:</strong> Recuerda
+                    que el contenido de esta lección tiene carácter formativo y educativo. No reemplaza
+                    una consulta médica presencial ni justifica la auto-prescripción farmacológica.
                   </div>
                 </div>
               )}
@@ -575,8 +708,8 @@ export default function LessonPlayerPage({
               {activeTab === 'transcripcion' && (
                 <div className="space-y-3 font-serif text-base text-[#0B1724]/90 max-w-2xl">
                   <p>
-                    {activeLesson?.transcript ||
-                      'La transcripción completa de esta clase se genera a partir de la exposición del Dr. Mauricio Galindo para facilitar tu estudio y consulta rápida de conceptos.'}
+                    {activeLesson.transcript ||
+                      'La transcripción completa de esta lección se genera a partir de la exposición del Dr. Mauricio Galindo para facilitar tu estudio y consulta rápida de conceptos.'}
                   </p>
                 </div>
               )}
@@ -588,7 +721,7 @@ export default function LessonPlayerPage({
                       {attachmentError}
                     </div>
                   )}
-                  {activeLesson?.attachments && activeLesson.attachments.length > 0 ? (
+                  {activeLesson.attachments && activeLesson.attachments.length > 0 ? (
                     activeLesson.attachments.map((att) => (
                       <div
                         key={att.id}
@@ -597,18 +730,24 @@ export default function LessonPlayerPage({
                         <div className="flex items-center gap-3">
                           <FileText className="size-5 text-champagne" />
                           <div>
-                            <div className="font-medium text-obsidian text-xs sm:text-sm">{att.title}</div>
-                            <div className="text-[11px] text-obsidian/50">{att.fileSizeLabel} · Formato {att.format}</div>
+                            <div className="font-medium text-obsidian text-xs sm:text-sm">
+                              {att.title}
+                            </div>
+                            <div className="text-[11px] text-obsidian/50">
+                              {att.fileSizeLabel} · Formato {att.format}
+                            </div>
                           </div>
                         </div>
                         <button
                           type="button"
                           onClick={() => handleAttachmentDownload(att.id)}
                           disabled={downloadingAttachmentId === att.id}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-obsidian text-white text-xs font-semibold hover:bg-[#07182A] transition-colors"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-obsidian text-white text-xs font-semibold hover:bg-[#07182A] transition-colors cursor-pointer"
                         >
                           <Download className="size-3.5" />
-                          <span>{downloadingAttachmentId === att.id ? 'Preparando…' : 'Descargar'}</span>
+                          <span>
+                            {downloadingAttachmentId === att.id ? 'Preparando…' : 'Descargar'}
+                          </span>
                         </button>
                       </div>
                     ))
@@ -652,14 +791,25 @@ export default function LessonPlayerPage({
                 <div className="space-y-1.5">
                   {mod.lessons.map((les) => {
                     const isCurrent = les.slug === lessonSlug;
-                    const isLessonDone = progressRecords.some(
-                      (p) => p.lessonId === les.id && p.status === 'completed'
-                    );
+                    const isLessonDone =
+                      (isCurrent && isCompleted) ||
+                      progressRecords.some(
+                        (p) =>
+                          (p.lessonId === les.id ||
+                            p.lessonId === les.slug ||
+                            p.lesson_id === les.id ||
+                            p.lesson_id === les.slug) &&
+                          (p.status === 'completed' ||
+                            p.completed === true ||
+                            p.progressPercent === 100 ||
+                            p.progress_percent === 100),
+                      );
 
                     return (
-                      <a
+                      <Link
                         key={les.id}
                         href={`/academia/${activeCourse.slug}/leccion/${les.slug}`}
+                        onClick={(e) => handleSelectLessonFromSyllabus(les.slug, e)}
                         className={`flex items-center justify-between p-2.5 rounded-xl text-xs transition-all ${
                           isCurrent
                             ? 'bg-champagne/20 text-white font-medium border border-champagne/40'
@@ -679,7 +829,7 @@ export default function LessonPlayerPage({
                         <span className="text-[10px] text-white/40 shrink-0 ml-2 font-mono">
                           {Math.round((les.durationSeconds || 600) / 60)}m
                         </span>
-                      </a>
+                      </Link>
                     );
                   })}
                 </div>

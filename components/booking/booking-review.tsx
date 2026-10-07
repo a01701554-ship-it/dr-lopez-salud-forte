@@ -1,7 +1,8 @@
 import React from 'react';
 import { siteConfig } from '@/config/site';
-import { ShieldCheck, Calendar, Clock, DollarSign } from 'lucide-react';
+import { ShieldCheck, MapPin, ExternalLink } from 'lucide-react';
 import { BookingFormData } from './booking-patient-form';
+import { ClinicLocationId, getClinicLocation } from '@/config/locations';
 
 interface BookingReviewProps {
   dateLabel: string;
@@ -11,6 +12,7 @@ interface BookingReviewProps {
   durationLabel: string;
   feeFormatted: string;
   patient: BookingFormData;
+  locationId?: ClinicLocationId;
   confirming: boolean;
   onConfirm: () => void;
   onModify: () => void;
@@ -24,10 +26,12 @@ export function BookingReview({
   durationLabel,
   feeFormatted,
   patient,
+  locationId = 'queretaro',
   confirming,
   onConfirm,
   onModify,
 }: BookingReviewProps) {
+  const location = getClinicLocation(locationId);
   return (
     <div className="space-y-6">
       <div className="border-b border-stone/60 pb-4">
@@ -77,6 +81,32 @@ export function BookingReview({
               {durationLabel}
             </span>
           </div>
+        </div>
+
+        {/* Location / Modalidad */}
+        <div className="pb-4 border-b border-stone/50 text-xs">
+          <span className="font-semibold uppercase tracking-wider text-obsidian/50 block text-[10px] mb-1">
+            Ubicación / Modalidad
+          </span>
+          <div className="flex items-center justify-between">
+            <span className="font-serif text-base text-obsidian font-medium flex items-center gap-1.5">
+              <MapPin className="size-3.5 text-[#B39A6A]" />
+              {location.name}
+            </span>
+            {!location.isOnline && location.googleMapsUrl && (
+              <a
+                href={location.googleMapsUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-xs text-[#B39A6A] hover:underline font-medium inline-flex items-center gap-1"
+              >
+                Ver en Google Maps <ExternalLink className="size-3" />
+              </a>
+            )}
+          </div>
+          <p className="text-xs text-obsidian/60 mt-1">
+            {location.isOnline ? location.onlineInstructions : location.address}
+          </p>
         </div>
 
         {/* Patient */}

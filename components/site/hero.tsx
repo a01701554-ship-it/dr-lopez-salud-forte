@@ -161,7 +161,7 @@ export function Hero() {
               El Dr. Mauricio Galindo combina criterio clínico riguroso, atención médica personalizada y divulgación basada en evidencia para ayudarte a tomar mejores decisiones sobre tu bienestar.
             </p>
 
-            {/* 4. Botones de Acción (CTAs) */}
+            {/* 4. Botón de Acción Principal (CTA) */}
             <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 sm:gap-4">
               <div
                 className="gpu-accel"
@@ -177,22 +177,6 @@ export function Hero() {
                 >
                   <span>Agendar consulta</span>
                   <ArrowRight className="size-4 stroke-[2.5] transition-transform duration-200 group-hover/cta:translate-x-1" />
-                </Link>
-              </div>
-
-              <div
-                className="gpu-accel"
-                style={{
-                  opacity: prefersReduced ? 1 : animate ? 1 : 0,
-                  transform: prefersReduced ? 'none' : animate ? 'translate3d(0, 0, 0)' : 'translate3d(0, 16px, 0)',
-                  transition: prefersReduced ? 'none' : 'opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.35s, transform 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.35s',
-                }}
-              >
-                <Link
-                  href="/sobre-mi"
-                  className="inline-flex items-center justify-center h-[52px] sm:h-[60px] px-7 sm:px-8 rounded-full bg-white/90 border border-[#162039]/15 text-[#162039] font-sans text-[13px] sm:text-[14px] font-semibold uppercase tracking-[0.08em] transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:border-[#162039]/30 hover:shadow-sm active:translate-y-0 text-center w-full sm:w-auto cursor-pointer"
-                >
-                  Conoce mi enfoque
                 </Link>
               </div>
             </div>

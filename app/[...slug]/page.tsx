@@ -1,5 +1,7 @@
 import { ComingSoonPage } from '@/components/site/coming-soon-page';
+import { LegalInformationPage } from '@/components/site/legal-information-page';
 import { ManageAppointmentClient } from '@/components/booking/manage-appointment-client';
+import { STORE_ENABLED } from '@/config/site';
 
 interface RouteConfig {
   eyebrow: string;
@@ -78,6 +80,10 @@ export const routeConfigs: Record<string, RouteConfig> = {
 
 export function resolveConfig(slug: string[]): RouteConfig | null {
   const root = slug[0];
+  if (root === 'tienda' && !STORE_ENABLED) {
+    return null;
+  }
+
   if (routeConfigs[root] && slug.length === 1) {
     return routeConfigs[root];
   }
@@ -99,8 +105,8 @@ export function resolveConfig(slug: string[]): RouteConfig | null {
       title: 'Esta experiencia está preparada para una fase futura.',
       description:
         'No hay una oferta publicada en esta ruta. Contenidos, precios y condiciones solo aparecerán cuando sean reales y estén revisados.',
-      primaryHref: root === 'producto' ? '/tienda' : '/academia',
-      primaryLabel: root === 'producto' ? 'Volver a la tienda' : 'Volver a Academia',
+      primaryHref: root === 'producto' ? (STORE_ENABLED ? '/tienda' : '/') : '/academia',
+      primaryLabel: root === 'producto' ? (STORE_ENABLED ? 'Volver a la tienda' : 'Volver al inicio') : 'Volver a Academia',
     };
   }
 
@@ -125,6 +131,14 @@ export function resolveConfig(slug: string[]): RouteConfig | null {
 }
 
 export default function FoundationRoute({ slug }: { slug: string[] }) {
+  if (slug.length === 1 && slug[0] === 'privacidad') {
+    return <LegalInformationPage kind="privacy" />;
+  }
+
+  if (slug.length === 1 && slug[0] === 'terminos') {
+    return <LegalInformationPage kind="terms" />;
+  }
+
   if (slug[0] === 'cita' && slug.length === 2 && slug[1]) {
     return <ManageAppointmentClient publicId={slug[1]} />;
   }

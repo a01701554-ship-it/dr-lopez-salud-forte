@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container } from '@/components/site/container';
 import { MasterclassCard } from '@/components/academia/masterclass-card';
 import { INITIAL_COURSES } from '@/lib/academy/db';
@@ -29,7 +29,32 @@ export default function AcademiaPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [emailWaitlist, setEmailWaitlist] = useState('');
   const [waitlistStatus, setWaitlistStatus] = useState<'idle' | 'success'>('idle');
-  const { user } = useAuth();
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set());
+  const { user, fetchWithAuth } = useAuth();
+
+  useEffect(() => {
+    let isMounted = true;
+    if (user) {
+      fetchWithAuth('/api/academia/my-library', { credentials: 'include' })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (!isMounted || !data) return;
+          const items = data.library || data.courses || [];
+          const ids = new Set<string>();
+          for (const item of items) {
+            if (item.course?.id) ids.add(item.course.id);
+            if (item.course?.slug) ids.add(item.course.slug);
+          }
+          setEnrolledCourseIds(ids);
+        })
+        .catch(() => {});
+    } else {
+      setEnrolledCourseIds(new Set());
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [user, fetchWithAuth]);
 
   const filteredCourses = INITIAL_COURSES.filter((course) => {
     if (selectedCategory === 'all') return true;
@@ -136,7 +161,11 @@ export default function AcademiaPage() {
           {/* Grid of Masterclasses */}
           <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-10">
             {filteredCourses.map((course) => (
-              <MasterclassCard key={course.id} course={course} />
+              <MasterclassCard
+                key={course.id}
+                course={course}
+                hasAccess={enrolledCourseIds.has(course.id) || enrolledCourseIds.has(course.slug)}
+              />
             ))}
           </div>
         </Container>
